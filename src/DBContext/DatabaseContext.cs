@@ -13,5 +13,12 @@ namespace ae_resume_api.Authentication
         {
             base.OnModelCreating(builder);
         }
+
+        public DbSet<EmployeeEntity>? Employees { get; set; }
+
+        public new async Task<int> SaveChanges()
+        {
+            return await base.SaveChangesAsync();
+        }
     }
 }
