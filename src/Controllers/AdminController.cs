@@ -37,23 +37,24 @@ namespace ae_resume_api.Controllers
 
         [HttpPut]
         [Route("EditEmployee")]
-        public async Task<IActionResult> EditEmployee()
+        public async Task<HttpResponseMessage> EditEmployee(long Eid, EmployeeModel employeeModel)
         {
-            return BadRequest("Not setup");
+            //return BadRequest("Not setup");
+            return await _adminservice.EditEmployee(Eid, employeeModel);
         }
 
         [HttpDelete]
         [Route("DeleteEmployee")]
-        public async Task<IActionResult> DeleteEmployee()
+        public async Task<HttpResponseMessage> DeleteEmployee(long EID)
         {
-            return BadRequest("Not setup");
+            return await _adminservice.DeleteEmployee(EID);
         }
 
         [HttpPost]
         [Route("AssignAccess")]
-        public async Task<IActionResult> AssignAccess()
+        public async Task<HttpResponseMessage> AssignAccess(long EID, string access)
         {
-            return BadRequest("Not setup");
+            return await _adminservice.AssignEmployeeAccess(EID, access);
         }
 
         [HttpPost]
@@ -74,7 +75,7 @@ namespace ae_resume_api.Controllers
         [Route("DeleteSectorType")]
         public async Task<IActionResult> DeleteSectorType()
         {
-            return BadRequest("Not setup");
+           return BadRequest("Not setup");
         }
 
         [HttpPost]
