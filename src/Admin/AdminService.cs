@@ -15,6 +15,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Net;
 using Microsoft.EntityFrameworkCore;
+using ae_resume_api.DBContext;
 
 namespace ae_resume_api.Admin
 {
@@ -28,11 +29,11 @@ namespace ae_resume_api.Admin
         /// <summary>
         /// Create an employee from passed in request data
         /// </summary>
-        /// <param name="model">EmployeeModel data</param>
         /// <returns>Response message with either success or fail</returns>
 		public async Task<HttpResponseMessage> CreateEmployee(EmployeeModel model)
         {
             EmployeeEntity employee = new EmployeeEntity();
+            Console.WriteLine("Creating employee: " + model.Name);
             employee.EID = model.EID;
             employee.Username = model.Username;
             employee.Password = model.Password;
@@ -44,15 +45,17 @@ namespace ae_resume_api.Admin
 
             try
             {
-                // add employee to database
+                // Add Employee to database
                 _databaseContext.Employees.Add(employee);
                 await _databaseContext.SaveChangesAsync();
+                Console.WriteLine("Employee count:" + _databaseContext.Employees.Count());
                 string message = ($"Employee Created - {employee.EID}");
                 returnMessage = new HttpResponseMessage(HttpStatusCode.Created);
                 returnMessage.RequestMessage = new HttpRequestMessage(HttpMethod.Post, message);
             }
             catch (Exception ex)
             {
+                Console.WriteLine(ex.Message);
                 returnMessage = new HttpResponseMessage(HttpStatusCode.ExpectationFailed);
                 returnMessage.RequestMessage = new HttpRequestMessage(HttpMethod.Post, ex.ToString());
             }
@@ -61,21 +64,22 @@ namespace ae_resume_api.Admin
             return await Task.FromResult(returnMessage);
         }
         /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="EID"></param>
-        /// <param name="model"></param>
+        /// Edit an Employee specified by the provided EID with the model information provided
+        /// </summary>        
         /// <returns></returns>
-        public async Task<HttpResponseMessage> EditEmployee(long EID, EmployeeModel model)
+        public async Task<HttpResponseMessage> EditEmployee(int EID, EmployeeModel model)
         {
             HttpResponseMessage returnMessage = new HttpResponseMessage();
 
+            // Check that the Employee we want to edit matches the EmployeeModel
             if (EID != model.EID)
             {
                 returnMessage = new HttpResponseMessage(HttpStatusCode.ExpectationFailed);
                 returnMessage.RequestMessage = new HttpRequestMessage(HttpMethod.Put, "No edit");
             }
 
+            // Find the Employee in the database to edit
+            // Error if no Employee found
             var employee = await _databaseContext.Employees.FindAsync(EID);
             if (employee == null)
             {
@@ -102,14 +106,14 @@ namespace ae_resume_api.Admin
         /// <summary>
         /// Delete an employee
         /// </summary>
-        public async Task<HttpResponseMessage> DeleteEmployee(long EID)
+        public async Task<HttpResponseMessage> DeleteEmployee(int EID)
         {
 
             HttpResponseMessage returnMessage = new HttpResponseMessage();
             // TODO: implement
 
             returnMessage = new HttpResponseMessage(HttpStatusCode.ExpectationFailed);
-            returnMessage.RequestMessage = new HttpRequestMessage(HttpMethod.Put, "Not implemented");
+            returnMessage.RequestMessage = new HttpRequestMessage(HttpMethod.Delete, "Not implemented");
 
             return await Task.FromResult(returnMessage);
         }
@@ -117,7 +121,7 @@ namespace ae_resume_api.Admin
         /// Change the access for a given employee
         /// </summary>
         /// <param name="access">New access for an employee</param>
-        public async Task<HttpResponseMessage> AssignEmployeeAccess(long EID, string access)
+        public async Task<HttpResponseMessage> AssignEmployeeAccess(int EID, string access)
         {
             HttpResponseMessage returnMessage = new HttpResponseMessage();
             // TODO: implement
@@ -127,6 +131,90 @@ namespace ae_resume_api.Admin
 
             return await Task.FromResult(returnMessage);
         }
+
+        public async Task<HttpResponseMessage> NewSectorType(SectorTypeModel model)
+        {
+            HttpResponseMessage returnMessage = new HttpResponseMessage();
+            // TODO: implement
+
+            returnMessage = new HttpResponseMessage(HttpStatusCode.ExpectationFailed);
+            returnMessage.RequestMessage = new HttpRequestMessage(HttpMethod.Post, "Not implemented");
+
+            return await Task.FromResult(returnMessage);
+        }
+
+        public async Task<HttpResponseMessage> EditSectorType(int sectorTypeID, SectorTypeModel model)
+        {
+            HttpResponseMessage returnMessage = new HttpResponseMessage();
+            // TODO: implement
+
+            returnMessage = new HttpResponseMessage(HttpStatusCode.ExpectationFailed);
+            returnMessage.RequestMessage = new HttpRequestMessage(HttpMethod.Put, "Not implemented");
+
+            return await Task.FromResult(returnMessage);
+        }
+
+        public async Task<HttpResponseMessage> DeleteSectorType(int sectorTypeID)
+        {
+            HttpResponseMessage returnMessage = new HttpResponseMessage();
+            // TODO: implement
+
+            returnMessage = new HttpResponseMessage(HttpStatusCode.ExpectationFailed);
+            returnMessage.RequestMessage = new HttpRequestMessage(HttpMethod.Delete, "Not implemented");
+
+            return await Task.FromResult(returnMessage);
+        }
+        public async Task<HttpResponseMessage> CreateTemplate(TemplateModel model)
+        {
+            HttpResponseMessage returnMessage = new HttpResponseMessage();
+            // TODO: implement
+
+            returnMessage = new HttpResponseMessage(HttpStatusCode.ExpectationFailed);
+            returnMessage.RequestMessage = new HttpRequestMessage(HttpMethod.Post, "Not implemented");
+
+            return await Task.FromResult(returnMessage);
+        }
+        public async Task<HttpResponseMessage> GetTemplate(int templateID)
+        {
+            HttpResponseMessage returnMessage = new HttpResponseMessage();
+            // TODO: implement
+
+            returnMessage = new HttpResponseMessage(HttpStatusCode.ExpectationFailed);
+            returnMessage.RequestMessage = new HttpRequestMessage(HttpMethod.Get, "Not implemented");
+
+            return await Task.FromResult(returnMessage);
+        }
+        public async Task<HttpResponseMessage> EditTemplate(int templateID, TemplateModel model)
+        {
+            HttpResponseMessage returnMessage = new HttpResponseMessage();
+            // TODO: implement
+
+            returnMessage = new HttpResponseMessage(HttpStatusCode.ExpectationFailed);
+            returnMessage.RequestMessage = new HttpRequestMessage(HttpMethod.Put, "Not implemented");
+
+            return await Task.FromResult(returnMessage);
+        }
+        public async Task<HttpResponseMessage> AssignSectorType(int templateID, int sectorTypeID)
+        {
+            HttpResponseMessage returnMessage = new HttpResponseMessage();
+            // TODO: implement
+
+            returnMessage = new HttpResponseMessage(HttpStatusCode.ExpectationFailed);
+            returnMessage.RequestMessage = new HttpRequestMessage(HttpMethod.Post, "Not implemented");
+
+            return await Task.FromResult(returnMessage);
+        }
+        public async Task<HttpResponseMessage> DeleteTemplate(int templateID)
+        {
+            HttpResponseMessage returnMessage = new HttpResponseMessage();
+            // TODO: implement
+
+            returnMessage = new HttpResponseMessage(HttpStatusCode.ExpectationFailed);
+            returnMessage.RequestMessage = new HttpRequestMessage(HttpMethod.Delete, "Not implemented");
+
+            return await Task.FromResult(returnMessage);
+        }
+
         /// <summary>
         /// Check if employee exists
         /// </summary>

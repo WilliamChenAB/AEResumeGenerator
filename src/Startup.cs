@@ -1,4 +1,5 @@
 ﻿using ae_resume_api.Authentication;
+using ae_resume_api.DBContext;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
