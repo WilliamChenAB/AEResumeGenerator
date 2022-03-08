@@ -40,7 +40,6 @@ namespace ae_resume_api.Controllers
         [Route("EditEmployee")]
         public async Task<HttpResponseMessage> EditEmployee(int Eid, EmployeeModel employeeModel)
         {
-            //return BadRequest("Not setup");
             return await _adminservice.EditEmployee(Eid, employeeModel);
         }
 
@@ -49,6 +48,13 @@ namespace ae_resume_api.Controllers
         public async Task<HttpResponseMessage> DeleteEmployee(int EID)
         {
             return await _adminservice.DeleteEmployee(EID);
+        }
+
+        [HttpGet]
+        [Route("GetEmployee")]
+        public async Task<EmployeeModel> GetEmployee(int EID)
+        {
+            return await _adminservice.GetEmployee(EID);
         }
 
         [HttpPost]

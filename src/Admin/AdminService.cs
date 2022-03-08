@@ -16,6 +16,7 @@ using System.Threading.Tasks;
 using System.Net;
 using Microsoft.EntityFrameworkCore;
 using ae_resume_api.DBContext;
+using System.Diagnostics;
 
 namespace ae_resume_api.Admin
 {
@@ -33,7 +34,7 @@ namespace ae_resume_api.Admin
 		public async Task<HttpResponseMessage> CreateEmployee(EmployeeModel model)
         {
             EmployeeEntity employee = new EmployeeEntity();
-            Console.WriteLine("Creating employee: " + model.Name);
+            Debug.Write("Creating employee: " + model.Name);
             employee.EID = model.EID;
             employee.Username = model.Username;
             employee.Password = model.Password;
@@ -47,15 +48,18 @@ namespace ae_resume_api.Admin
             {
                 // Add Employee to database
                 _databaseContext.Employees.Add(employee);
-                await _databaseContext.SaveChangesAsync();
-                Console.WriteLine("Employee count:" + _databaseContext.Employees.Count());
+
+                // TODO implement db connection
+                // await _databaseContext.SaveChangesAsync();
+                //Console.WriteLine("Employee count:" + _databaseContext.Employees.Count());
+
                 string message = ($"Employee Created - {employee.EID}");
                 returnMessage = new HttpResponseMessage(HttpStatusCode.Created);
                 returnMessage.RequestMessage = new HttpRequestMessage(HttpMethod.Post, message);
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                Debug.Write(ex.Message);
                 returnMessage = new HttpResponseMessage(HttpStatusCode.ExpectationFailed);
                 returnMessage.RequestMessage = new HttpRequestMessage(HttpMethod.Post, ex.ToString());
             }
@@ -117,6 +121,29 @@ namespace ae_resume_api.Admin
 
             return await Task.FromResult(returnMessage);
         }
+
+        /// <summary>
+        /// Get an Employee entity from the db and transform it into the model
+        /// </summary>
+        public async Task<EmployeeModel> GetEmployee(int EID)
+        {
+            EmployeeEntity entity = await _databaseContext.Employees.FindAsync(EID);
+
+            // if we cannot find the employee return null
+            if (entity == null)
+                return null;
+
+            EmployeeModel model = new EmployeeModel
+            {
+                EID = EID,
+                Name = entity.Name,
+                Email = entity.Email,
+                Username = entity.Username,
+                Password = entity.Password
+            };
+            return model;
+        }
+
         /// <summary>
         /// Change the access for a given employee
         /// </summary>

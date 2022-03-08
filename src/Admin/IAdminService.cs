@@ -7,6 +7,7 @@ namespace ae_resume_api.Admin
 	{
         Task<HttpResponseMessage> CreateEmployee(EmployeeModel model);
         Task<HttpResponseMessage> DeleteEmployee(int EID);
+        Task<EmployeeModel> GetEmployee(int EID);
         Task<HttpResponseMessage> EditEmployee(int EID, EmployeeModel employeeModel);
         Task<HttpResponseMessage> AssignEmployeeAccess(int EID, string access);
         Task<HttpResponseMessage> NewSectorType(SectorTypeModel model);
