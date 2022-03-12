@@ -1,5 +1,4 @@
-﻿using ae_resume_api.Authentication;
-using ae_resume_api.Admin;
+﻿using ae_resume_api.Admin;
 using ae_resume_api.DBContext;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;

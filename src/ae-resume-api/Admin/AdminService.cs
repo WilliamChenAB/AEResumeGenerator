@@ -1,5 +1,4 @@
-﻿using ae_resume_api.Authentication;
-using ae_resume_api.Controllers;
+﻿using ae_resume_api.Controllers;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using Microsoft.AspNetCore.Http;

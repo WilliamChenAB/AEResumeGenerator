@@ -1,5 +1,4 @@
-﻿using ae_resume_api.Authentication;
-using ae_resume_api.DBContext;
+﻿using ae_resume_api.DBContext;
 using ae_resume_api.Attributes;
 using Microsoft.AspNetCore.Mvc;
 using System;
