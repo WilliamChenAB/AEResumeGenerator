@@ -1,5 +1,7 @@
 ﻿using System;
 using ae_resume_api.Attributes;
+using ae_resume_api.Facade;
+
 using ae_resume_api.DBContext;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -22,23 +24,68 @@ namespace ae_resume_api.Controllers
 	public class AtrributesController : ControllerBase
 	{
 		private readonly IAttributeService _attributeservice;
+
+		public List<WorkspaceModel> Workspaces { get; set; } = new List<WorkspaceModel>();
+
+
 		public AtrributesController(IAttributeService attributeservice)
 		{
 			_attributeservice = attributeservice;
+				 
+
+			Workspaces.Add(new WorkspaceModel { 
+				WID = 1,
+				Division = "Water",
+				CreationDate = "01/01/2022",
+				ProposalNumber = 1,
+				Resumes = new List<ResumeModel>{
+					new ResumeModel
+				{
+					RID = 2,
+					CreationDate = "01/01/2020",
+					LastEditedDate = "01/01/2020",
+					SectorList = null
+				}}
+			});
 		}
 
 		[HttpPost]
 		[Route("NewWorkspace")]
-		public async Task<HttpResponseMessage> NewWorkspace([FromBody] WorkspaceModel model)
+		public async Task<IActionResult> NewWorkspace([FromBody] WorkspaceModel model)
 		{
-			return await _attributeservice.NewWorkspace(model);
+			// return await _attributeservice.NewWorkspace(model);
+
+			Workspaces.Add(model);
+            WorkspaceEntity entity = new WorkspaceEntity
+            {
+                WID = model.WID,
+				Division = model.Division,
+				CreationDate = model.CreationDate,
+				ProposalNumber = model.ProposalNumber
+            };
+            //_databaseContext.Employees.Add(entity);
+
+            return CreatedAtAction(
+                nameof(GetWorkspace),
+                new { WID = model.WID },
+                model);
 		}
 
 		[HttpGet]
 		[Route("GetWorkspace")]
-		public async Task<HttpResponseMessage> GetWorkspace(int WID)
+		public async Task<ActionResult<WorkspaceModel>> GetWorkspace(int WID)
 		{
-			return await _attributeservice.GetWorkspace(WID);
+			// return await _attributeservice.GetWorkspace(WID);
+
+			var workspace = Workspaces.Find(x => x.WID == WID);
+            //var employee = await _databaseContext.Employees.FindAsync(EID);
+
+            if(workspace == null)
+            {
+                return NotFound();
+            }
+            return workspace;
+            //return EmployeeEntityToModel(employee);
 		}
 
 		[HttpPost]
@@ -50,16 +97,41 @@ namespace ae_resume_api.Controllers
 
 		[HttpDelete]
 		[Route("DeleteWorkspace")]
-		public async Task<HttpResponseMessage> DeleteWorkspace(int WID)
+		public async Task<IActionResult> DeleteWorkspace(int WID)
 		{
-			return await _attributeservice.DeleteWorkspace(WID);
+			// return await _attributeservice.DeleteWorkspace(WID);
+
+			var workspace = Workspaces.Find(x => x.WID == WID);
+            //var employee = await _databaseContext.Employees.FindAsync(EID);
+
+            if (workspace == null)
+            {
+                return NotFound();
+            }
+            
+            Workspaces.Remove(workspace);
+            //_databaseContext.Employees.Remove(employee);
+            //return NoContent();
+            return Ok();
 		}
 
 		[HttpGet]
 		[Route("GetResumes")]
-		public async Task<HttpResponseMessage> GetResumes(int WID)
+		public async Task<IActionResult> GetResumes(int WID)
 		{
-			return await _attributeservice.GetResumes(WID);
+			// return await _attributeservice.GetResumes(WID);
+
+			var workspace = Workspaces.Find(x => x.WID == WID);
+
+			if (workspace == null)
+            {
+                return NotFound();
+            }
+            
+            var resumes = workspace.Resumes;
+            //_databaseContext.Employees.Remove(employee);
+            //return NoContent();
+            return Ok(resumes);
 		}
 
 		[HttpPost]

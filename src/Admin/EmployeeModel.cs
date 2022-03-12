@@ -1,4 +1,6 @@
-﻿using System;
+
+using ae_resume_api.Facade;
+using System;
 
 
 namespace ae_resume_api.Admin
@@ -10,6 +12,7 @@ namespace ae_resume_api.Admin
 		public int EID { get; set; }
 		public string? Name { get; set; }
 		public string? Email { get; set; }
+		public ResumeModel Resume { get; set; }
 
 	}
 	

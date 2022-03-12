@@ -23,11 +23,18 @@ namespace ae_resume_api.Controllers
     {
 
         private readonly IAdminService _adminservice;
-        public List<EmployeeModel> Employees = new List<EmployeeModel>();
 
-        public AdminController(IAdminService adminservice)
+        readonly DatabaseContext _databaseContext;
+        public List<EmployeeModel> Employees = new List<EmployeeModel>();
+        public List<SectorTypeModel> SectorTypes = new List<SectorTypeModel>();
+        public List<TemplateModel> templateModels = new List<TemplateModel>();
+
+        public AdminController (DatabaseContext dbContext)
         {
-            _adminservice = adminservice;
+
+            _databaseContext = dbContext;
+
+            // _adminservice = adminservice;
             this.Employees = new List<EmployeeModel>();
             Employees.Add(new EmployeeModel { 
                 EID = 5,
@@ -36,15 +43,41 @@ namespace ae_resume_api.Controllers
                 Username = "James",
                 Password = "password"
             });
+
+
+            SectorTypes.Add(new SectorTypeModel
+            {
+                TypeID = 5,
+                Description = "Test type",
+                Title = "Test"
+            });
+
+            templateModels.Add(new TemplateModel { 
+                TemplateID = 5,
+                Description = "Test template",
+                Title = "Test"
+            });
         }
 
         [HttpPost]
         [Route("NewEmployee")]
         public async Task<ActionResult<EmployeeModel>> NewEmployee([FromBody] EmployeeModel model)
         {
-            //return await _adminservice.CreateEmployee(model);
+            // return await _adminservice.CreateEmployee(model);
 
             Employees.Add(model);
+            EmployeeEntity entity = new EmployeeEntity
+            {
+                EID = model.EID,
+                Name = model.Name,
+                Email = model.Email,
+                Username = model.Username,
+                Password = model.Password
+            };
+            //_databaseContext.Employees.Add(entity);
+
+            //return await _adminservice.CreateEmployee(model);
+
 
             return CreatedAtAction(
                 nameof(GetEmployee),
@@ -54,18 +87,19 @@ namespace ae_resume_api.Controllers
 
         [HttpPut]
         [Route("EditEmployee")]
-        public async Task<IActionResult> EditEmployee(int Eid, EmployeeModel employeeModel)
+        public async Task<IActionResult> EditEmployee(int EID, EmployeeModel employeeModel)
         {
             //return await _adminservice.EditEmployee(Eid, employeeModel);
 
-            if(Eid != employeeModel.EID)
+            if(EID != employeeModel.EID)
             {
                 return BadRequest();
             }
-            var employee = Employees.Find(x => x.EID == Eid);
-            if(employee == null)
-            {
-                return NotFound();
+            var employee = Employees.Find(x => x.EID == EID);
+            //var employee = await _databaseContext.Employees.FindAsync(EID);
+
+            if (employee == null) {
+              return NotFound();
             }
 
             employee.EID= employeeModel.EID;
@@ -86,11 +120,16 @@ namespace ae_resume_api.Controllers
             //return await _adminservice.DeleteEmployee(EID);
 
             var employee = Employees.Find(x => x.EID == EID);
-            if(employee == null)
+
+            //var employee = await _databaseContext.Employees.FindAsync(EID);
+
+            if (employee == null)
             {
                 return NotFound();
             }
+            
             Employees.Remove(employee);
+            //_databaseContext.Employees.Remove(employee);
             //return NoContent();
             return Ok();
         }
@@ -102,6 +141,8 @@ namespace ae_resume_api.Controllers
             //return await _adminservice.GetEmployee(EID);
 
             var employee = Employees.Find(x => x.EID == EID);
+            //var employee = await _databaseContext.Employees.FindAsync(EID);
+
             if(employee == null)
             {
                 return NotFound();
@@ -119,44 +160,150 @@ namespace ae_resume_api.Controllers
 
         [HttpPost]
         [Route("NewSectorType")]
-        public async Task<HttpResponseMessage> NewSectorType(SectorTypeModel model)
+        public async Task<IActionResult> NewSectorType(SectorTypeModel model)
         {
-            return await _adminservice.NewSectorType(model);
+            //return await _adminservice.NewSectorType(model);
+
+             SectorTypes.Add(model);
+
+            SectorTypeEntity entity = new SectorTypeEntity
+            {
+                TypeID = model.TypeID,
+                Title = model.Title,
+                Description = model.Description
+            };
+            //_databaseContext.Employees.Add(entity);
+
+            return CreatedAtAction(
+                nameof (GetSectorType),
+                new { TypeID = model.TypeID },
+                model);
         }
 
         [HttpPut]
         [Route("EditSectorType")]
-        public async Task<HttpResponseMessage> EditSectorType(int sectorTypeID, SectorTypeModel model)
+        public async Task<IActionResult> EditSectorType(int sectorTypeID, SectorTypeModel model)
         {
-            return await _adminservice.EditSectorType(sectorTypeID, model);
+            //return await _adminservice.EditSectorType(sectorTypeID, model);
+            if(sectorTypeID != model.TypeID)
+            {
+                return BadRequest();
+            }
+            var sectorType = SectorTypes.Find(x => x.TypeID == sectorTypeID);
+            //var employee = await _databaseContext.Employees.FindAsync(EID);
+
+            if (sectorType == null)
+            {
+                return NotFound();
+            }
+
+            sectorType.Title = model.Title;
+            sectorType.Description = model.Description;
+            sectorType.TypeID = model.TypeID;
+
+            return Ok(sectorType);
+
+        }
+
+        [HttpGet]
+        [Route("GetSectorType")]
+        public async Task<ActionResult<SectorTypeModel>> GetSectorType(int sectorTypeID)
+        {
+            var sectorType = SectorTypes.Find(x => x.TypeID == sectorTypeID);
+            //var employee = await _databaseContext.Employees.FindAsync(EID);
+
+            if(sectorType == null)
+            {
+                return NotFound();
+            }
+            return sectorType;
+            //return EmployeeEntityToModel(employee);
         }
 
         [HttpDelete]
         [Route("DeleteSectorType")]
-        public async Task<HttpResponseMessage> DeleteSectorType(int sectorTypeID)
+        public async Task<IActionResult> DeleteSectorType(int sectorTypeID)
         {
-           return await _adminservice.DeleteSectorType(sectorTypeID);
+          // return await _adminservice.DeleteSectorType(sectorTypeID);
+
+            var sectorType = SectorTypes.Find(x => x.TypeID == sectorTypeID);
+            //var employee = await _databaseContext.Employees.FindAsync(EID);
+
+            if (sectorType == null)
+            {
+                return NotFound();
+            }
+            
+            SectorTypes.Remove(sectorType);
+            //_databaseContext.Employees.Remove(employee);
+            //return NoContent();
+            return Ok();
         }
 
         [HttpPost]
         [Route("CreateTemplate")]
-        public async Task<HttpResponseMessage> CreateTemplate(TemplateModel model)
+        public async Task<IActionResult> CreateTemplate(TemplateModel model)
         {
-            return await _adminservice.CreateTemplate(model);
+            // return await _adminservice.CreateTemplate(model);
+
+
+            templateModels.Add(model);
+            TemplateEntity entity = new TemplateEntity
+            {
+                TemplateID = model.TemplateID,
+                Title = model.Title,
+                Description = model.Description
+            };
+            //_databaseContext.Employees.Add(entity);
+
+            return CreatedAtAction(
+                nameof(GetTemplate),
+                new { TemplateID = model.TemplateID },
+                model);
         }
 
         [HttpGet]
         [Route("GetTemplate")]
-        public async Task<HttpResponseMessage> GetTemplate(int templateID)
+        public async Task<ActionResult<TemplateModel>> GetTemplate(int templateID)
         {
-            return await _adminservice.GetTemplate(templateID);
+            //return await _adminservice.GetTemplate(templateID);
+
+
+            var template = templateModels.Find(x => x.TemplateID == templateID);
+            //var employee = await _databaseContext.Employees.FindAsync(EID);
+
+            if(template == null)
+            {
+                return NotFound();
+            }
+            return template;
+            //return EmployeeEntityToModel(employee);
         }
 
         [HttpPut]
         [Route("EditTemplate")]
-        public async Task<HttpResponseMessage> EditTemplate(int templateID, TemplateModel model)
+        public async Task<IActionResult> EditTemplate(int templateID, TemplateModel model)
         {
-            return await _adminservice.EditTemplate(templateID, model);
+            // return await _adminservice.EditTemplate(templateID, model);
+
+            //return await _adminservice.EditSectorType(sectorTypeID, model);
+            if(templateID != model.TemplateID)
+            {
+                return BadRequest();
+            }
+            var template = templateModels.Find(x => x.TemplateID == templateID);
+            //var employee = await _databaseContext.Employees.FindAsync(EID);
+
+            if (template == null)
+            {
+                return NotFound();
+            }
+
+            template.Title = model.Title;
+            template.TemplateID = model.TemplateID;
+            template.Description = model.Description;
+
+            return Ok(template);
         }
 
         [HttpPost]
@@ -168,10 +315,22 @@ namespace ae_resume_api.Controllers
 
         [HttpDelete]
         [Route("DeleteTemplate")]
-        public async Task<HttpResponseMessage> DeleteTemplate(int templateID)
+        public async Task<IActionResult> DeleteTemplate(int templateID)
         {
-            return await _adminservice.DeleteTemplate(templateID);
-        }
+            // return await _adminservice.DeleteTemplate(templateID);
+
+            var template = templateModels.Find(x => x.TemplateID== templateID);
+            //var employee = await _databaseContext.Employees.FindAsync(EID);
+
+            if (template == null)
+            {
+                return NotFound();
+            }
+            
+            templateModels.Remove(template);
+            //_databaseContext.Employees.Remove(employee);
+            //return NoContent();
+            return Ok();
 
         private bool EmployeeExists(long EID)
         {

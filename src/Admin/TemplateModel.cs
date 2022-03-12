@@ -7,7 +7,8 @@ namespace ae_resume_api.Admin
 	{
 		public int TemplateID{ get; set; }
 		public string Title { get; set; }
-		public string description { get; set; }
+		public string Description { get; set; }
+
 	}
 	
 }
