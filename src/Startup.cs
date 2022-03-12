@@ -1,4 +1,8 @@
 ﻿using ae_resume_api.Authentication;
+using ae_resume_api.Admin;
+using ae_resume_api.Attributes;
+using ae_resume_api.Facade;
+using ae_resume_api.DBContext;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -36,6 +40,10 @@ namespace ae_resume_api
             services.AddIdentity<User, IdentityRole>()
                 .AddEntityFrameworkStores<DatabaseContext>()
                 .AddDefaultTokenProviders();
+
+            services.AddTransient<IAdminService, AdminService>();
+            services.AddTransient<IAttributeService, AttributeService>();
+            services.AddTransient<IFacadeService, FacadeService>();
 
             // Adding Authentication
             services.AddAuthentication(options =>
