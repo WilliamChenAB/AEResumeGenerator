@@ -1,7 +1,6 @@
 ﻿using System;
 using ae_resume_api.Attributes;
 using ae_resume_api.Facade;
-
 using ae_resume_api.DBContext;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -31,7 +30,7 @@ namespace ae_resume_api.Controllers
 		public AtrributesController(IAttributeService attributeservice)
 		{
 			_attributeservice = attributeservice;
-				 
+
 
 			Workspaces.Add(new WorkspaceModel { 
 				WID = 1,
@@ -39,13 +38,35 @@ namespace ae_resume_api.Controllers
 				CreationDate = "01/01/2022",
 				ProposalNumber = 1,
 				Resumes = new List<ResumeModel>{
-					new ResumeModel
+				new ResumeModel
 				{
 					RID = 2,
 					CreationDate = "01/01/2020",
 					LastEditedDate = "01/01/2020",
 					SectorList = null
-				}}
+				},
+				new ResumeModel{
+					RID = 5,
+					CreationDate = "02/02/2020",
+					LastEditedDate = "02/02/2020",
+					SectorList = new List<SectorModel>{
+						new SectorModel{
+							SID = 1,
+							SectorType = 2,
+							Content = "Test sector 1",
+							CreationDate = "02/02/2020",
+							LastEditedDate = "02/02/2020"
+						},
+						new SectorModel{
+							SID = 5,
+							SectorType = 3,
+							Content = "Test sector 2",
+							CreationDate = "02/02/2020",
+							LastEditedDate = "02/02/2020"
+						}
+					}
+				}
+				}
 			});
 		}
 
@@ -117,7 +138,9 @@ namespace ae_resume_api.Controllers
 
 		[HttpGet]
 		[Route("GetResumes")]
-		public async Task<IActionResult> GetResumes(int WID)
+
+		public async Task<ActionResult<IEnumerable<ResumeModel>>> GetResumes(int WID)
+
 		{
 			// return await _attributeservice.GetResumes(WID);
 
@@ -132,6 +155,7 @@ namespace ae_resume_api.Controllers
             //_databaseContext.Employees.Remove(employee);
             //return NoContent();
             return Ok(resumes);
+
 		}
 
 		[HttpPost]

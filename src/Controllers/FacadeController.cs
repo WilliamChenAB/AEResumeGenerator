@@ -48,6 +48,30 @@ namespace ae_resume_api.Controllers
 				}
 			});
 
+			Resumes.Add(new ResumeModel
+			{
+				RID = 5,
+				CreationDate = "02/02/2020",
+				LastEditedDate = "02/02/2020",
+				SectorList = new List<SectorModel> {
+					new SectorModel {
+						SectorType = 4,
+						SID = 4,
+						Content = "my work experince",
+						CreationDate = "02/02/2020",
+						LastEditedDate = "02/02/2020"
+					},
+					new SectorModel {
+						SectorType = 4,
+						SID = 7,
+						Content = "More work experince",
+						CreationDate = "02/02/2020",
+						LastEditedDate = "02/02/2020"
+					}
+				}			
+			});
+
+
 			Sectors.Add(new SectorModel {
 						SectorType = 1,
 						SID = 1,
@@ -130,6 +154,25 @@ namespace ae_resume_api.Controllers
             return sector;
             //return EmployeeEntityToModel(employee);
 		}
+
+
+		[HttpGet]
+		[Route("GetAllSectors")]
+		public async Task<ActionResult<IEnumerable<SectorModel>>> GetAllSectors(int RID)
+		{
+			// return await _facadeservice.GetSector(SID);
+
+			var resume = Resumes.Find(x => x.RID == RID);
+            //var employee = await _databaseContext.Employees.FindAsync(EID);
+
+            if(resume == null)
+            {
+                return NotFound();
+            }
+            return resume.SectorList;
+            //return EmployeeEntityToModel(employee);
+		}
+
 
 		[HttpDelete]
 		[Route("DeleteResume")]
@@ -223,6 +266,25 @@ namespace ae_resume_api.Controllers
                 return NotFound();
             }
             return resume;
+            //return EmployeeEntityToModel(employee);
+		}
+
+		[HttpGet]
+		[Route("GetResumesForEmployee")]
+		public async Task<ActionResult<IEnumerable<ResumeModel>>> GetResumesForEmployee(int EID)
+		{
+			
+
+
+			// TODO: implement DB
+			var resumes = Resumes;
+            //var employee = await _databaseContext.Employees.FindAsync(EID);
+
+            if(resumes == null)
+            {
+                return NotFound();
+            }
+            return resumes;
             //return EmployeeEntityToModel(employee);
 		}
 

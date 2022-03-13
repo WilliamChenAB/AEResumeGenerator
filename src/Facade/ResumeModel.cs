@@ -10,6 +10,8 @@ namespace ae_resume_api.Facade
 		public string CreationDate { get; set; }
 		public string LastEditedDate { get; set; }
 		public List<SectorModel> SectorList { get; set; }
+		public int TemplateID { get; set; }
+
 
 	}
 	

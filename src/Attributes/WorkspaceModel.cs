@@ -11,8 +11,6 @@ namespace ae_resume_api.Attributes
 		public string Division { get; set; }
 		public string CreationDate { get; set; }
 		public List<ResumeModel> Resumes { get; set; }
-
-
 	}
 	
 }

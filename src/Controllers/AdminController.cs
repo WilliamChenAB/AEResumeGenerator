@@ -55,7 +55,13 @@ namespace ae_resume_api.Controllers
             templateModels.Add(new TemplateModel { 
                 TemplateID = 5,
                 Description = "Test template",
-                Title = "Test"
+                Title = "Test",
+                SectorTypes = new List<SectorTypeModel> {
+                    new SectorTypeModel{
+                        Title = "test Type",
+                        Description = "Description",
+                        TypeID = 2}
+                }
             });
         }
 
@@ -76,9 +82,6 @@ namespace ae_resume_api.Controllers
             };
             //_databaseContext.Employees.Add(entity);
 
-            //return await _adminservice.CreateEmployee(model);
-
-
             return CreatedAtAction(
                 nameof(GetEmployee),
                 new { EID = model.EID },
@@ -98,8 +101,9 @@ namespace ae_resume_api.Controllers
             var employee = Employees.Find(x => x.EID == EID);
             //var employee = await _databaseContext.Employees.FindAsync(EID);
 
-            if (employee == null) {
-              return NotFound();
+            if (employee == null)
+            {
+                return NotFound();
             }
 
             employee.EID= employeeModel.EID;
@@ -280,6 +284,26 @@ namespace ae_resume_api.Controllers
             //return EmployeeEntityToModel(employee);
         }
 
+
+        [HttpGet]
+        [Route("GetSectorsInTemplate")]
+        public async Task<ActionResult<IEnumerable<SectorTypeModel>>> GetSectorsInTemplate(int templateID)
+        {
+            //return await _adminservice.GetTemplate(templateID);
+
+
+            var template = templateModels.Find(x => x.TemplateID == templateID);
+            //var employee = await _databaseContext.Employees.FindAsync(EID);
+
+            if(template == null)
+            {
+                return NotFound();
+            }
+            return template.SectorTypes;
+            //return EmployeeEntityToModel(employee);
+        }
+
+
         [HttpPut]
         [Route("EditTemplate")]
         public async Task<IActionResult> EditTemplate(int templateID, TemplateModel model)
@@ -331,6 +355,8 @@ namespace ae_resume_api.Controllers
             //_databaseContext.Employees.Remove(employee);
             //return NoContent();
             return Ok();
+        }
+
 
         private bool EmployeeExists(long EID)
         {
