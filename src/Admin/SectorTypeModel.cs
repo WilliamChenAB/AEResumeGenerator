@@ -1,8 +1,6 @@
 
 ﻿using System;
 
-
-
 namespace ae_resume_api.Admin
 {
 	public class SectorTypeModel

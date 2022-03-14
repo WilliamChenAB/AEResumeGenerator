@@ -14,7 +14,6 @@ namespace ae_resume_api.Admin
 		public string? Email { get; set; }
 		public List<ResumeModel> Resume { get; set; }
 
-
 	}
 	
 }

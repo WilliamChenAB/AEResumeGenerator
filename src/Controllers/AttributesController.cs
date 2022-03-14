@@ -31,7 +31,6 @@ namespace ae_resume_api.Controllers
 		{
 			_attributeservice = attributeservice;
 
-
 			Workspaces.Add(new WorkspaceModel { 
 				WID = 1,
 				Division = "Water",
@@ -140,7 +139,6 @@ namespace ae_resume_api.Controllers
 		[Route("GetResumes")]
 
 		public async Task<ActionResult<IEnumerable<ResumeModel>>> GetResumes(int WID)
-
 		{
 			// return await _attributeservice.GetResumes(WID);
 

@@ -35,6 +35,7 @@ namespace ae_resume_api.Controllers
 
 			Resumes.Add(new ResumeModel { 
 				RID = 3,
+				EID = 1,
 				CreationDate = "01/01/2020",
 				LastEditedDate = "01/01/2020",
 				SectorList = new List<SectorModel> {
@@ -47,10 +48,10 @@ namespace ae_resume_api.Controllers
 					}
 				}
 			});
-
 			Resumes.Add(new ResumeModel
 			{
 				RID = 5,
+				EID = 2,
 				CreationDate = "02/02/2020",
 				LastEditedDate = "02/02/2020",
 				SectorList = new List<SectorModel> {
@@ -70,7 +71,6 @@ namespace ae_resume_api.Controllers
 					}
 				}			
 			});
-
 
 			Sectors.Add(new SectorModel {
 						SectorType = 1,

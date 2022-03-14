@@ -357,7 +357,6 @@ namespace ae_resume_api.Controllers
             return Ok();
         }
 
-
         private bool EmployeeExists(long EID)
         {
             return Employees.Any(e => e.EID == EID);
