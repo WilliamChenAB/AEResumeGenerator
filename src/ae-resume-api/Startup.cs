@@ -43,13 +43,27 @@ namespace ae_resume_api
             services.AddAuthentication("Bearer")
                 .AddJwtBearer("Bearer", options =>
                 {
-                    options.Authority = Configuration["JWT:Authority"];
-
+                    options.Authority = Configuration.GetValue<string>("Authority");
                     options.TokenValidationParameters.ValidateAudience = false;
-
-                    // it's recommended to check the type header to avoid "JWT confusion" attacks
                     options.TokenValidationParameters.ValidTypes = new[] { "at+jwt" };
+                    // it's recommended to check the type header to avoid "JWT confusion" attacks
+                    //options.TokenValidationParameters =
+                    //    new TokenValidationParameters
+                    //    {
+                    //        RoleClaimType = "role"
+                    //    };
                 });
+
+            services.AddCors(options =>
+            {
+                // this defines a CORS policy called "default"
+                options.AddPolicy("default", policy =>
+                {
+                    policy.WithOrigins(Configuration.GetValue<string>("AllowedCORS"))
+                        .AllowAnyHeader()
+                        .AllowAnyMethod();
+                });
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -59,6 +73,7 @@ namespace ae_resume_api
             app.UseSwaggerUI();
 
             app.UseHttpsRedirection();
+            app.UseCors("default");
 
             app.UseRouting();
 

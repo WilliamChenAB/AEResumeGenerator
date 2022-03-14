@@ -15,8 +15,8 @@ namespace IdentityServer
         public static IEnumerable<IdentityResource> IdentityResources =>
             new IdentityResource[]
             {
-            new IdentityResources.OpenId(),
-            new IdentityResources.Profile(),
+                new IdentityResources.OpenId(),
+                new IdentityResource("roles", new List<string> { "role" })
             };
 
         public static IEnumerable<ApiScope> ApiScopes =>
@@ -25,10 +25,18 @@ namespace IdentityServer
                 new ApiScope("ae-resume-api")
             };
 
-        public IEnumerable<Client> Clients() {
-            string clientString =_config.GetValue<string>("ApplicationURL");
+        //public static IEnumerable<ApiResource> ApiResources =>
+        //    new ApiResource[]
+        //    {
+        //        new ApiResource("ae-resume-api-resource")
+        //            {
+        //                Scopes = { "ae-resume-api" },
+        //                UserClaims = { "role" }
+        //            }
+        //    };
 
-            return new Client[]
+        public static IEnumerable<Client> Clients =>
+            new Client[]
             {
                 // JavaScript Client without backend
                 new Client
@@ -38,17 +46,18 @@ namespace IdentityServer
                     AllowedGrantTypes = GrantTypes.Code,
                     RequireClientSecret = false,
 
-                    RedirectUris =           { clientString + "/callback.html" },
-                    PostLogoutRedirectUris = { clientString + "/index.html" },
-                    AllowedCorsOrigins =     { clientString },
+                    RedirectUris =           { "https://localhost:5002/callback.html" },
+                    PostLogoutRedirectUris = { "https://localhost:5002/index.html" },
+                    AllowedCorsOrigins =     { "https://localhost:5002" },
 
                     AllowedScopes =
                     {
                         IdentityServerConstants.StandardScopes.OpenId,
-                        "ae-resume-api"
+                        "ae-resume-api",
+                        "roles",
                     }
                 }
             };
-        }
+
     }
 }
