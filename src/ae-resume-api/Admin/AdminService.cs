@@ -39,8 +39,8 @@ namespace ae_resume_api.Admin
             {
                 EmployeeEntity employee = new EmployeeEntity();
                 Debug.Write("Creating employee: " + model.Name);
-                employee.EID = model.EID;
-                employee.Username = model.Username;
+                employee.Id = model.EID;
+                employee.UserName = model.Username;
                 employee.Password = model.Password;
                 employee.Name = model.Name;
                 employee.Email = model.Email;
@@ -57,7 +57,7 @@ namespace ae_resume_api.Admin
                 // await _databaseContext.SaveChangesAsync();
                 // Console.WriteLine("Employee count:" + _databaseContext.Employees.Count());
 
-                string message = ($"Employee Created - {employee.EID}: {employee.Name}");
+                string message = ($"Employee Created - {employee.Id}: {employee.Name}");
                 returnMessage = new HttpResponseMessage(HttpStatusCode.Created);
                 returnMessage.RequestMessage = new HttpRequestMessage(HttpMethod.Post, message);
             }
@@ -101,7 +101,7 @@ namespace ae_resume_api.Admin
 
                 employee.Name = model.Name;
                 employee.Email = model.Email;
-                employee.Username = model.Username;
+                employee.UserName = model.Username;
                 employee.Password = model.Password;
 
                 // TODO Implement DB
@@ -171,7 +171,7 @@ namespace ae_resume_api.Admin
                 EID = EID,
                 Name = entity.Name,
                 Email = entity.Email,
-                Username = entity.Username,
+                Username = entity.UserName,
                 Password = entity.Password
             };
             return model;
@@ -280,16 +280,16 @@ namespace ae_resume_api.Admin
         /// </summary>
         private bool EmployeeExists(long EID)
         {
-            return _databaseContext.Employees.Any(e => e.EID == EID);
+            return _databaseContext.Employees.Any(e => e.Id == EID);
         }
 
         private static EmployeeModel EmployeeEntityToModel(EmployeeEntity entity) =>
             new EmployeeModel
             {
-                EID = entity.EID,
+                EID = entity.Id,
                 Email = entity.Email,
                 Name = entity.Name,
-                Username = entity.Username,
+                Username = entity.UserName,
                 Password = entity.Password,
             };
     }

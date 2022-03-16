@@ -1,7 +1,8 @@
 ﻿using Duende.IdentityServer.Models;
 using Duende.IdentityServer;
+using IdentityModel;
 
-namespace IdentityServer
+namespace aeresumeidp
 {
     public class Config
     {
@@ -15,8 +16,7 @@ namespace IdentityServer
         public static IEnumerable<IdentityResource> IdentityResources =>
             new IdentityResource[]
             {
-                new IdentityResources.OpenId(),
-                new IdentityResource("roles", new List<string> { "role" })
+                new IdentityResources.OpenId()
             };
 
         public static IEnumerable<ApiScope> ApiScopes =>
@@ -28,11 +28,7 @@ namespace IdentityServer
         //public static IEnumerable<ApiResource> ApiResources =>
         //    new ApiResource[]
         //    {
-        //        new ApiResource("ae-resume-api-resource")
-        //            {
-        //                Scopes = { "ae-resume-api" },
-        //                UserClaims = { "role" }
-        //            }
+        //        new ApiResource("ae-resume-api")
         //    };
 
         public static IEnumerable<Client> Clients =>
@@ -43,8 +39,13 @@ namespace IdentityServer
                 {
                     ClientId = "js",
                     ClientName = "JavaScript Client",
-                    AllowedGrantTypes = GrantTypes.Code,
+                    AllowedGrantTypes = GrantTypes.Implicit,
                     RequireClientSecret = false,
+
+                    //AlwaysSendClientClaims = true,
+                    //AlwaysIncludeUserClaimsInIdToken = true,
+                    UpdateAccessTokenClaimsOnRefresh = true,
+                    AllowAccessTokensViaBrowser = true,
 
                     RedirectUris =           { "https://localhost:5002/callback.html" },
                     PostLogoutRedirectUris = { "https://localhost:5002/index.html" },
@@ -53,8 +54,7 @@ namespace IdentityServer
                     AllowedScopes =
                     {
                         IdentityServerConstants.StandardScopes.OpenId,
-                        "ae-resume-api",
-                        "roles",
+                        "ae-resume-api"
                     }
                 }
             };

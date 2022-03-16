@@ -28,7 +28,7 @@ namespace ae_resume_api.Controllers
         {
             _adminservice = adminservice;
             this.Employees = new List<EmployeeModel>();
-            Employees.Add(new EmployeeModel { 
+            Employees.Add(new EmployeeModel {
                 EID = 5,
                 Name = "James",
                 Email = "email",
@@ -180,10 +180,10 @@ namespace ae_resume_api.Controllers
         private static EmployeeModel EmployeeEntityToModel(EmployeeEntity entity) =>
             new EmployeeModel
             {
-                EID = entity.EID,
+                EID = entity.Id,
                 Email = entity.Email,
                 Name = entity.Name,
-                Username = entity.Username,
+                Username = entity.UserName,
                 Password = entity.Password,
             };
     }

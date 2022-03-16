@@ -1,8 +1,8 @@
-﻿@model LoginViewModel
+﻿@model RegisterViewModel
 
-<div class="login-page">
+<div class="register-page">
     <div class="page-header">
-        <h1>Login</h1>
+        <h1>Register</h1>
     </div>
 
     <partial name="_ValidationSummary" />
@@ -11,19 +11,22 @@
         <div class="col-sm-6">
             <div class="panel panel-default">
                 <div class="panel-body">
-                    <form asp-route="Login">
-                        <input type="hidden" asp-for="ReturnUrl" />
+                    <form asp-route="Register">
                         <fieldset>
                             <div class="form-group">
                                 <label asp-for="UserName"></label>
-                                <input class="form-control" placeholder="Username" asp-for="UserName" autofocus>
+                                <input class="form-control" placeholder="Enter a username" asp-for="UserName" autofocus>
                             </div>
                             <div class="form-group">
                                 <label asp-for="Password"></label>
-                                <input type="password" class="form-control" placeholder="Password" asp-for="Password" autocomplete="off">
+                                <input type="password" class="form-control" placeholder="Enter a password" asp-for="Password" autocomplete="off">
                             </div>
                             <div class="form-group">
-                                <button class="btn btn-primary" name="button" value="login">Login</button>
+                                <label asp-for="ConfirmPassword"></label>
+                                <input type="password" class="form-control" placeholder="Confirm your password" asp-for="ConfirmPassword" autocomplete="off">
+                            </div>
+                            <div class="form-group">
+                                <button class="btn btn-primary" name="button" value="register">Register</button>
                                 <button class="btn btn-default" name="button" value="cancel">Cancel</button>
                             </div>
                         </fieldset>

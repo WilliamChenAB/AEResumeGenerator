@@ -33,7 +33,8 @@ namespace ae_resume_api
             services.AddSwaggerGen();
 
             // For Entity Framework
-            services.AddDbContext<DatabaseContext>(options => options.UseSqlServer(Configuration.GetConnectionString("ConnStr")));
+            services.AddDbContext<DatabaseContext>(options => options.UseSqlServer(Configuration.GetConnectionString("ConnStr2")));
+            //Console.WriteLine($">> CONNECTION STRING: '{Configuration.GetConnectionString("ConnStr2")}'.");
 
             services.AddTransient<IAdminService, AdminService>();
             services.AddTransient<IAttributeService, AttributeService>();
@@ -48,11 +49,21 @@ namespace ae_resume_api
                     options.TokenValidationParameters.ValidTypes = new[] { "at+jwt" };
                     // it's recommended to check the type header to avoid "JWT confusion" attacks
                     //options.TokenValidationParameters =
-                    //    new TokenValidationParameters
-                    //    {
-                    //        RoleClaimType = "role"
-                    //    };
+                    new TokenValidationParameters
+                    {
+                        RoleClaimType = "http://schemas.microsoft.com/ws/2008/06/identity/claims/role"
+                    };
                 });
+
+            // adds an authorization policy to make sure the token is for scope 'api1'
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy("ApiScope", policy =>
+                {
+                    policy.RequireAuthenticatedUser();
+                    policy.RequireClaim("scope", "ae-resume-api");
+                });
+            });
 
             services.AddCors(options =>
             {
@@ -82,7 +93,8 @@ namespace ae_resume_api
 
             app.UseEndpoints(endpoints =>
             {
-                endpoints.MapControllers();
+                endpoints.MapControllers()
+                    .RequireAuthorization("ApiScope");
             });
         }
     }

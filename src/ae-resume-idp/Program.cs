@@ -10,7 +10,7 @@ using Serilog.Sinks.SystemConsole.Themes;
 using System;
 using Microsoft.Extensions.Hosting;
 
-namespace IdentityServer
+namespace aeresumeidp
 {
     public class Program
     {
@@ -36,7 +36,19 @@ namespace IdentityServer
             try
             {
                 Log.Information("Starting host...");
-                CreateHostBuilder(args).Build().Run();
+
+                var builder = WebApplication.CreateBuilder(args);
+
+
+                // Add services to the container.
+                Startup startup = new Startup();
+                startup.ConfigureServices(builder.Services, builder.Configuration);
+
+                var app = builder.Build();
+                startup.Configure(app, app.Environment);
+
+                app.Run();
+
                 return 0;
             }
             catch (Exception ex)
@@ -50,12 +62,5 @@ namespace IdentityServer
             }
         }
 
-        public static IHostBuilder CreateHostBuilder(string[] args) =>
-            Host.CreateDefaultBuilder(args)
-                .UseSerilog()
-                .ConfigureWebHostDefaults(webBuilder =>
-                {
-                    webBuilder.UseStartup<Startup>();
-                });
     }
 }

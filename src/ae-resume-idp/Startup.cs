@@ -3,27 +3,49 @@
 
 
 using Duende.IdentityServer;
-using IdentityServerHost.Quickstart.UI;
+using Duende.IdentityServer.AspNetIdentity;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.EntityFrameworkCore;
+using aeresumeidp.Database;
+using Microsoft.AspNetCore.Identity;
 
-namespace IdentityServer
+namespace aeresumeidp
 {
     public class Startup
     {
-        public void ConfigureServices(IServiceCollection services)
+        public void ConfigureServices(IServiceCollection services, IConfiguration config)
         {
             services.AddControllersWithViews();
 
-            var builder = services.AddIdentityServer()
+            string connStr = config.GetConnectionString("ConnStr2");
+
+            services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(connStr));
+            services.AddDefaultIdentity<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = true)
+                .AddEntityFrameworkStores<ApplicationDbContext>();
+
+            services.Configure<IdentityOptions>(opts => {
+                opts.Password.RequiredLength = 8;
+                opts.Password.RequireNonAlphanumeric = false;
+                opts.Password.RequireLowercase = false;
+                opts.Password.RequireUppercase = true;
+                opts.Password.RequireDigit = true;
+                opts.SignIn.RequireConfirmedEmail = false;
+                opts.SignIn.RequireConfirmedAccount = false;
+                opts.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(10);
+            });
+
+            services.AddIdentityServer()
                 .AddInMemoryIdentityResources(Config.IdentityResources)
                 .AddInMemoryApiScopes(Config.ApiScopes)
                 //.AddInMemoryApiResources(Config.ApiResources)
                 .AddInMemoryClients(Config.Clients)
-                .AddTestUsers(TestUsers.Users);
+                //.AddTestUsers(TestUsers.Users)
+                .AddAspNetIdentity<ApplicationUser>()
+                .AddProfileService<ProfileService>();
 
             //services.AddAuthentication()
             //    .AddGoogle("Google", options =>

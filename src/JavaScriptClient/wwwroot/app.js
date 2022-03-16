@@ -22,9 +22,14 @@ var config = {
     authority: "https://localhost:5003",
     client_id: "js",
     redirect_uri: "https://localhost:5002/callback.html",
-    response_type: "code",
-    scope: "ae-resume-api",
-    post_logout_redirect_uri : "https://localhost:5002/index.html",
+    response_type: "id_token token",
+    scope: "openid ae-resume-api",
+    //end_session_endpoint: "https://localhost:5003/connect/endsession",
+    //automaticSilentRenew = true,
+    //revokeAccessTokenOnSignout = true,
+    post_logout_redirect_uri: "https://localhost:5002/index.html",
+    automaticSilentRenew: true,
+    filterProtocolClaims: true,
 };
 var mgr = new Oidc.UserManager(config);
 
@@ -60,5 +65,7 @@ function api() {
 }
 
 function logout() {
-    mgr.signoutRedirect();
+    mgr.getUser().then(function (user) {
+        mgr.signoutRedirect({ id_token_hint: user.id_token });
+    });
 }
