@@ -6,7 +6,7 @@ namespace ae_resume_api.Controllers
 {
     [Route("identity")]
     [ApiController]
-    [Authorize]// (Roles = "admin")]
+    [Authorize (Roles = "admin")]
     public class IdentityController : ControllerBase
     {
         [HttpGet]

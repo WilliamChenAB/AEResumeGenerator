@@ -33,7 +33,7 @@ namespace ae_resume_api
             services.AddSwaggerGen();
 
             // For Entity Framework
-            services.AddDbContext<DatabaseContext>(options => options.UseSqlServer(Configuration.GetConnectionString("ConnStr2")));
+            services.AddDbContext<DatabaseContext>(options => options.UseSqlServer(Configuration.GetConnectionString("ConnStr")));
 
             services.AddTransient<IAdminService, AdminService>();
             services.AddTransient<IAttributeService, AttributeService>();
