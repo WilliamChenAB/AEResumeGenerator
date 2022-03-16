@@ -30,8 +30,7 @@ namespace ae_resume_api.Controllers
         {
             _databaseContext = dbContext;
 
-
-            // _adminservice = adminservice;
+           
 
             // Add Mock data for front end testing
             // REMOVE FOR FINAL
@@ -74,9 +73,6 @@ namespace ae_resume_api.Controllers
         [Route("NewEmployee")]
         public async Task<ActionResult<EmployeeModel>> NewEmployee([FromBody] EmployeeModel model)
         {
-            // Temp list for testing
-            Employees.Add(model);
-
 
             EmployeeEntity entity = new EmployeeEntity
             {
@@ -86,9 +82,9 @@ namespace ae_resume_api.Controllers
                 Username = model.Username,
                 Password = model.Password
             };
-            // TODO: Implement DB connection
-            //_databaseContext.Employees.Add(entity);
-            // await _databaseContext.SaveChangesAsync();
+            
+            _databaseContext.Employee.Add(entity);
+             await _databaseContext.SaveChangesAsync();
 
             return CreatedAtAction(
                 nameof(GetEmployee),
@@ -381,6 +377,23 @@ namespace ae_resume_api.Controllers
         }
 
         /// <summary>
+        /// Get all Resume Templates
+        /// </summary>
+        [HttpGet]
+        [Route("GetAllTemplates")]
+        public IEnumerable<TemplateModel> GetAllTempaltes()
+        {
+            var templates = _databaseContext.Resume_Template.ToList();
+            List<TemplateModel> result = new List<TemplateModel>();
+            foreach (var template in templates)
+            {
+                result.Add(TemplateEntityToModel(template));
+            }
+
+            return result;
+        }
+
+        /// <summary>
         /// Get all the SectorTypes in a Resume Template
         /// </summary>
         /// <param name="templateID"></param>
@@ -524,6 +537,17 @@ namespace ae_resume_api.Controllers
                 Name = entity.Name,
                 Username = entity.Username,
                 Password = entity.Password,
+            };
+
+        /// <summary>
+        /// Translate the Template entity to model used
+        /// </summary>
+        public static TemplateModel TemplateEntityToModel(TemplateEntity entity) =>
+            new TemplateModel
+            {
+                TemplateID = entity.TemplateID,
+                Title = entity.Title,
+                Description = entity.Description                
             };
     }
 }
