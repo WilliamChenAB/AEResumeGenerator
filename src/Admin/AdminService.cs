@@ -51,7 +51,7 @@ namespace ae_resume_api.Admin
                     throw new Exception("Employee already exists");
                 }
                 // Add Employee to database
-                _databaseContext.Employees.Add(employee);
+                _databaseContext.Employee.Add(employee);
                
 
                 // TODO implement db connection
@@ -91,7 +91,7 @@ namespace ae_resume_api.Admin
             {
                 // Find the Employee in the database to edit
                 // Error if no Employee found
-                var employee = await _databaseContext.Employees.FindAsync(EID);
+                var employee = await _databaseContext.Employee.FindAsync(EID);
                 
 
                 if (employee == null)
@@ -131,14 +131,14 @@ namespace ae_resume_api.Admin
                 {
                     throw new Exception("Employee already exists");
                 }
-                var entity = await _databaseContext.Employees.FindAsync(EID);
+                var entity = await _databaseContext.Employee.FindAsync(EID);
               
                 if(entity == null)
                 {
                     throw new Exception("Employee does not exist");
                 }
 
-                _databaseContext.Employees.Remove(entity);
+                _databaseContext.Employee.Remove(entity);
                 
 
                 // TODO: implement db connection
@@ -160,7 +160,7 @@ namespace ae_resume_api.Admin
         /// </summary>
         public async Task<ActionResult<EmployeeModel>> GetEmployee(int EID)
         {
-            EmployeeEntity entity = await _databaseContext.Employees.FindAsync(EID);
+            EmployeeEntity entity = await _databaseContext.Employee.FindAsync(EID);
             
            
             // if we cannot find the employee return null
@@ -281,7 +281,7 @@ namespace ae_resume_api.Admin
         /// </summary>
         private bool EmployeeExists(long EID)
         {
-            return _databaseContext.Employees.Any(e => e.EID == EID);          
+            return _databaseContext.Employee.Any(e => e.EID == EID);          
         }
 
         private static EmployeeModel EmployeeEntityToModel(EmployeeEntity entity) =>

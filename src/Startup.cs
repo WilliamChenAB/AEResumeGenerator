@@ -67,6 +67,18 @@ namespace ae_resume_api
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration["JWT:Secret"]))
                 };
             });
+
+            // Add Cors Policy
+            services.AddCors(options =>
+            {
+                // this defines a CORS policy called "default"
+                options.AddPolicy("default", policy =>
+                {
+                    policy.WithOrigins("*")
+                        .AllowAnyHeader()
+                        .AllowAnyMethod();
+                });
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -76,6 +88,7 @@ namespace ae_resume_api
             app.UseSwaggerUI();
 
             app.UseHttpsRedirection();
+            app.UseCors("default");
 
             app.UseRouting();
 

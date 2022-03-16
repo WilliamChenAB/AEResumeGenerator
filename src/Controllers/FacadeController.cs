@@ -23,15 +23,15 @@ namespace ae_resume_api.Controllers
 	[Route("Facade")]
 	[ApiController]
 	public class FacadeController : ControllerBase
-	{
-		private readonly IFacadeService _facadeservice;
+	{		
+		readonly DatabaseContext _databasecontext;
 
 		public List<ResumeModel> Resumes = new List<ResumeModel>();
 		public List<SectorModel> Sectors = new List<SectorModel>();
 
-		public FacadeController(IFacadeService facadeservice)
+		public FacadeController(DatabaseContext databaseContext)
 		{
-			_facadeservice = facadeservice;
+			_databasecontext = databaseContext;
 
 			Resumes.Add(new ResumeModel { 
 				RID = 3,
@@ -80,108 +80,174 @@ namespace ae_resume_api.Controllers
 						LastEditedDate = "01/01/2020"
 					});
 		}
-
+		
+		/// <summary>
+        /// Add a Resume to an Employee
+        /// </summary>
 		[HttpPost]
-        [Route("NewResume")]
-		public async Task<IActionResult> NewResume([FromBody] ResumeModel model, int EID)
-		{
-			// return await _facadeservice.NewResume(model, EID);
+        [Route("NewResume")]		
+		public async Task<ActionResult<ResumeModel>> NewResume(string templateName, int EID)
+		{	
+			
+			// Find the template record
+			var template =  _databasecontext.Resume_Template.FirstOrDefault(t => t.Title == templateName);
+			
 
-			//return await _adminservice.NewSectorType(model);
+			if( template == null )
+            {
+				return NotFound();
+            }				
 
-            Resumes.Add(model);
+			// Find the Sector Types associated with that template
+			var sectorTypes =  _databasecontext.Template_Type
+				.Where(x => x.TemplateID == template.TemplateID);
 
-			var targetList = model.SectorList
-				.Select(x => new SectorEntity() { 
-					SID = x.SID,
-					SectorType = x.SectorType,
-					Content = x.Content,
-					CreationDate = x.CreationDate,
-					LastEditedDate = x.LastEditedDate
-				}).ToList();
 
 			ResumeEntity entity = new ResumeEntity
-            {
-               RID = model.RID,
-			   CreationDate = model.CreationDate,
-			   LastEditedDate = model.LastEditedDate,
-			   SectorList = targetList
+            {               
+			   Creation_Date = DateTime.Now.ToString("yyyMMdd"),
+			   EID = EID,
+			   TemplateID = template.TemplateID			  		   
             };
-            //_databaseContext.Employees.Add(entity);
+
+            var resume = _databasecontext.Resume.Add(entity);
+
+			foreach (var sector in sectorTypes)
+			{
+				_databasecontext.Sector.Add(new SectorEntity { 
+					Creation_Date = DateTime.Now.ToString("yyyMMdd"),
+					EID = EID,
+					TypeID = sector.TypeID,
+					RID = resume.Entity.RID
+				});
+			}
+
+			
+			await _databasecontext.SaveChangesAsync();
 
             return CreatedAtAction(
                 nameof (GetResume),
-                new { RID = model.RID },
-                model);
+                new { RID = resume.Entity.RID },
+				 resume.Entity);
 		}
 
+		/// <summary>
+		/// Create a new Sector
+		/// </summary>		
 		[HttpPost]
 		[Route("NewSector")]
-		public async Task<IActionResult> NewSector(SectorModel model)
+		public async Task<ActionResult<SectorModel>> NewSector(SectorModel model)
 		{
-			// return await _facadeservice.NewSector(model);
-
+		
 			Sectors.Add(model);
 
             SectorEntity entity = new SectorEntity
             {
                SID = model.SID,
-			   CreationDate = model.CreationDate,
-			   LastEditedDate = model.LastEditedDate,
+			   Creation_Date = model.CreationDate,
+			   Last_Edited = model.LastEditedDate,
 			   Content = model.Content
             };
-            //_databaseContext.Employees.Add(entity);
+			// TODO: Implement DB connection
+			//_databaseContext.Sector.Add(entity);
+			// await _databasecontext.SaveChangesAsync();
 
-            return CreatedAtAction(
+
+			return CreatedAtAction(
                 nameof (GetSector),
                 new { SID = model.SID },
                 model);
 		}
 
+		/// <summary>
+		/// Get a Sector based on SID
+		/// </summary>	
 		[HttpGet]
 		[Route("GetSector")]
 		public async Task<ActionResult<SectorModel>> GetSector(int SID)
 		{
-			// return await _facadeservice.GetSector(SID);
+			
 
 			var sector = Sectors.Find(x => x.SID == SID);
-            //var employee = await _databaseContext.Employees.FindAsync(EID);
+			// TODO: Implement DB connection
+            //var sector = await _databaseContext.Sector.FindAsync(SID);
 
             if(sector == null)
             {
                 return NotFound();
             }
-            return sector;
-            //return EmployeeEntityToModel(employee);
+            return sector;            
 		}
 
-
+		/// <summary>
+		/// Get all Sectors from an Employee
+		/// </summary>	
 		[HttpGet]
-		[Route("GetAllSectors")]
-		public async Task<ActionResult<IEnumerable<SectorModel>>> GetAllSectors(int RID)
+		[Route("GetAllSectorsForEmployee")]
+		public async Task<ActionResult<IEnumerable<SectorModel>>> GetAllSectorsForEmployee(int EID)
 		{
-			// return await _facadeservice.GetSector(SID);
+			
+            var employee = await _databasecontext.Employee.FindAsync(EID);
 
-			var resume = Resumes.Find(x => x.RID == RID);
-            //var employee = await _databaseContext.Employees.FindAsync(EID);
-
-            if(resume == null)
+			if(employee == null)
             {
-                return NotFound();
+				return NotFound();
             }
-            return resume.SectorList;
-            //return EmployeeEntityToModel(employee);
+
+			List<SectorModel> sectorList = new List<SectorModel>();
+			var sectors =  _databasecontext.Sector.Where(s => s.EID == EID).OrderBy(s => s.TypeID);
+			
+
+			foreach(var sector in sectors)
+            {
+				sectorList.Add(SectorEntityToModel(sector));
+            }
+			
+	
+            return sectorList;            
 		}
 
+		/// <summary>
+		/// Get all Sectors from an Employee
+		/// </summary>	
+		[HttpGet]
+		[Route("GetAllSectorsForEmployeeByType")]
+		public async Task<ActionResult<IEnumerable<SectorModel>>> GetAllSectorsForEmployeeByType(int EID, int TypeID)
+		{
+			
+            var employee = await _databasecontext.Employee.FindAsync(EID);
 
+			if(employee == null)
+            {
+				return NotFound();
+            }
+
+			List<SectorModel> sectorList = new List<SectorModel>();
+			var sectors =  _databasecontext.Sector.Where(s => s.EID == EID && s.TypeID == TypeID)
+				.OrderBy(s => s.TypeID);
+			
+
+			foreach(var sector in sectors)
+            {
+				sectorList.Add(SectorEntityToModel(sector));
+            }
+			
+	
+            return sectorList;            
+		}
+
+		/// <summary>
+		/// Delete a Resume
+		/// </summary>	
 		[HttpDelete]
 		[Route("DeleteResume")]
 		public async Task<IActionResult> DeleteResume(int RID)
 		{
-			// return await _facadeservice.DeleteResume(RID);
+			
 
 			var resume = Resumes.Find(x => x.RID == RID);
-            //var employee = await _databaseContext.Employees.FindAsync(EID);
+			// TODO: Implement DB connection
+            //var eresumemployee = await _databaseContext.Resume.FindAsync(RID);
 
             if (resume == null)
             {
@@ -189,21 +255,21 @@ namespace ae_resume_api.Controllers
             }
             
             Resumes.Remove(resume);
-            //_databaseContext.Employees.Remove(employee);
-            //return NoContent();
+			// TODO: Implement DB connection
+            //_databaseContext.Employee.Remove(employee);
+            // await _databasecontext.SaveChangesAsync();
             return Ok();
 		}
 
+		/// <summary>
+		/// Delete a Sector from a Resume
+		/// </summary>	
 		[HttpDelete]
 		[Route("DeleteSector")]
 		public async Task<IActionResult> DeleteSector(int SID, int RID)
-		{
-			// return await _facadeservice.DeleteSector(SID, RID);
-
-			// return await _facadeservice.DeleteResume(RID);
-
+		{			
 			var resume = Resumes.Find(x => x.RID == RID);
-            //var employee = await _databaseContext.Employees.FindAsync(EID);
+            //var resume = await _databaseContext.Resume.FindAsync(RID);
 
             if (resume == null)
             {
@@ -211,25 +277,27 @@ namespace ae_resume_api.Controllers
             }
 
             var sector = Sectors.Find(x => x.SID == SID);
+			
+			 //var sector = await _databaseContext.Sector.FindAsync(SID);			 
 			resume.SectorList.Remove(sector);
-            //_databaseContext.Employees.Remove(employee);
-            //return NoContent();
+			// await _databasecontext.SaveChangesAsync();
+
             return Ok();
 		}
 
+		/// <summary>
+		/// Edit a Sector
+		/// </summary>
 		[HttpPut]
 		[Route("EditSector")]
 		public async Task<IActionResult> EditSector(int SID, SectorModel model)
-		{
-			// return await _facadeservice.EditSector(SID, model);
-
-			//return await _adminservice.EditSectorType(sectorTypeID, model);
+		{			
             if(SID != model.SID)
             {
                 return BadRequest();
             }
             var sector = Sectors.Find(x => x.SID == SID);
-            //var employee = await _databaseContext.Employees.FindAsync(EID);
+            //var sector = await _databaseContext.Sector.FindAsync(SID);
 
             if (sector == null)
             {
@@ -238,47 +306,133 @@ namespace ae_resume_api.Controllers
 
             sector.SID = model.SID;
 			sector.CreationDate = model.CreationDate;
-			sector.LastEditedDate = model.CreationDate;
+			sector.LastEditedDate = model.LastEditedDate;
 			sector.Content = model.Content;
 			sector.SectorType = model.SectorType;
+
+			try
+            {
+                //await _databasecontext.SaveChangesAsync();
+            }
+            catch (Exception ex) 
+            {
+                return NotFound(ex.Message);
+			}
 
             return Ok(sector);
 		}
 
+		/// <summary>
+		/// Add a Sector to a Resume
+		/// </summary>
 		[HttpPut]
-		[Route("EditResume")]
-		public async Task<HttpResponseMessage> EditResume(int RID, int SID,  SectorModel model)
-		{
-			return await _facadeservice.EditResume(RID, SID, model);
+		[Route("AddSectorToResume")]
+		public async Task<IActionResult> AddSectorToResume(int RID, SectorModel model)
+        {
+			// TODO: implement DB
+			// var resume = await _databasecontext.Resume.FindAsync(x => x.RID == RID);
+			var resume = Resumes.First();
+
+			if (resume == null)
+            {
+                return NotFound();
+            }
+
+			resume.SectorList.Add(model);
+
+			try
+            {
+				// TODO: implement DB
+                //await _databasecontext.SaveChangesAsync();
+            }
+            catch (Exception ex) 
+            {
+                return NotFound(ex.Message);
+			}
+
+            return Ok(resume);
+
+
+        }
+
+		/// <summary>
+		/// Edit a Sector on a Resume
+		/// </summary>
+		[HttpPut]
+		[Route("EditResumeSector")]
+		public async Task<IActionResult> EditResume(int RID, int SID, SectorModel model)
+		{			
+			// TODO: implement DB
+			// var resume = await _databasecontext.Resume.FindAsync(x => x.RID == RID);
+			var resume = Resumes.First();
+
+			if (resume == null)
+            {
+                return NotFound();
+            }
+
+			var sector = resume.SectorList.Find(x => x.SID == SID);
+
+			if(sector == null)
+            {
+				return NotFound();
+            }
+
+			sector.SID = model.SID;
+			sector.CreationDate = model.CreationDate;
+			sector.LastEditedDate = model.LastEditedDate;
+			sector.Content = model.Content;
+			sector.SectorType = model.SectorType;
+
+			resume.LastEditedDate = DateTime.Now.ToLongDateString();
+
+
+			try
+            {
+				// TODO: implement DB
+                //await _databasecontext.SaveChangesAsync();
+            }
+            catch (Exception ex) 
+            {
+                return NotFound(ex.Message);
+			}
+
+            return Ok(resume);
+
 		}
 
+
+		/// <summary>
+		/// Get a Resume
+		/// </summary>
 		[HttpGet]
 		[Route("GetResume")]
 		public async Task<ActionResult<ResumeModel>> GetResume(int RID)
 		{
-			// return await _facadeservice.GetSector(SID);
-
+			
 			var resume = Resumes.Find(x => x.RID == RID);
-            //var employee = await _databaseContext.Employees.FindAsync(EID);
+			// TODO: implement DB
+            //var resume = await _databaseContext.Resume.FindAsync(RID);
 
             if(resume == null)
             {
                 return NotFound();
             }
-            return resume;
-            //return EmployeeEntityToModel(employee);
+            return resume;            
 		}
 
+
+		/// <summary>
+		/// Get all Resumes for an Employee
+		/// </summary>
 		[HttpGet]
 		[Route("GetResumesForEmployee")]
 		public async Task<ActionResult<IEnumerable<ResumeModel>>> GetResumesForEmployee(int EID)
-		{
-			
-
-
-			// TODO: implement DB
+		{					
 			var resumes = Resumes;
-            //var employee = await _databaseContext.Employees.FindAsync(EID);
+			// TODO: implement DB
+            // var employee = await _databaseContext.Employee.FindAsync(EID);
+			// var resumes = employee.Resumes;
 
             if(resumes == null)
             {
@@ -288,19 +442,123 @@ namespace ae_resume_api.Controllers
             //return EmployeeEntityToModel(employee);
 		}
 
+		/// <summary>
+		/// Get all Resumes for an Employee
+		/// </summary>
 		[HttpGet]
-		[Route("ExportResume")]
-		public async Task<HttpResponseMessage> ExportResume(int RID)
-		{
-			return await _facadeservice.ExportResume(RID);
+		[Route("GetPersonalResumesForEmployee")]
+		public async Task<ActionResult<IEnumerable<ResumeModel>>> GetPersonalResumesForEmployee(int EID)
+		{					
+			var resumes = Resumes;
+			// TODO: implement DB
+            // var employee = await _databaseContext.Employee.FindAsync(EID);
+			// var resumes = employee.Resumes;
+
+            if(resumes == null)
+            {
+                return NotFound();
+            }
+            return resumes;
+            //return EmployeeEntityToModel(employee);
 		}
 
+		/// <summary>
+		/// Export Resume
+		/// </summary>
 		[HttpGet]
-		[Route("SearchResume")]
-		public async Task<HttpResponseMessage> SearchResume(string filter)
+		[Route("ExportResume")]
+		public async Task<IActionResult> ExportResume(int RID)
 		{
-			return await _facadeservice.SearchResume(filter);
+			return BadRequest("Not implemented");
+
+			// return JsonResult(resume);
 		}
+
+		/// <summary>
+		/// Search all Resumes
+		/// </summary>
+		[HttpGet]
+		[Route("SearchResumes")]
+		public async Task<IActionResult> SearchResume(string filter)
+		{
+			return BadRequest("Not implemented");
+		}
+
+		/// <summary>
+		/// Search all Sectors
+		/// </summary>
+		[HttpGet]
+		[Route("SearchSectors")]
+		public async Task<IActionResult> SearchSectors(string filter)
+        {
+			return BadRequest("Not implemented");
+        }
+
+
+		/// <summary>
+		/// Search all Employees
+		/// </summary>
+		[HttpGet]
+		[Route("SearchEmployees")]
+		public IEnumerable<EmployeeModel> SearchEmployees(string? filter)
+        {
+			// Ensure that null value returns all Employees
+			if(filter == null)
+            {
+				filter = "";
+            }
+
+			// Current search only supports text fields
+			// TODO: search by resume content
+			var employees = _databasecontext.Employee.AsQueryable().
+				Where(e => e.Name.Contains(filter) ||
+						   e.Email.Contains(filter)||
+						   // e.Access.Contains(filter)||
+						   e.Username.Contains(filter));
+			List<EmployeeModel>? result = new List<EmployeeModel>();
+			foreach (var employee in employees)
+			{
+				EmployeeModel e =  AdminController.EmployeeEntityToModel(employee);
+				result.Add(e);
+			}
+
+            List<EmployeeModel> employeeModels = new List<EmployeeModel>(result);
+            return employeeModels;
+        }
+
+		/// <summary>
+		/// Search all Resumes of a specifc Employee
+		/// </summary>
+		[HttpGet]
+		[Route("SearchEmployeeResume")]
+		public async Task<IActionResult> SearchEmployeeResume(string filter)
+        {
+			return BadRequest("Not implemented");
+        }
+
+		/// <summary>
+		/// Search all Workspaces
+		/// </summary>
+		[HttpGet]
+		[Route("SearchWorkspaces")]
+		public async Task<IActionResult> SearchWorkspaces(string filter)
+        {
+			return BadRequest("Not implemented");
+        }
+
+		 /// <summary>
+        /// Translate the Employee entity to model used
+        /// </summary>        
+        public static SectorModel SectorEntityToModel(SectorEntity entity) =>
+            new SectorModel
+            {                
+				SID = entity.SID,
+				CreationDate = entity.Creation_Date,
+				LastEditedDate = entity.Last_Edited,
+				Content = entity.Content,
+				TypeID = entity.TypeID
+				//TypeName = entity.TypeName
+            };
 	}
 }
 

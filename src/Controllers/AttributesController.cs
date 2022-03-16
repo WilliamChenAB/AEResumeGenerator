@@ -1,6 +1,7 @@
 ﻿using System;
 using ae_resume_api.Attributes;
 using ae_resume_api.Facade;
+using ae_resume_api.Admin;
 using ae_resume_api.DBContext;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -22,15 +23,17 @@ namespace ae_resume_api.Controllers
 	[ApiController]
 	public class AtrributesController : ControllerBase
 	{
-		private readonly IAttributeService _attributeservice;
+		readonly DatabaseContext _databaseContext;
 
+		// Temp list
 		public List<WorkspaceModel> Workspaces { get; set; } = new List<WorkspaceModel>();
 
 
-		public AtrributesController(IAttributeService attributeservice)
+		public AtrributesController(DatabaseContext dbContext)
 		{
-			_attributeservice = attributeservice;
+			_databaseContext = dbContext;
 
+			// populate testing data
 			Workspaces.Add(new WorkspaceModel { 
 				WID = 1,
 				Division = "Water",
@@ -69,21 +72,25 @@ namespace ae_resume_api.Controllers
 			});
 		}
 
+		/// <summary>
+		/// Create a new Workspace
+		/// </summary>
 		[HttpPost]
 		[Route("NewWorkspace")]
 		public async Task<IActionResult> NewWorkspace([FromBody] WorkspaceModel model)
-		{
-			// return await _attributeservice.NewWorkspace(model);
-
+		{			
 			Workspaces.Add(model);
             WorkspaceEntity entity = new WorkspaceEntity
             {
                 WID = model.WID,
 				Division = model.Division,
-				CreationDate = model.CreationDate,
-				ProposalNumber = model.ProposalNumber
+				Creation_Date = model.CreationDate,
+				Proposal_Number = model.ProposalNumber
             };
-            //_databaseContext.Employees.Add(entity);
+
+			// TODO: implement DB
+            //_databaseContext.Workspace.Add(entity);
+			// await _databaseContext.SaveChangesAsync();
 
             return CreatedAtAction(
                 nameof(GetWorkspace),
@@ -91,14 +98,16 @@ namespace ae_resume_api.Controllers
                 model);
 		}
 
+		/// <summary>
+		/// Get a workspace
+		/// </summary>
 		[HttpGet]
 		[Route("GetWorkspace")]
 		public async Task<ActionResult<WorkspaceModel>> GetWorkspace(int WID)
-		{
-			// return await _attributeservice.GetWorkspace(WID);
-
+		{			
 			var workspace = Workspaces.Find(x => x.WID == WID);
-            //var employee = await _databaseContext.Employees.FindAsync(EID);
+			// TODO: implement DB
+            //var workspace = await _databaseContext.Workspace.FindAsync(WID);
 
             if(workspace == null)
             {
@@ -108,21 +117,58 @@ namespace ae_resume_api.Controllers
             //return EmployeeEntityToModel(employee);
 		}
 
+		/// <summary>
+		/// Copy a Resume to a Workspace
+		/// </summary>
 		[HttpPost]
 		[Route("CopyResume")]
-		public async Task<HttpResponseMessage> CopyResume(int EID, int WID)
+		public async Task<IActionResult> CopyResume(int RID, int WID)
 		{
-			return await _attributeservice.CopyResume(EID, WID);
+			var workspace = Workspaces.Find(x => x.WID == WID);
+
+			// TODO: implement DB
+            // var workspace = await _databaseContext.Workspace.FindAsync(WID);
+			if(workspace == null)
+            {
+                return NotFound();
+            }
+
+			// TODO: implement DB
+			//var resume = await _databaseContext.Resume.FindAsync(RID);			
+			var resume = Workspaces.First().Resumes.Last();
+
+			if(resume == null)
+            {
+				return NotFound();
+            }
+
+			resume.WID = workspace.WID;
+			workspace.Resumes.Add(resume);			
+
+            try
+            {
+				await _databaseContext.SaveChangesAsync();
+            }
+			catch (Exception ex)
+            {
+				return NotFound(ex.Message);
+            }
+
+			return Ok(resume);
+			
+
 		}
 
+		/// <summary>
+		/// Delete a workspace
+		/// </summary>
 		[HttpDelete]
 		[Route("DeleteWorkspace")]
 		public async Task<IActionResult> DeleteWorkspace(int WID)
-		{
-			// return await _attributeservice.DeleteWorkspace(WID);
-
+		{			
 			var workspace = Workspaces.Find(x => x.WID == WID);
-            //var employee = await _databaseContext.Employees.FindAsync(EID);
+			// TODO: implement DB
+            //var workspace = await _databaseContext.Workspace.FindAsync(WID);
 
             if (workspace == null)
             {
@@ -130,19 +176,25 @@ namespace ae_resume_api.Controllers
             }
             
             Workspaces.Remove(workspace);
-            //_databaseContext.Employees.Remove(employee);
-            //return NoContent();
+			// TODO: implement DB
+            //_databaseContext.Workspace.Remove(workspace);
+			// await _databaseContext.SaveChangesAsync();
+            
             return Ok();
 		}
 
+
+		/// <summary>
+		/// Get all Resumes from a Workspace
+		/// </summary>
 		[HttpGet]
-		[Route("GetResumes")]
-
-		public async Task<ActionResult<IEnumerable<ResumeModel>>> GetResumes(int WID)
-		{
-			// return await _attributeservice.GetResumes(WID);
-
+		[Route("GetResumesForWorkspace")]
+		public async Task<ActionResult<IEnumerable<ResumeModel>>> GetResumesForWorkspace(int WID)
+		{			
 			var workspace = Workspaces.Find(x => x.WID == WID);
+			// TODO: implement DB
+			//var workspace = await _databaseContext.Workspace.FindAsync(WID);
+			//TODO: convert Workspace entity to model
 
 			if (workspace == null)
             {
@@ -150,18 +202,76 @@ namespace ae_resume_api.Controllers
             }
             
             var resumes = workspace.Resumes;
-            //_databaseContext.Employees.Remove(employee);
-            //return NoContent();
+            
+            
             return Ok(resumes);
 
 		}
 
+		/// <summary>
+		/// Create a Template request for a specific Employee
+		/// </summary>
 		[HttpPost]
 		[Route("CreateTemplateRequest")]
-		public async Task<HttpResponseMessage> CreateTemplateRequest(int TemplateID, int EID)
+		public async Task<IActionResult> CreateTemplateRequest(int TemplateID, int EID)
 		{
-			return await _attributeservice.CreateTemplateRequest(TemplateID, EID);
+			return null;
+			// Create a blank resume in the employee with the template type
+			var employee = await _databaseContext.Employee.FindAsync(EID);
+
+			if (employee == null)
+			{
+				return NotFound();
+			}
+
+			// Create a blank resume that has all the sectors in the template
+			var template = TemplateEntityToModel(await _databaseContext.Resume_Template.FindAsync(TemplateID));
+			// TODO: I dont think we can just loop through all the sectortypes depending on how we are storing templates
+
+			if (template == null)
+			{
+				NotFound();
+			}
+
+			ResumeEntity templateResume = new ResumeEntity();
+			templateResume.TemplateID = TemplateID;
+			templateResume.Status = Status.Requested.ToString();
+			templateResume.EID = EID;
+			foreach (var sectorType in template.SectorTypes)
+			{
+				SectorModel sector = new SectorModel();
+				sector.SectorType = sectorType.TypeID;
+				sector.CreationDate = DateTime.Now.ToString("yyyyMMdd");
+
+				_databaseContext.Template_Type.Add(new TemplateSectorsEntity
+				{
+					TemplateID = TemplateID,
+					TypeID = sectorType.TypeID
+				});
+
+				await _databaseContext.Resume.AddAsync(templateResume);
+
+				try
+				{
+					await _databaseContext.SaveChangesAsync();
+				}
+				catch (Exception ex)
+				{
+					return NotFound(ex.Message);
+				}
+
+				return Ok(employee);
+
+			}
 		}
+		private static TemplateModel TemplateEntityToModel(TemplateEntity entity) =>
+			new TemplateModel
+			{
+				TemplateID = entity.TemplateID,
+				Title = entity.Title,
+				Description = entity.Description
+			};
+
 	}
 }
 
