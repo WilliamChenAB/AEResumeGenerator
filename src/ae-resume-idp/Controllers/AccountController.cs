@@ -19,15 +19,18 @@ namespace aeresumeidp.Core.Controllers
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly IIdentityServerInteractionService _interaction;
+        private readonly IConfiguration _configuration;
 
         public AccountController(
             UserManager<ApplicationUser> userManager,
             SignInManager<ApplicationUser> signInManager,
-            IIdentityServerInteractionService interaction)
+            IIdentityServerInteractionService interaction,
+            IConfiguration Configuration)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _interaction = interaction;
+            _configuration = Configuration;
         }
 
         [HttpGet]
@@ -95,7 +98,7 @@ namespace aeresumeidp.Core.Controllers
 
             var logout = await _interaction.GetLogoutContextAsync(logoutId);
 
-            return Redirect(logout.PostLogoutRedirectUri);
+            return Redirect(_configuration.GetValue<string>("ApplicationRedirect"));
         }
 
         [HttpGet]

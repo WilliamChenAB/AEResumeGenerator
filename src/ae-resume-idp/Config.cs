@@ -6,11 +6,9 @@ namespace aeresumeidp
 {
     public class Config
     {
-        IConfiguration _config;
 
-        public Config(IConfiguration config)
+        public Config()
         {
-            _config = config;
         }
 
         public static IEnumerable<IdentityResource> IdentityResources =>
@@ -31,26 +29,27 @@ namespace aeresumeidp
         //        new ApiResource("ae-resume-api")
         //    };
 
-        public static IEnumerable<Client> Clients =>
-            new Client[]
+        public static IEnumerable<Client> Clients(IConfiguration config)
+        {
+
+            return new Client[]
             {
                 // JavaScript Client without backend
                 new Client
                 {
                     ClientId = "js",
                     ClientName = "JavaScript Client",
-                    AllowedGrantTypes = GrantTypes.Implicit,
+                    AllowedGrantTypes = GrantTypes.Code,
                     RequireClientSecret = false,
 
                     //AlwaysSendClientClaims = true,
                     //AlwaysIncludeUserClaimsInIdToken = true,
-                    UpdateAccessTokenClaimsOnRefresh = true,
-                    AllowAccessTokensViaBrowser = true,
+                    //UpdateAccessTokenClaimsOnRefresh = true,
+                    //AllowAccessTokensViaBrowser = true,
 
-                    RedirectUris =           { "https://localhost:5002/callback.html" },
-                    PostLogoutRedirectUris = { "https://localhost:5002/index.html" },
-                    AllowedCorsOrigins =     { "https://localhost:5002" },
-
+                    RedirectUris =           { config.GetValue<string>("ApplicationCallback"),  "http://localhost:3000/auth/login-callback" },
+                    PostLogoutRedirectUris = { config.GetValue<string>("ApplicationRedirect"), "http://localhost:3000/login"},
+                    AllowedCorsOrigins =     { config.GetValue<string>("ApplicationURL"), "http://localhost:3000" },
                     AllowedScopes =
                     {
                         IdentityServerConstants.StandardScopes.OpenId,
@@ -58,6 +57,6 @@ namespace aeresumeidp
                     }
                 }
             };
-
+        }
     }
 }

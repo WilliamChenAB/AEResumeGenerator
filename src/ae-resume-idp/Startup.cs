@@ -42,7 +42,7 @@ namespace aeresumeidp
                 .AddInMemoryIdentityResources(Config.IdentityResources)
                 .AddInMemoryApiScopes(Config.ApiScopes)
                 //.AddInMemoryApiResources(Config.ApiResources)
-                .AddInMemoryClients(Config.Clients)
+                .AddInMemoryClients(Config.Clients(config))
                 //.AddTestUsers(TestUsers.Users)
                 .AddAspNetIdentity<ApplicationUser>()
                 .AddProfileService<ProfileService>();
