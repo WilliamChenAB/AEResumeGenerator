@@ -34,37 +34,37 @@ namespace ae_resume_api.Controllers
 			_databaseContext = dbContext;
 
 			// populate testing data
-			Workspaces.Add(new WorkspaceModel { 
+			Workspaces.Add(new WorkspaceModel {
 				WID = 1,
 				Division = "Water",
-				CreationDate = "01/01/2022",
+				CreationDate = new DateTime(2020, 01, 01),
 				ProposalNumber = 1,
 				Resumes = new List<ResumeModel>{
 				new ResumeModel
 				{
 					RID = 2,
-					CreationDate = "01/01/2020",
-					LastEditedDate = "01/01/2020",
+					CreationDate = new DateTime(2020, 01, 01),
+					LastEditedDate = new DateTime(2020, 01, 01),
 					SectorList = null
 				},
 				new ResumeModel{
 					RID = 5,
-					CreationDate = "02/02/2020",
-					LastEditedDate = "02/02/2020",
+					CreationDate = new DateTime(2020, 01, 01),
+					LastEditedDate = new DateTime(2020, 01, 01),
 					SectorList = new List<SectorModel>{
 						new SectorModel{
 							SID = 1,
 							SectorType = 2,
 							Content = "Test sector 1",
-							CreationDate = "02/02/2020",
-							LastEditedDate = "02/02/2020"
+							CreationDate = new DateTime(2020, 01, 01),
+							LastEditedDate = new DateTime(2020, 01, 01)
 						},
 						new SectorModel{
 							SID = 5,
 							SectorType = 3,
 							Content = "Test sector 2",
-							CreationDate = "02/02/2020",
-							LastEditedDate = "02/02/2020"
+							CreationDate = new DateTime(2020, 01, 01),
+							LastEditedDate = new DateTime(2020, 01, 01)
 						}
 					}
 				}
@@ -78,24 +78,24 @@ namespace ae_resume_api.Controllers
 		[HttpPost]
 		[Route("NewWorkspace")]
 		public async Task<IActionResult> NewWorkspace([FromBody] WorkspaceModel model)
-		{			
-			Workspaces.Add(model);
-            WorkspaceEntity entity = new WorkspaceEntity
-            {
-                WID = model.WID,
+		{
+
+			WorkspaceEntity entity = new WorkspaceEntity
+			{
+				WID = model.WID,
 				Division = model.Division,
-				Creation_Date = model.CreationDate,
+				Creation_Date = DateTime.Now.ToString("yyyMMdd"),
 				Proposal_Number = model.ProposalNumber
-            };
+			};
 
-			// TODO: implement DB
-            //_databaseContext.Workspace.Add(entity);
-			// await _databaseContext.SaveChangesAsync();
+			// Workspaces.Add(model);
+			_databaseContext.Workspace.Add(entity);
+			await _databaseContext.SaveChangesAsync();
 
-            return CreatedAtAction(
-                nameof(GetWorkspace),
-                new { WID = model.WID },
-                model);
+			return CreatedAtAction(
+				nameof(GetWorkspace),
+				new { WID = model.WID },
+				model);
 		}
 
 		/// <summary>
@@ -104,17 +104,17 @@ namespace ae_resume_api.Controllers
 		[HttpGet]
 		[Route("GetWorkspace")]
 		public async Task<ActionResult<WorkspaceModel>> GetWorkspace(int WID)
-		{			
-			var workspace = Workspaces.Find(x => x.WID == WID);
-			// TODO: implement DB
-            //var workspace = await _databaseContext.Workspace.FindAsync(WID);
+		{
+			// var workspace = Workspaces.Find(x => x.WID == WID);
 
-            if(workspace == null)
-            {
-                return NotFound();
-            }
-            return workspace;
-            //return EmployeeEntityToModel(employee);
+			var workspace = await _databaseContext.Workspace.FindAsync(WID);
+
+			if (workspace == null)
+			{
+				return NotFound();
+			}
+			return WorkspaceEntityToModel(workspace);
+
 		}
 
 		/// <summary>
@@ -124,38 +124,68 @@ namespace ae_resume_api.Controllers
 		[Route("CopyResume")]
 		public async Task<IActionResult> CopyResume(int RID, int WID)
 		{
-			var workspace = Workspaces.Find(x => x.WID == WID);
+			// var workspace = Workspaces.Find(x => x.WID == WID);			
+			var workspace = await _databaseContext.Workspace.FindAsync(WID);
 
-			// TODO: implement DB
-            // var workspace = await _databaseContext.Workspace.FindAsync(WID);
-			if(workspace == null)
-            {
-                return NotFound();
-            }
-
-			// TODO: implement DB
-			//var resume = await _databaseContext.Resume.FindAsync(RID);			
-			var resume = Workspaces.First().Resumes.Last();
-
-			if(resume == null)
-            {
+			if (workspace == null)
+			{
 				return NotFound();
-            }
+			}
 
-			resume.WID = workspace.WID;
-			workspace.Resumes.Add(resume);			
 
-            try
-            {
+			var resume = await _databaseContext.Resume.FindAsync(RID);
+			// var resume = Workspaces.First().Resumes.Last();
+
+			if (resume == null)
+			{
+				return NotFound();
+			}
+
+			//resume.WID = workspace.WID;			
+			//workspace.Resumes.Add(resume);
+
+			// Create a new Resume with the same sectors but new SID and add to Workspace
+			ResumeEntity entity = new ResumeEntity
+			{
+				Creation_Date = DateTime.Now.ToString("yyyMMdd"),
+				EID = resume.EID,
+				TemplateID = resume.TemplateID,
+				Status = resume.Status,
+				Last_Edited = resume.Last_Edited,
+				WID = WID
+			};
+
+			_databaseContext.Resume.Add(entity);
+			// TODO: how to add resume to workspace
+			await _databaseContext.SaveChangesAsync();
+
+
+			// Copy all of the sectors from the old resume to add to the Sector table
+			var sectors = _databaseContext.Sector.Where(sector => sector.RID == resume.RID);
+			var newResume = await _databaseContext.Resume.FindAsync(entity);
+
+			sectors.ToList().ForEach(s => _databaseContext.Sector.Add(new SectorEntity
+			{
+				Content = s.Content,
+				EID = s.EID,
+				Creation_Date = DateTime.Now.ToString("yyyMMdd"),
+				TypeID = s.TypeID,
+				TypeTitle = s.TypeTitle,
+				Last_Edited = s.Last_Edited,
+				RID = newResume.RID
+			}));
+
+			try
+			{
 				await _databaseContext.SaveChangesAsync();
-            }
+			}
 			catch (Exception ex)
-            {
+			{
 				return NotFound(ex.Message);
-            }
+			}
 
 			return Ok(resume);
-			
+
 
 		}
 
@@ -165,22 +195,22 @@ namespace ae_resume_api.Controllers
 		[HttpDelete]
 		[Route("DeleteWorkspace")]
 		public async Task<IActionResult> DeleteWorkspace(int WID)
-		{			
-			var workspace = Workspaces.Find(x => x.WID == WID);
-			// TODO: implement DB
-            //var workspace = await _databaseContext.Workspace.FindAsync(WID);
+		{
+			//var workspace = Workspaces.Find(x => x.WID == WID);
 
-            if (workspace == null)
-            {
-                return NotFound();
-            }
-            
-            Workspaces.Remove(workspace);
-			// TODO: implement DB
-            //_databaseContext.Workspace.Remove(workspace);
-			// await _databaseContext.SaveChangesAsync();
-            
-            return Ok();
+			var workspace = await _databaseContext.Workspace.FindAsync(WID);
+
+			if (workspace == null)
+			{
+				return NotFound();
+			}
+
+			//Workspaces.Remove(workspace);
+
+			_databaseContext.Workspace.Remove(workspace);
+			await _databaseContext.SaveChangesAsync();
+
+			return Ok();
 		}
 
 
@@ -190,23 +220,44 @@ namespace ae_resume_api.Controllers
 		[HttpGet]
 		[Route("GetResumesForWorkspace")]
 		public async Task<ActionResult<IEnumerable<ResumeModel>>> GetResumesForWorkspace(int WID)
-		{			
-			var workspace = Workspaces.Find(x => x.WID == WID);
-			// TODO: implement DB
-			//var workspace = await _databaseContext.Workspace.FindAsync(WID);
-			//TODO: convert Workspace entity to model
+		{
+			//var workspace = Workspaces.Find(x => x.WID == WID);
+
+			var workspace = await _databaseContext.Workspace.FindAsync(WID);
+
 
 			if (workspace == null)
-            {
-                return NotFound();
-            }
-            
-            var resumes = workspace.Resumes;
-            
-            
-            return Ok(resumes);
+			{
+				return NotFound();
+			}
+
+			//var resumes = workspace.Resumes;
+			var resumes = _databaseContext.Resume.Where(r => r.WID == workspace.WID);
+			List<ResumeModel> result = new List<ResumeModel>();
+			foreach (var resume in resumes)
+			{
+				result.Add(ResumeEntityToModel(resume));
+			}
+
+			return Ok(result);
 
 		}
+		/// <summary>
+		/// Get all Workspaces or a PA
+		/// </summary>
+		[HttpGet]
+		[Route("GetAllWorkspacesForEmployee")]
+		public async Task<ActionResult<IEnumerable<WorkspaceModel>>> GetAllWorkspacesForEmployee(int EID)
+        {
+			var workspaces = _databaseContext.Workspace.Where(w => w.EID == EID);
+			List<WorkspaceModel> result = new List<WorkspaceModel>();
+            foreach (var workspace in workspaces)
+            {
+                result.Add(WorkspaceEntityToModel(workspace));
+            }
+            return result;
+
+        }
 
 		/// <summary>
 		/// Create a Template request for a specific Employee
@@ -215,7 +266,7 @@ namespace ae_resume_api.Controllers
 		[Route("CreateTemplateRequest")]
 		public async Task<IActionResult> CreateTemplateRequest(int TemplateID, int EID)
 		{
-			return null;
+
 			// Create a blank resume in the employee with the template type
 			var employee = await _databaseContext.Employee.FindAsync(EID);
 
@@ -226,22 +277,22 @@ namespace ae_resume_api.Controllers
 
 			// Create a blank resume that has all the sectors in the template
 			var template = TemplateEntityToModel(await _databaseContext.Resume_Template.FindAsync(TemplateID));
-			// TODO: I dont think we can just loop through all the sectortypes depending on how we are storing templates
+			
 
 			if (template == null)
 			{
-				NotFound();
+				return NotFound();
 			}
-
+			// TODO: I dont think we can just loop through all the sectortypes depending on how we are storing templates
 			ResumeEntity templateResume = new ResumeEntity();
 			templateResume.TemplateID = TemplateID;
 			templateResume.Status = Status.Requested.ToString();
-			templateResume.EID = EID;
+			templateResume.EID = EID;			
 			foreach (var sectorType in template.SectorTypes)
 			{
 				SectorModel sector = new SectorModel();
 				sector.SectorType = sectorType.TypeID;
-				sector.CreationDate = DateTime.Now.ToString("yyyyMMdd");
+				sector.CreationDate = DateTime.Now;
 
 				_databaseContext.Template_Type.Add(new TemplateSectorsEntity
 				{
@@ -250,27 +301,48 @@ namespace ae_resume_api.Controllers
 				});
 
 				await _databaseContext.Resume.AddAsync(templateResume);
-
-				try
-				{
-					await _databaseContext.SaveChangesAsync();
-				}
-				catch (Exception ex)
-				{
-					return NotFound(ex.Message);
-				}
-
-				return Ok(employee);
-
+				
 			}
+			try
+			{
+				await _databaseContext.SaveChangesAsync();
+			}
+			catch (Exception ex)
+			{
+				return NotFound(ex.Message);
+			}
+
+			return Ok(employee);
 		}
-		private static TemplateModel TemplateEntityToModel(TemplateEntity entity) =>
+		public static TemplateModel TemplateEntityToModel(TemplateEntity entity) =>
 			new TemplateModel
 			{
 				TemplateID = entity.TemplateID,
 				Title = entity.Title,
 				Description = entity.Description
 			};
+
+		public static WorkspaceModel WorkspaceEntityToModel(WorkspaceEntity entity) =>
+			new WorkspaceModel
+			{
+				WID = entity.WID,
+				CreationDate = Convert.ToDateTime(entity.Creation_Date),
+				Division = entity.Division,
+				ProposalNumber = entity.Proposal_Number
+			};
+		public static ResumeModel ResumeEntityToModel(ResumeEntity entity) =>
+			new ResumeModel
+			{
+				WID = entity.WID,
+				EID = entity.EID,
+				CreationDate = Convert.ToDateTime(entity.Creation_Date),
+				LastEditedDate = Convert.ToDateTime(entity.Last_Edited),
+				Name = entity.Name,
+				RID = entity.RID,
+				TemplateID = entity.TemplateID,
+				TemplateName = entity.TemplateName
+			};
+			
 
 	}
 }

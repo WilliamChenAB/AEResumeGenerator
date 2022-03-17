@@ -1,5 +1,4 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using ae_resume_api.Controllers;
+﻿using ae_resume_api.Controllers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,10 +10,11 @@ using ae_resume_api.Admin;
 using Xunit;
 using System.Net.Http;
 using System.Net;
+using System.Text.Json;
 
 namespace ae_resume_api.Controllers.Tests
 {
-    [TestClass()]
+    
     public class AdminControllerTests: IClassFixture<WebApplicationFactory<ae_resume_api.Startup>>
     {
         readonly HttpClient _client;
@@ -22,121 +22,127 @@ namespace ae_resume_api.Controllers.Tests
         {            
             _client = application.CreateClient();
             Console.WriteLine(_client.BaseAddress);
+            Console.WriteLine("Here");
         }
 
-        [TestMethod()]
+        [Fact]
         public void NewEmployeeTest()
         {
-            
+            Assert.True(false);
         }
 
-        [TestMethod()]
+        [Fact]
         public void EditEmployeeTest()
         {
-            Assert.Fail();
+            Assert.True(false);
         }
 
-        [TestMethod()]
+        [Fact]
         public void DeleteEmployeeTest()
         {
-            Assert.Fail();
+            Assert.True(false);
         }
 
-        [TestMethod()]
+        [Fact]
         public void GetEmployeeTest()
         {
-            Assert.Fail();
+           Assert.True(false);
         }
 
-        [TestMethod()]
-        public async void GetAllEmployeesTest()
+        [Fact]
+        public async Task GetAllEmployeesTest()
         {
             var response = await _client.GetAsync("/Admin/GetAllEmployees");
-            Assert.Equals(response.StatusCode, HttpStatusCode.OK);
+            response.EnsureSuccessStatusCode();
+            var stringResponse = await response.Content.ReadAsStringAsync();
+            Console.WriteLine(stringResponse);
+            //var terms = JsonSerializer.Deserialize<List<GlossaryItem>>(stringResponse, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
+
+            //Assert.Equal(3, terms.Count);
         }
 
-        [TestMethod()]
+        [Fact]
         public void AssignAccessTest()
         {
-            Assert.Fail();
+           Assert.True(false);
         }
 
-        [TestMethod()]
+        [Fact]
         public void NewSectorTypeTest()
         {
-            Assert.Fail();
+           Assert.True(false);
         }
 
-        [TestMethod()]
+        [Fact]
         public void EditSectorTypeTest()
         {
-            Assert.Fail();
+           Assert.True(false);
         }
 
-        [TestMethod()]
+        [Fact]
         public void GetSectorTypeTest()
         {
-            Assert.Fail();
+           Assert.True(false);
         }
 
-        [TestMethod()]
+        [Fact]
         public void DeleteSectorTypeTest()
         {
-            Assert.Fail();
+           Assert.True(false);
         }
 
-        [TestMethod()]
+        [Fact]
         public void CreateTemplateTest()
         {
-            Assert.Fail();
+           Assert.True(false);
         }
 
-        [TestMethod()]
+        [Fact]
         public void GetTemplateTest()
         {
-            Assert.Fail();
+           Assert.True(false);
         }
 
-        [TestMethod()]
-        public void GetAllTempaltesTest()
+        [Fact]
+        public void GetAllTemplatesTest()
         {
-            Assert.Fail();
+           Assert.True(false);
         }
 
-        [TestMethod()]
+        [Fact]
         public void GetSectorsInTemplateTest()
         {
-            Assert.Fail();
+           Assert.True(false);
         }
 
-        [TestMethod()]
+        [Fact]
         public void EditTemplateTest()
         {
-            Assert.Fail();
+           Assert.True(false);
         }
 
-        [TestMethod()]
+        [Fact]
         public void AssignSectorTypeTest()
         {
-            Assert.Fail();
+           Assert.True(false);
         }
 
-        [TestMethod()]
+        [Fact]
         public void DeleteTemplateTest()
         {
-            Assert.Fail();
+           Assert.True(false);
         }
 
-        [TestMethod()]
+        [Fact]
         public void EmployeeEntityToModelTest()
         {
-            Assert.Fail();
+           Assert.True(false);
         }
 
-        [TestMethod()]
+        [Fact]
         public void TemplateEntityToModelTest()
         {
-            Assert.Fail();
+           Assert.True(false);
         }
     }
 }

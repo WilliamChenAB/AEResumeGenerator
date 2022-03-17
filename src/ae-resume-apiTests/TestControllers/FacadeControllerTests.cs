@@ -1,140 +1,143 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using ae_resume_api.Controllers;
+﻿using ae_resume_api.Controllers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Net.Http;
+using Microsoft.AspNetCore.Mvc.Testing;
+using Xunit;
 
 namespace ae_resume_api.Controllers.Tests
 {
-    [TestClass()]
-    public class FacadeControllerTests
+    
+    public class FacadeControllerTests: IClassFixture<WebApplicationFactory<ae_resume_api.Startup>>
     {
-        [TestMethod()]
-        public void FacadeControllerTest()
+        readonly HttpClient _client;
+        public FacadeControllerTests(WebApplicationFactory<ae_resume_api.Startup> application)
         {
-            Assert.Fail();
+            _client = application.CreateClient();
+            Console.WriteLine(_client.BaseAddress);
         }
 
-        [TestMethod()]
+        [Fact]
         public void NewResumeTest()
         {
-            Assert.Fail();
+            Assert.True(false);
         }
 
-        [TestMethod()]
+        [Fact]
         public void NewSectorTest()
         {
-            Assert.Fail();
+            Assert.True(false);
         }
 
-        [TestMethod()]
+        [Fact]
         public void GetSectorTest()
         {
-            Assert.Fail();
+            Assert.True(false);
         }
 
-        [TestMethod()]
+        [Fact]
         public void GetAllSectorsForEmployeeTest()
         {
-            Assert.Fail();
+            Assert.True(false);
         }
 
-        [TestMethod()]
+        [Fact]
         public void GetAllSectorsForEmployeeByTypeTest()
         {
-            Assert.Fail();
+            Assert.True(false);
         }
 
-        [TestMethod()]
+        [Fact]
         public void DeleteResumeTest()
         {
-            Assert.Fail();
+            Assert.True(false);
         }
 
-        [TestMethod()]
+        [Fact]
         public void DeleteSectorTest()
         {
-            Assert.Fail();
+            Assert.True(false);
         }
 
-        [TestMethod()]
+        [Fact]
         public void EditSectorTest()
         {
-            Assert.Fail();
+            Assert.True(false);
         }
 
-        [TestMethod()]
+        [Fact]
         public void AddSectorToResumeTest()
         {
-            Assert.Fail();
+            Assert.True(false);
         }
 
-        [TestMethod()]
+        [Fact]
         public void EditResumeTest()
         {
-            Assert.Fail();
+            Assert.True(false);
         }
 
-        [TestMethod()]
+        [Fact]
         public void GetResumeTest()
         {
-            Assert.Fail();
+            Assert.True(false);
         }
 
-        [TestMethod()]
+        [Fact]
         public void GetResumesForEmployeeTest()
         {
-            Assert.Fail();
+            Assert.True(false);
         }
 
-        [TestMethod()]
+        [Fact]
         public void GetPersonalResumesForEmployeeTest()
         {
-            Assert.Fail();
+            Assert.True(false);
         }
 
-        [TestMethod()]
+        [Fact]
         public void ExportResumeTest()
         {
-            Assert.Fail();
+            Assert.True(false);
         }
 
-        [TestMethod()]
+        [Fact]
         public void SearchResumeTest()
         {
-            Assert.Fail();
+            Assert.True(false);
         }
 
-        [TestMethod()]
+        [Fact]
         public void SearchSectorsTest()
         {
-            Assert.Fail();
+            Assert.True(false);
         }
 
-        [TestMethod()]
+        [Fact]
         public void SearchEmployeesTest()
         {
-            Assert.Fail();
+            Assert.True(false);
         }
 
-        [TestMethod()]
+        [Fact]
         public void SearchEmployeeResumeTest()
         {
-            Assert.Fail();
+            Assert.True(false);
         }
 
-        [TestMethod()]
+        [Fact]
         public void SearchWorkspacesTest()
         {
-            Assert.Fail();
+            Assert.True(false);
         }
 
-        [TestMethod()]
+        [Fact]
         public void SectorEntityToModelTest()
         {
-            Assert.Fail();
+            Assert.True(false);
         }
     }
 }

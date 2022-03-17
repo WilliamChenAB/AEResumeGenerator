@@ -12,5 +12,10 @@ public class ResumeEntity
 	public string Status { get; set; }
 
 	public int TemplateID { get; set; }
+	public int WID { get; set; }
+
+	public string Name { get; set; }
+
+	public string TemplateName { get; set; }
 }
 
