@@ -25,59 +25,10 @@ namespace ae_resume_api.Controllers
 	{		
 		readonly DatabaseContext _databasecontext;
 
-		public List<ResumeModel> Resumes = new List<ResumeModel>();
-		public List<SectorModel> Sectors = new List<SectorModel>();
-
 		public FacadeController(DatabaseContext databaseContext)
 		{
 			_databasecontext = databaseContext;
 
-			Resumes.Add(new ResumeModel { 
-				RID = 3,
-				EID = 1,
-				CreationDate = new DateTime(2020, 01, 01),
-				LastEditedDate = new DateTime(2020, 01, 01),
-				SectorList = new List<SectorModel> {
-					new SectorModel {
-						SectorType = 1,
-						SID = 1,
-						Content = "my work experince",
-						CreationDate = new DateTime(2020, 01, 01),
-						LastEditedDate = new DateTime(2020, 01, 01)
-					}
-				}
-			});
-			Resumes.Add(new ResumeModel
-			{
-				RID = 5,
-				EID = 2,
-				CreationDate = new DateTime(2020, 01, 01),
-				LastEditedDate = new DateTime(2020, 01, 01),
-				SectorList = new List<SectorModel> {
-					new SectorModel {
-						SectorType = 4,
-						SID = 4,
-						Content = "my work experince",
-						CreationDate = new DateTime(2020, 01, 01),
-						LastEditedDate = new DateTime(2020, 01, 01)
-					},
-					new SectorModel {
-						SectorType = 4,
-						SID = 7,
-						Content = "More work experince",
-						CreationDate = new DateTime(2020, 01, 01),
-						LastEditedDate = new DateTime(2020, 01, 01)
-					}
-				}			
-			});
-
-			Sectors.Add(new SectorModel {
-						SectorType = 1,
-						SID = 1,
-						Content = "my work experince",
-						CreationDate = new DateTime(2020, 01, 01),
-						LastEditedDate = new DateTime(2020, 01, 01)
-					});
 		}
 		
 		/// <summary>
@@ -85,11 +36,11 @@ namespace ae_resume_api.Controllers
         /// </summary>
 		[HttpPost]
         [Route("NewResume")]		
-		public async Task<ActionResult<ResumeModel>> NewResume(string templateName, int EID)
+		public async Task<ActionResult<ResumeModel>> NewResume(int templateID, string resumeName, int EID)
 		{	
 			
 			// Find the template record
-			var template =  _databasecontext.Resume_Template.FirstOrDefault(t => t.Title == templateName);
+			var template =  _databasecontext.Resume_Template.FindAsync(templateID);
 			
 
 			if( template == null )
@@ -99,14 +50,15 @@ namespace ae_resume_api.Controllers
 
 			// Find the Sector Types associated with that template
 			var sectorTypes =  _databasecontext.Template_Type
-				.Where(x => x.TemplateID == template.TemplateID);
+				.Where(x => x.TemplateID == templateID);
 
 
 			ResumeEntity entity = new ResumeEntity
             {               
 			   Creation_Date = DateTime.Now.ToString("yyyMMdd"),
 			   EID = EID,
-			   TemplateID = template.TemplateID			  		   
+			   TemplateID = templateID,		
+			   Name = resumeName
             };
 
             var resume = _databasecontext.Resume.Add(entity);
@@ -138,8 +90,6 @@ namespace ae_resume_api.Controllers
 		public async Task<ActionResult<SectorModel>> NewSector(SectorModel model)
 		{
 		
-			
-
             SectorEntity entity = new SectorEntity
             {
                SID = model.SID,
@@ -177,7 +127,7 @@ namespace ae_resume_api.Controllers
             {
                 return NotFound();
             }
-            return SectorEntityToModel(sector);            
+            return ControllerHelpers.SectorEntityToModel(sector);            
 		}
 
 		/// <summary>
@@ -197,11 +147,12 @@ namespace ae_resume_api.Controllers
 
 			List<SectorModel> sectorList = new List<SectorModel>();
 			var sectors =  _databasecontext.Sector.Where(s => s.EID == EID).OrderBy(s => s.TypeID);
+
 			
 
 			foreach(var sector in sectors)
             {
-				sectorList.Add(SectorEntityToModel(sector));
+				sectorList.Add(ControllerHelpers.SectorEntityToModel(sector));
             }
 			
 	
@@ -230,7 +181,7 @@ namespace ae_resume_api.Controllers
 
 			foreach(var sector in sectors)
             {
-				sectorList.Add(SectorEntityToModel(sector));
+				sectorList.Add(ControllerHelpers.SectorEntityToModel(sector));
             }
 			
 	
@@ -326,7 +277,7 @@ namespace ae_resume_api.Controllers
 		/// </summary>
 		[HttpPost]
 		[Route("AddSectorToResume")]
-		public async Task<IActionResult> AddSectorToResume(int RID, SectorModel model)
+		public async Task<IActionResult> AddSectorToResume(int RID, string content, int typeID)
         {
 			
 			var resume = await _databasecontext.Resume.FindAsync(RID);
@@ -339,12 +290,11 @@ namespace ae_resume_api.Controllers
 
 			//resume.SectorList.Add(model);
 			SectorEntity sector = new SectorEntity();
-
-			sector.SID = model.SID;
-			sector.Creation_Date = model.CreationDate.ToString("yyyMMdd");
-			sector.Last_Edited = model.LastEditedDate.ToString("yyyMMdd");
-			sector.Content = model.Content;
-			sector.TypeID = model.SectorType;
+			
+			sector.Creation_Date = DateTime.Now.ToString("yyyMMdd");
+			sector.Last_Edited = DateTime.Now.ToString("yyyMMdd");
+			sector.Content = content;
+			sector.TypeID = typeID;
 
 			_databasecontext.Sector.Add(sector);
 			await _databasecontext.SaveChangesAsync();
@@ -414,7 +364,18 @@ namespace ae_resume_api.Controllers
             {
                 return NotFound();
             }
-            return AtrributesController.ResumeEntityToModel(resume);            
+
+			// Get all sectors for this resume
+			ResumeModel result = ControllerHelpers.ResumeEntityToModel(resume);
+
+			var sectors = _databasecontext.Sector.Where(s => s.RID == RID);
+
+            foreach (var sector in sectors)
+            {
+				result.SectorList.Add(ControllerHelpers.SectorEntityToModel(sector));
+            }
+
+			return result;            
 		}
 
 
@@ -432,7 +393,7 @@ namespace ae_resume_api.Controllers
 			List<ResumeModel> result = new List<ResumeModel>();
             foreach (var resume in resumes)
             {
-				result.Add(AtrributesController.ResumeEntityToModel(resume));
+				result.Add(ControllerHelpers.ResumeEntityToModel(resume));
             }
             return result;            
 		}
@@ -446,16 +407,23 @@ namespace ae_resume_api.Controllers
 		{
 
 			return BadRequest("Not implemented");
-			var resumes = Resumes;
-			// TODO: implement DB
-            // var employee = await _databaseContext.Employee.FindAsync(EID);
-			// var resumes = employee.Resumes;
+			
+			
+             var resumes =  _databasecontext.Resume.Where(r => r.EID == EID && r.WID == null);
+			 
 
             if(resumes == null)
             {
                 return NotFound();
             }
-            return resumes;
+
+			List<ResumeModel> result = new List<ResumeModel>();
+            foreach (var resume in resumes)
+            {
+				result.Add(ControllerHelpers.ResumeEntityToModel(resume));
+            }
+
+            return result;
             //return EmployeeEntityToModel(employee);
 		}
 
@@ -507,31 +475,86 @@ namespace ae_resume_api.Controllers
 
 			// Current search only supports text fields
 			// TODO: search by resume content
-			var employees = _databasecontext.Employee.AsQueryable().
-				Where(e => e.Name.Contains(filter) ||
-						   e.Email.Contains(filter)||
-						   // e.Access.Contains(filter)||
-						   e.Username.Contains(filter));
-			List<EmployeeModel>? result = new List<EmployeeModel>();
-			foreach (var employee in employees)
-			{
-				EmployeeModel e =  AdminController.EmployeeEntityToModel(employee);
-				result.Add(e);
-			}
-
-            List<EmployeeModel> employeeModels = new List<EmployeeModel>(result);
-            return employeeModels;
+			//var employees = _databasecontext.Employee.AsQueryable().
+			//	Where(e => e.Name.Contains(filter) ||
+			//			   e.Email.Contains(filter)||
+			//			   e.Access.Contains(filter)||
+			//			   e.Username.Contains(filter));
+			// Search all Employees by Employee joined with Resume and Sectors
+			var employees = from e in _databasecontext.Employee
+						  join r in _databasecontext.Resume on e.EID equals r.EID
+						  join s in _databasecontext.Sector on r.EID equals s.EID
+						  where e.Name.Contains(filter) ||
+								e.Email.Contains(filter) ||
+								e.Access.Contains(filter) ||
+								e.Username.Contains(filter) ||
+								r.Name.Contains(filter) ||
+								r.TemplateName.Contains(filter) ||
+								s.Content.Contains(filter) ||
+								s.TypeTitle.Contains(filter)
+						  select new EmployeeModel{
+							  EID = e.EID,
+							  Email = e.Email,
+							  Access = e.Access,
+							  Username = e.Username,							  
+                          };
+			
+            return employees;
         }
 
 		/// <summary>
-		/// Search all Resumes of a specifc Employee
+		/// Search all of an Employees resume
 		/// </summary>
 		[HttpGet]
-		[Route("SearchEmployeeResume")]
-		public async Task<IActionResult> SearchEmployeeResume(string filter)
-        {
-			return BadRequest("Not implemented");
-        }
+		[Route("SearchAllEmployeeResumes")]
+		public IEnumerable<ResumeModel> SearchEmployeeResume(string? filter, int EID)
+		{
+			// Ensure that null value returns all Employees
+			if (filter == null)
+			{
+				filter = "";
+			}
+
+			// Get all Resumes for that EID
+			//var resumes = _databasecontext.Resume.AsQueryable().
+			//	Where(r => r.EID == EID);
+			var resumes = from r in _databasecontext.Resume
+						  join s in _databasecontext.Sector on r.EID equals s.EID
+						  where r.EID == EID && (
+						  r.Name.Contains(filter) ||
+						  r.Creation_Date.Contains(filter) ||
+						  r.Status.Contains(filter) ||
+						  r.Last_Edited.Contains(filter) ||
+						  r.WID.ToString().Contains(filter) ||
+						  r.TemplateID.ToString().Contains(filter) ||
+						  s.Content.Contains(filter) ||
+						  s.TypeTitle.Contains(filter) ||
+						  s.TypeID.ToString().Contains(filter)
+						  )
+						  select new ResumeModel { 
+							  EID = r.EID,
+							  CreationDate = DateTime.Parse(r.Creation_Date),
+							  LastEditedDate = DateTime.Parse(r.Last_Edited),
+							  RID = r.RID,
+							  Status = (Status)Enum.Parse(typeof(Status), r.Status),
+							  WID = r.WID,
+							  Name = r.Name,
+							  TemplateID = r.TemplateID,
+							  TemplateName = r.TemplateName,							  
+						  };
+			
+            foreach (var resume in resumes)
+            {
+				resume.SectorList = _databasecontext.Sector
+					.Where(s => s.RID == resume.RID)
+					.Select(s => ControllerHelpers.SectorEntityToModel(s))
+					.ToList();
+
+            }
+
+			return resumes;
+
+		}
 
 		/// <summary>
 		/// Search all Workspaces
@@ -542,20 +565,6 @@ namespace ae_resume_api.Controllers
         {
 			return BadRequest("Not implemented");
         }
-
-		 /// <summary>
-        /// Translate the Employee entity to model used
-        /// </summary>        
-        public static SectorModel SectorEntityToModel(SectorEntity entity) =>
-            new SectorModel
-            {                
-				SID = entity.SID,
-				CreationDate = Convert.ToDateTime(entity.Creation_Date),
-				LastEditedDate = Convert.ToDateTime(entity.Last_Edited),
-				Content = entity.Content,
-				TypeID = entity.TypeID,
-				TypeTitle = entity.TypeTitle
-			};
-	}
+    }
 }
 

@@ -14,5 +14,6 @@ public class SectorEntity
 	// TODO: Propogate changes
 	public string TypeTitle { get; set; }
 	public int RID { get; set; }
+	public string ResumeName { get; set; }
 }
 

@@ -24,52 +24,13 @@ namespace ae_resume_api.Controllers
 	public class AtrributesController : ControllerBase
 	{
 		readonly DatabaseContext _databaseContext;
-
-		// Temp list
-		public List<WorkspaceModel> Workspaces { get; set; } = new List<WorkspaceModel>();
+		
 
 
 		public AtrributesController(DatabaseContext dbContext)
 		{
 			_databaseContext = dbContext;
-
-			// populate testing data
-			Workspaces.Add(new WorkspaceModel {
-				WID = 1,
-				Division = "Water",
-				CreationDate = new DateTime(2020, 01, 01),
-				ProposalNumber = 1,
-				Resumes = new List<ResumeModel>{
-				new ResumeModel
-				{
-					RID = 2,
-					CreationDate = new DateTime(2020, 01, 01),
-					LastEditedDate = new DateTime(2020, 01, 01),
-					SectorList = null
-				},
-				new ResumeModel{
-					RID = 5,
-					CreationDate = new DateTime(2020, 01, 01),
-					LastEditedDate = new DateTime(2020, 01, 01),
-					SectorList = new List<SectorModel>{
-						new SectorModel{
-							SID = 1,
-							SectorType = 2,
-							Content = "Test sector 1",
-							CreationDate = new DateTime(2020, 01, 01),
-							LastEditedDate = new DateTime(2020, 01, 01)
-						},
-						new SectorModel{
-							SID = 5,
-							SectorType = 3,
-							Content = "Test sector 2",
-							CreationDate = new DateTime(2020, 01, 01),
-							LastEditedDate = new DateTime(2020, 01, 01)
-						}
-					}
-				}
-				}
-			});
+			
 		}
 
 		/// <summary>
@@ -85,10 +46,10 @@ namespace ae_resume_api.Controllers
 				WID = model.WID,
 				Division = model.Division,
 				Creation_Date = DateTime.Now.ToString("yyyMMdd"),
-				Proposal_Number = model.ProposalNumber
+				Proposal_Number = model.ProposalNumber,
+				Name = model.Name
 			};
-
-			// Workspaces.Add(model);
+			
 			_databaseContext.Workspace.Add(entity);
 			await _databaseContext.SaveChangesAsync();
 
@@ -113,7 +74,11 @@ namespace ae_resume_api.Controllers
 			{
 				return NotFound();
 			}
-			return WorkspaceEntityToModel(workspace);
+
+			WorkspaceModel result = ControllerHelpers.WorkspaceEntityToModel(workspace);			
+			
+
+			return result;
 
 		}
 
@@ -133,7 +98,10 @@ namespace ae_resume_api.Controllers
 			}
 
 
+			// Update old copy to submitted
 			var resume = await _databaseContext.Resume.FindAsync(RID);
+			resume.Status = "Submitted";
+			resume.WID = WID;
 			// var resume = Workspaces.First().Resumes.Last();
 
 			if (resume == null)
@@ -155,8 +123,7 @@ namespace ae_resume_api.Controllers
 				WID = WID
 			};
 
-			_databaseContext.Resume.Add(entity);
-			// TODO: how to add resume to workspace
+			_databaseContext.Resume.Add(entity);			
 			await _databaseContext.SaveChangesAsync();
 
 
@@ -236,7 +203,7 @@ namespace ae_resume_api.Controllers
 			List<ResumeModel> result = new List<ResumeModel>();
 			foreach (var resume in resumes)
 			{
-				result.Add(ResumeEntityToModel(resume));
+				result.Add(ControllerHelpers.ResumeEntityToModel(resume));
 			}
 
 			return Ok(result);
@@ -247,13 +214,13 @@ namespace ae_resume_api.Controllers
 		/// </summary>
 		[HttpGet]
 		[Route("GetAllWorkspacesForEmployee")]
-		public async Task<ActionResult<IEnumerable<WorkspaceModel>>> GetAllWorkspacesForEmployee(int EID)
+		public IEnumerable<WorkspaceModel> GetAllWorkspacesForEmployee(int EID)
         {
 			var workspaces = _databaseContext.Workspace.Where(w => w.EID == EID);
 			List<WorkspaceModel> result = new List<WorkspaceModel>();
             foreach (var workspace in workspaces)
             {
-                result.Add(WorkspaceEntityToModel(workspace));
+                result.Add(ControllerHelpers.WorkspaceEntityToModel(workspace));
             }
             return result;
 
@@ -276,7 +243,7 @@ namespace ae_resume_api.Controllers
 			}
 
 			// Create a blank resume that has all the sectors in the template
-			var template = TemplateEntityToModel(await _databaseContext.Resume_Template.FindAsync(TemplateID));
+			var template = ControllerHelpers.TemplateEntityToModel(await _databaseContext.Resume_Template.FindAsync(TemplateID));
 			
 
 			if (template == null)
@@ -314,35 +281,8 @@ namespace ae_resume_api.Controllers
 
 			return Ok(employee);
 		}
-		public static TemplateModel TemplateEntityToModel(TemplateEntity entity) =>
-			new TemplateModel
-			{
-				TemplateID = entity.TemplateID,
-				Title = entity.Title,
-				Description = entity.Description
-			};
-
-		public static WorkspaceModel WorkspaceEntityToModel(WorkspaceEntity entity) =>
-			new WorkspaceModel
-			{
-				WID = entity.WID,
-				CreationDate = Convert.ToDateTime(entity.Creation_Date),
-				Division = entity.Division,
-				ProposalNumber = entity.Proposal_Number
-			};
-		public static ResumeModel ResumeEntityToModel(ResumeEntity entity) =>
-			new ResumeModel
-			{
-				WID = entity.WID,
-				EID = entity.EID,
-				CreationDate = Convert.ToDateTime(entity.Creation_Date),
-				LastEditedDate = Convert.ToDateTime(entity.Last_Edited),
-				Name = entity.Name,
-				RID = entity.RID,
-				TemplateID = entity.TemplateID,
-				TemplateName = entity.TemplateName
-			};
-			
+		
+		
 
 	}
 }

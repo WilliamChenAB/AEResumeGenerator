@@ -10,9 +10,10 @@ namespace ae_resume_api.Facade
 		public DateTime LastEditedDate { get; set; }
 		public string? Content { get; set; }
 		public int SectorType { get; set; }
-        public int TypeID { get;  set; }
-		// TODO: Propogate changes
+        public int TypeID { get;  set; }	
 		public string TypeTitle { get; set; }
+		public int RID { get; set; }
+		public string ResumeName { get; set; }
     }
 	
 }

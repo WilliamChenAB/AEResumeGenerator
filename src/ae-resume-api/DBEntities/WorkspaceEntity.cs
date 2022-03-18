@@ -9,4 +9,6 @@ public class WorkspaceEntity
 	public string Division { get; set; }
 	public string Creation_Date { get; set; }
 	public int EID { get; set; }
+	public string Name { get; set; }
+
 }

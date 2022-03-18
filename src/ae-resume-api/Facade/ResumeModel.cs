@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace ae_resume_api.Facade
 {
-	public enum Status { Requested, inProgress, Submitted}
+	public enum Status { Requested, InProgress, Submitted}
 
 	public class ResumeModel
 	{

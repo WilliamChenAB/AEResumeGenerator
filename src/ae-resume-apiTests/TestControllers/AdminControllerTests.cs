@@ -21,8 +21,9 @@ namespace ae_resume_api.Controllers.Tests
         public AdminControllerTests(WebApplicationFactory<ae_resume_api.Startup> application)
         {            
             _client = application.CreateClient();
-            Console.WriteLine(_client.BaseAddress);
-            Console.WriteLine("Here");
+            
+            
+           
         }
 
         [Fact]

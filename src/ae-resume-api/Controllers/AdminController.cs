@@ -67,6 +67,15 @@ namespace ae_resume_api.Controllers
         }
 
         /// <summary>
+        /// Clean the tables and load in the test data
+        /// </summary>
+        [HttpPost]
+        [Route("LoadTestData")]
+        public async Task<IActionResult> LoadTestData()
+        {
+            return BadRequest("Not implemented");
+        }
+        /// <summary>
         ///  Create a new Employee
         /// </summary>
         [HttpPost]
@@ -91,6 +100,8 @@ namespace ae_resume_api.Controllers
                 new { EID = model.EID },
                 model);
         }
+
+        
 
         /// <summary>
         /// Edit an Employee based on thier EID
@@ -174,7 +185,7 @@ namespace ae_resume_api.Controllers
             {
                 return NotFound();
             }
-            return EmployeeEntityToModel(employee);
+            return ControllerHelpers.EmployeeEntityToModel(employee);
         }
 
         /// <summary>
@@ -188,7 +199,7 @@ namespace ae_resume_api.Controllers
             List<EmployeeModel> result = new List<EmployeeModel>();
             foreach (var employee in employees)
             {
-                result.Add(EmployeeEntityToModel(employee));
+                result.Add(ControllerHelpers.EmployeeEntityToModel(employee));
             }
 
             return result;
@@ -305,7 +316,7 @@ namespace ae_resume_api.Controllers
             {
                 return NotFound();
             }
-            return SectorTypeEntityToModel(sectorType);
+            return ControllerHelpers.SectorTypeEntityToModel(sectorType);
         }
        
 
@@ -372,7 +383,7 @@ namespace ae_resume_api.Controllers
             {
                 return NotFound();
             }
-            return TemplateEntityToModel(template);
+            return ControllerHelpers.TemplateEntityToModel(template);
         }
 
         /// <summary>
@@ -386,7 +397,7 @@ namespace ae_resume_api.Controllers
             List<TemplateModel> result = new List<TemplateModel>();
             foreach (var template in templates)
             {
-                result.Add(TemplateEntityToModel(template));
+                result.Add(ControllerHelpers.TemplateEntityToModel(template));
             }
 
             return result;
@@ -423,7 +434,7 @@ namespace ae_resume_api.Controllers
             List<SectorTypeModel> result = new List<SectorTypeModel>();
             foreach (var sectorType in sectorTypes)
             {
-                result.Add(SectorTypeEntityToModel(sectorType));
+                result.Add(ControllerHelpers.SectorTypeEntityToModel(sectorType));
             }
 
             return result;
@@ -535,37 +546,8 @@ namespace ae_resume_api.Controllers
         {           
             return _databaseContext.Employee.Any(e => e.EID == EID);
         }
-        /// <summary>
-        /// Translate the Employee entity to model used
-        /// </summary>
-        public static EmployeeModel EmployeeEntityToModel(EmployeeEntity entity) =>
-            new EmployeeModel
-            {
-                EID = entity.EID,
-                Email = entity.Email,
-                Name = entity.Name,
-                Username = entity.Username,
-                Password = entity.Password,
-            };
-
-        /// <summary>
-        /// Translate the Template entity to model used
-        /// </summary>
-        public static TemplateModel TemplateEntityToModel(TemplateEntity entity) =>
-            new TemplateModel
-            {
-                TemplateID = entity.TemplateID,
-                Title = entity.Title,
-                Description = entity.Description                
-            };
-
-        public static SectorTypeModel SectorTypeEntityToModel(SectorTypeEntity entity) =>
-            new SectorTypeModel
-            {
-                TypeID = entity.TypeID,
-                Title = entity.Title,
-                Description = entity.Description
-            };
+        
+        
 
     }
 }
