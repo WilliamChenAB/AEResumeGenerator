@@ -231,7 +231,7 @@ namespace ae_resume_api.Controllers
 		/// </summary>
 		[HttpPost]
 		[Route("CreateTemplateRequest")]
-		public async Task<IActionResult> CreateTemplateRequest(int TemplateID, int EID)
+		public async Task<IActionResult> CreateTemplateRequest(int TemplateID, int EID, int WID)
 		{
 
 			// Create a blank resume in the employee with the template type
@@ -254,7 +254,8 @@ namespace ae_resume_api.Controllers
 			ResumeEntity templateResume = new ResumeEntity();
 			templateResume.TemplateID = TemplateID;
 			templateResume.Status = Status.Requested.ToString();
-			templateResume.EID = EID;			
+			templateResume.EID = EID;		
+			templateResume.WID = WID;
 			foreach (var sectorType in template.SectorTypes)
 			{
 				SectorModel sector = new SectorModel();

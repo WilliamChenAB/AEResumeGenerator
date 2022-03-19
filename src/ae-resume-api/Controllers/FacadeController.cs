@@ -368,8 +368,9 @@ namespace ae_resume_api.Controllers
 			// Get all sectors for this resume
 			ResumeModel result = ControllerHelpers.ResumeEntityToModel(resume);
 
-			var sectors = _databasecontext.Sector.Where(s => s.RID == RID);
+			var sectors = _databasecontext.Sector.Where(s => s.RID == RID).ToList();
 
+			result.SectorList = new List<SectorModel>();
             foreach (var sector in sectors)
             {
 				result.SectorList.Add(ControllerHelpers.SectorEntityToModel(sector));
