@@ -11,6 +11,8 @@ using Xunit;
 using System.Net.Http;
 using System.Net;
 using System.Text.Json;
+using System.Globalization;
+using System.Diagnostics;
 
 namespace ae_resume_api.Controllers.Tests
 {

@@ -44,7 +44,7 @@ namespace ae_resume_api.Controllers
 			WorkspaceEntity entity = new WorkspaceEntity
 			{				
 				Division = division,
-				Creation_Date = DateTime.Now.ToString("yyyMMdd"),
+				Creation_Date = DateTime.Now.ToString("yyyyMMdd"),
 				Proposal_Number = proposalNumber,
 				Name = name,
 				EID = EID
@@ -116,7 +116,7 @@ namespace ae_resume_api.Controllers
 			// Create a new Resume with the same sectors but new SID and add to Workspace
 			ResumeEntity entity = new ResumeEntity
 			{
-				Creation_Date = DateTime.Now.ToString("yyyMMdd"),
+				Creation_Date = DateTime.Now.ToString("yyyyMMdd"),
 				EID = resume.EID,
 				TemplateID = resume.TemplateID,
 				Status = resume.Status,
@@ -136,7 +136,7 @@ namespace ae_resume_api.Controllers
 			{
 				Content = s.Content,
 				EID = s.EID,
-				Creation_Date = DateTime.Now.ToString("yyyMMdd"),
+				Creation_Date = DateTime.Now.ToString("yyyyMMdd"),
 				TypeID = s.TypeID,
 				TypeTitle = s.TypeTitle,
 				Last_Edited = s.Last_Edited,
@@ -234,7 +234,6 @@ namespace ae_resume_api.Controllers
 		[Route("CreateTemplateRequest")]
 		public async Task<IActionResult> CreateTemplateRequest(int TemplateID, int EID, int WID)
 		{
-
 			// Create a blank resume in the employee with the template type
 			var employee = await _databaseContext.Employee.FindAsync(EID);
 
@@ -244,20 +243,29 @@ namespace ae_resume_api.Controllers
 			}
 
 			// Create a blank resume that has all the sectors in the template
-			var template = ControllerHelpers.TemplateEntityToModel(await _databaseContext.Resume_Template.FindAsync(TemplateID));
-			
-
-			if (template == null)
-			{
+			var template = await _databaseContext.Resume_Template.FindAsync(TemplateID);
+            if (template == null)
+            {
 				return NotFound();
-			}
-			// TODO: I dont think we can just loop through all the sectortypes depending on how we are storing templates
+            }
+			var templateModel = ControllerHelpers.TemplateEntityToModel(template);
+			
+			
 			ResumeEntity templateResume = new ResumeEntity();
 			templateResume.TemplateID = TemplateID;
 			templateResume.Status = Status.Requested.ToString();
 			templateResume.EID = EID;		
 			templateResume.WID = WID;
-			foreach (var sectorType in template.SectorTypes)
+
+			// Get all sector types for the template
+			templateModel.SectorTypes = (from t in _databaseContext.Template_Type
+										join s in _databaseContext.SectorType on t.TypeID equals s.TypeID
+										where t.TemplateID == TemplateID
+										select ControllerHelpers.SectorTypeEntityToModel(s))
+										.ToList();
+					
+										
+			foreach (var sectorType in templateModel.SectorTypes)
 			{
 				SectorModel sector = new SectorModel();
 				sector.SectorType = sectorType.TypeID;
@@ -299,9 +307,11 @@ namespace ae_resume_api.Controllers
 			entity.EID = EID;
 			entity.Status = Status.InProgress.ToString();
 			entity.WID = WID;
-			entity.Last_Edited = DateTime.Now.ToString("yyyMMdd");
-			entity.Creation_Date = DateTime.Now.ToString("yyyMMdd");
+			entity.Last_Edited = DateTime.Now.ToString("yyyyMMdd");
+			entity.Creation_Date = DateTime.Now.ToString("yyyyMMdd");
 			entity.Name = name;
+
+			_databaseContext.Resume.Add(entity);
 
 
 			try

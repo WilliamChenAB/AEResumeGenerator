@@ -55,7 +55,7 @@ namespace ae_resume_api.Controllers
 
 			ResumeEntity entity = new ResumeEntity
             {               
-			   Creation_Date = DateTime.Now.ToString("yyyMMdd"),
+			   Creation_Date = DateTime.Now.ToString("yyyyMMdd"),
 			   EID = EID,
 			   TemplateID = templateID,		
 			   Name = resumeName
@@ -66,7 +66,7 @@ namespace ae_resume_api.Controllers
 			foreach (var sector in sectorTypes)
 			{
 				_databasecontext.Sector.Add(new SectorEntity { 
-					Creation_Date = DateTime.Now.ToString("yyyMMdd"),
+					Creation_Date = DateTime.Now.ToString("yyyyMMdd"),
 					EID = EID,
 					TypeID = sector.TypeID,
 					RID = resume.Entity.RID
@@ -93,8 +93,8 @@ namespace ae_resume_api.Controllers
             SectorEntity entity = new SectorEntity
             {
                SID = model.SID,
-			   Creation_Date = DateTime.Now.ToString("yyyMMdd"),
-			   Last_Edited = DateTime.Now.ToString("yyyMMdd"),
+			   Creation_Date = DateTime.Now.ToString("yyyyMMdd"),
+			   Last_Edited = DateTime.Now.ToString("yyyyMMdd"),
 			   Content = model.Content
             };
 
@@ -255,8 +255,8 @@ namespace ae_resume_api.Controllers
             }
 
             sector.SID = model.SID;
-			sector.Creation_Date = model.CreationDate.ToString("yyyMMdd");
-			sector.Last_Edited = DateTime.Now.ToString("yyyMMdd");
+			sector.Creation_Date = model.CreationDate.ToString("yyyyMMdd");
+			sector.Last_Edited = DateTime.Now.ToString("yyyyMMdd");
 			sector.Content = model.Content;
 			sector.TypeID = model.SectorType;
 
@@ -291,8 +291,8 @@ namespace ae_resume_api.Controllers
 			//resume.SectorList.Add(model);
 			SectorEntity sector = new SectorEntity();
 			
-			sector.Creation_Date = DateTime.Now.ToString("yyyMMdd");
-			sector.Last_Edited = DateTime.Now.ToString("yyyMMdd");
+			sector.Creation_Date = DateTime.Now.ToString("yyyyMMdd");
+			sector.Last_Edited = DateTime.Now.ToString("yyyyMMdd");
 			sector.Content = content;
 			sector.TypeID = typeID;
 
@@ -326,13 +326,13 @@ namespace ae_resume_api.Controllers
             }
 
 			sector.SID = model.SID;
-			sector.Creation_Date = model.CreationDate.ToString("yyyMMdd");
-			sector.Last_Edited = model.LastEditedDate.ToString("yyyMMdd");
+			sector.Creation_Date = model.CreationDate.ToString("yyyyMMdd");
+			sector.Last_Edited = model.LastEditedDate.ToString("yyyyMMdd");
 			sector.Content = model.Content;
 			sector.TypeID = model.SectorType;
 			sector.RID = RID;
 
-			resume.Last_Edited = DateTime.Now.ToString("yyyMMdd");
+			resume.Last_Edited = DateTime.Now.ToString("yyyyMMdd");
 
 
 			try
