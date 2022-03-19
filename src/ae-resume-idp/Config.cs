@@ -34,6 +34,27 @@ namespace aeresumeidp
 
             return new Client[]
             {
+                // Test Client
+                new Client()
+                {
+                    ClientId = "tests",
+                    AllowedGrantTypes = GrantTypes.ResourceOwnerPassword,
+                    RequireClientSecret = true,
+                    ClientSecrets = { new Secret(config.GetValue<string>("TestSecret").Sha256()) },
+
+                    //AlwaysSendClientClaims = true,
+                    //AlwaysIncludeUserClaimsInIdToken = true,
+                    //UpdateAccessTokenClaimsOnRefresh = true,
+                    //AllowAccessTokensViaBrowser = true,
+
+                    AllowedScopes =
+                    {
+                        IdentityServerConstants.StandardScopes.OpenId,
+                        "ae-resume-api"
+                    }
+
+                },
+
                 // JavaScript Client without backend
                 new Client
                 {
