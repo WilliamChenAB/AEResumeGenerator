@@ -10,7 +10,7 @@ namespace ae_resume_api.Controllers
             new SectorModel
             {
                 SID = entity.SID,
-                CreationDate = DateTime.ParseExact(entity.Creation_Date, "yyyyyMMdd", System.Globalization.CultureInfo.InvariantCulture),
+                CreationDate = DateTime.ParseExact(entity.Creation_Date, "yyyyMMdd", System.Globalization.CultureInfo.InvariantCulture),
                 LastEditedDate = DateTime.ParseExact(entity.Last_Edited, "yyyyMMdd", System.Globalization.CultureInfo.InvariantCulture),
                 Content = entity.Content,
                 TypeID = entity.TypeID,
