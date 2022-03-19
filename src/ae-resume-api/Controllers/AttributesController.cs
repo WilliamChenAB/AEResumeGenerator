@@ -38,25 +38,25 @@ namespace ae_resume_api.Controllers
 		/// </summary>
 		[HttpPost]
 		[Route("NewWorkspace")]
-		public async Task<IActionResult> NewWorkspace([FromBody] WorkspaceModel model)
+		public async Task<IActionResult> NewWorkspace(string division, int proposalNumber, string name)
 		{
 
 			WorkspaceEntity entity = new WorkspaceEntity
-			{
-				WID = model.WID,
-				Division = model.Division,
+			{				
+				Division = division,
 				Creation_Date = DateTime.Now.ToString("yyyMMdd"),
-				Proposal_Number = model.ProposalNumber,
-				Name = model.Name
+				Proposal_Number = proposalNumber,
+				Name = name
 			};
 			
 			_databaseContext.Workspace.Add(entity);
 			await _databaseContext.SaveChangesAsync();
+			var WID = _databaseContext.Workspace.Last();
 
 			return CreatedAtAction(
 				nameof(GetWorkspace),
-				new { WID = model.WID },
-				model);
+				new { WID =  WID},
+				entity);
 		}
 
 		/// <summary>
