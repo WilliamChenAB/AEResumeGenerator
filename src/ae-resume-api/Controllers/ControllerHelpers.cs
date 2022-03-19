@@ -46,7 +46,8 @@ namespace ae_resume_api.Controllers
             {
                 TypeID = entity.TypeID,
                 Title = entity.Title,
-                Description = entity.Description
+                Description = entity.Description,
+                EID = entity.EID
             };
 
         public static WorkspaceModel WorkspaceEntityToModel(WorkspaceEntity entity) =>

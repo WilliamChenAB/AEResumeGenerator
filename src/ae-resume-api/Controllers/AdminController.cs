@@ -373,20 +373,15 @@ namespace ae_resume_api.Controllers
 
 
             // Get the Sector Type IDs from associative table
-            var sectorTypesIDs =  _databaseContext.Template_Type
-                .Where(x => x.TemplateID == template.TemplateID).ToList();
-
             // Get all Sectors that are in the associative table with matching IDs
-            var sectorTypes = _databaseContext.SectorType
-                .Where(s => sectorTypesIDs.Any(x => x.TypeID == s.TypeID));
+            var sectorTypesModel = (from t in _databaseContext.Template_Type
+                                   join s in _databaseContext.SectorType on t.TypeID equals s.TypeID
+                                   where t.TemplateID == template.TemplateID
+                                   select ControllerHelpers.SectorTypeEntityToModel(s))
+                                   .ToList();
+         
 
-            List<SectorTypeModel> result = new List<SectorTypeModel>();
-            foreach (var sectorType in sectorTypes)
-            {
-                result.Add(ControllerHelpers.SectorTypeEntityToModel(sectorType));
-            }
-
-            return result;
+            return sectorTypesModel;
         }
 
         /// <summary>
