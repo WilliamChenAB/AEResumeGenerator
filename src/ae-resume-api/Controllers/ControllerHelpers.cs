@@ -53,7 +53,8 @@ namespace ae_resume_api.Controllers
                 CreationDate = Convert.ToDateTime(entity.Creation_Date),
                 Division = entity.Division,
                 ProposalNumber = entity.Proposal_Number,
-                Name = entity.Name
+                Name = entity.Name,
+                EID = entity.EID
             };
         public static ResumeModel ResumeEntityToModel(ResumeEntity entity) =>
             new ResumeModel

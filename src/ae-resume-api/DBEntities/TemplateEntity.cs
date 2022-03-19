@@ -8,5 +8,4 @@ public class TemplateEntity
 	public string Title { get; set; }
 	public string Description { get; set; }
 	public int EID { get; set; }
-}
-
+	public string Last_Edited { get; set; }

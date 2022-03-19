@@ -38,7 +38,7 @@ namespace ae_resume_api.Controllers
 		/// </summary>
 		[HttpPost]
 		[Route("NewWorkspace")]
-		public async Task<IActionResult> NewWorkspace(string division, int proposalNumber, string name)
+		public async Task<IActionResult> NewWorkspace(string division, int proposalNumber, string name, int EID)
 		{
 
 			WorkspaceEntity entity = new WorkspaceEntity
@@ -46,7 +46,8 @@ namespace ae_resume_api.Controllers
 				Division = division,
 				Creation_Date = DateTime.Now.ToString("yyyMMdd"),
 				Proposal_Number = proposalNumber,
-				Name = name
+				Name = name,
+				EID = EID
 			};
 			
 			_databaseContext.Workspace.Add(entity);
