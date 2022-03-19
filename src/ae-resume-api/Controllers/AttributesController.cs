@@ -256,6 +256,11 @@ namespace ae_resume_api.Controllers
 			templateResume.Status = Status.Requested.ToString();
 			templateResume.EID = EID;		
 			templateResume.WID = WID;
+			templateResume.TemplateName = template.Title;
+			templateResume.Creation_Date = DateTime.Now.ToString("yyyyMMdd");
+			templateResume.Last_Edited = DateTime.Now.ToString("yyyyMMdd");
+			templateResume.Name = template.Title;
+			templateResume.EmployeeName = employee.Name;
 
 			// Get all sector types for the template
 			templateModel.SectorTypes = (from t in _databaseContext.Template_Type
