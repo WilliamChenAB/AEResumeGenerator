@@ -7,17 +7,34 @@ using System.Threading.Tasks;
 using System.Net.Http;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Xunit;
+using Microsoft.Extensions.Configuration;
+using ae_resume_api.Tests;
+using System.IO;
 
 namespace ae_resume_api.Controllers.Tests
 {
     
     public class AttributesControllerTests: IClassFixture<WebApplicationFactory<ae_resume_api.Startup>>
     {
-        readonly HttpClient _client;
+        private readonly IConfigurationRoot _config;
+        private readonly HttpClient _client;
+        private readonly ApiTokenInMemoryClient _tokenService;
         public AttributesControllerTests(WebApplicationFactory<ae_resume_api.Startup> application)
         {
             _client = application.CreateClient();
-            Console.WriteLine(_client.BaseAddress);
+
+            _config = new ConfigurationBuilder()
+               .SetBasePath(Directory.GetCurrentDirectory())
+               .AddJsonFile("appsettings.json")
+               .AddJsonFile("appsettings.Development.json", optional: true)
+               .Build();
+
+            _client = application.CreateClient(new WebApplicationFactoryClientOptions()
+            {
+                BaseAddress = new Uri(_config["Tests:API"])
+            });
+
+            _tokenService = new ApiTokenInMemoryClient(_config);
         }
 
         [Fact]

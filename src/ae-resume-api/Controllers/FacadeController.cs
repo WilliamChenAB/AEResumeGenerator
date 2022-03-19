@@ -456,7 +456,7 @@ namespace ae_resume_api.Controllers
 			foreach (var template in templates)
 			{
 				result.Add(ControllerHelpers.TemplateEntityToModel(template));
-			}
+			} 
 
 			return result;
 		}

@@ -32,38 +32,7 @@ namespace ae_resume_api.Controllers
 
            
 
-            // Add Mock data for front end testing
-            // REMOVE FOR FINAL
-            this.Employees = new List<EmployeeModel>();
-            Employees.Add(new EmployeeModel
-            {
-                EID = 5,
-                Name = "James",
-                Email = "email",
-                Username = "James",
-                Password = "password"
-            });
-
-
-            SectorTypes.Add(new SectorTypeModel
-            {
-                TypeID = 5,
-                Description = "Test type",
-                Title = "Test"
-            });
-
-            templateModels.Add(new TemplateModel
-            {
-                TemplateID = 5,
-                Description = "Test template",
-                Title = "Test",
-                SectorTypes = new List<SectorTypeModel> {
-                    new SectorTypeModel{
-                        Title = "test Type",
-                        Description = "Description",
-                        TypeID = 2}
-                }
-            });
+            
         }
 
         /// <summary>
@@ -355,11 +324,12 @@ namespace ae_resume_api.Controllers
             {
                 TemplateID = model.TemplateID,
                 Title = model.Title,
-                Description = model.Description
+                Description = model.Description,
+                Last_Edited = DateTime.Now.ToString("yyyMMdd")
             };
 
             
-            // TODO: Implement DB connection
+            
              _databaseContext.Resume_Template.Add(entity);
             await _databaseContext.SaveChangesAsync();
 

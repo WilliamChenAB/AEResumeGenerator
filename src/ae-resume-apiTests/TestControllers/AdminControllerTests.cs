@@ -13,19 +13,37 @@ using System.Net;
 using System.Text.Json;
 using System.Globalization;
 using System.Diagnostics;
+using Microsoft.Extensions.Configuration;
+using ae_resume_api.Tests;
+using System.IO;
+using IdentityModel.Client;
 
 namespace ae_resume_api.Controllers.Tests
 {
     
     public class AdminControllerTests: IClassFixture<WebApplicationFactory<ae_resume_api.Startup>>
     {
-        readonly HttpClient _client;
+        private readonly IConfigurationRoot _config;
+        private readonly HttpClient _client;
+        private readonly ApiTokenInMemoryClient _tokenService;
         public AdminControllerTests(WebApplicationFactory<ae_resume_api.Startup> application)
         {            
             _client = application.CreateClient();
-            
-            
-           
+
+            _config = new ConfigurationBuilder()
+               .SetBasePath(Directory.GetCurrentDirectory())
+               .AddJsonFile("appsettings.json")
+               .AddJsonFile("appsettings.Development.json", optional: true)
+               .Build();
+
+            _client = application.CreateClient(new WebApplicationFactoryClientOptions()
+            {
+                BaseAddress = new Uri(_config["Tests:API"])
+            });
+
+            _tokenService = new ApiTokenInMemoryClient(_config);
+
+
         }
 
         [Fact]
@@ -55,6 +73,10 @@ namespace ae_resume_api.Controllers.Tests
         [Fact]
         public async Task GetAllEmployeesTest()
         {
+
+            var token = await _tokenService.GetSAAccessToken();
+            _client.SetBearerToken(token);
+
             var response = await _client.GetAsync("/Admin/GetAllEmployees");
             response.EnsureSuccessStatusCode();
             var stringResponse = await response.Content.ReadAsStringAsync();
