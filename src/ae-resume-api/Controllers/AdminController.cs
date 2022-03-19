@@ -394,7 +394,7 @@ namespace ae_resume_api.Controllers
         [Route("GetAllTemplates")]
         public IEnumerable<TemplateModel> GetAllTemplates()
         {
-            var templates = _databaseContext.Resume_Template.ToList();
+            var templates = _databaseContext.Resume_Template;
             List<TemplateModel> result = new List<TemplateModel>();
             foreach (var template in templates)
             {

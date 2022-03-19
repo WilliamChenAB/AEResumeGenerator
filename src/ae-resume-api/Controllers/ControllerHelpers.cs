@@ -10,8 +10,8 @@ namespace ae_resume_api.Controllers
             new SectorModel
             {
                 SID = entity.SID,
-                CreationDate = Convert.ToDateTime(entity.Creation_Date),
-                LastEditedDate = Convert.ToDateTime(entity.Last_Edited),
+                CreationDate = DateTime.Parse(entity.Creation_Date),
+                LastEditedDate = DateTime.Parse(entity.Last_Edited),
                 Content = entity.Content,
                 TypeID = entity.TypeID,
                 TypeTitle = entity.TypeTitle,
@@ -52,7 +52,7 @@ namespace ae_resume_api.Controllers
             new WorkspaceModel
             {
                 WID = entity.WID,
-                CreationDate = Convert.ToDateTime(entity.Creation_Date),
+                CreationDate = DateTime.Parse(entity.Creation_Date),
                 Division = entity.Division,
                 ProposalNumber = entity.Proposal_Number,
                 Name = entity.Name,
@@ -63,8 +63,8 @@ namespace ae_resume_api.Controllers
             {
                 WID = entity.WID,
                 EID = entity.EID,
-                CreationDate = Convert.ToDateTime(entity.Creation_Date),
-                LastEditedDate = Convert.ToDateTime(entity.Last_Edited),
+                CreationDate = DateTime.Parse(entity.Creation_Date),
+                LastEditedDate = DateTime.Parse(entity.Last_Edited),
                 Name = entity.Name,
                 RID = entity.RID,
                 TemplateID = entity.TemplateID,
