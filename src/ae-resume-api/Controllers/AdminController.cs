@@ -22,17 +22,10 @@ namespace ae_resume_api.Controllers
     {
 
         readonly DatabaseContext _databaseContext;
-        public List<EmployeeModel> Employees = new List<EmployeeModel>();
-        public List<SectorTypeModel> SectorTypes = new List<SectorTypeModel>();
-        public List<TemplateModel> templateModels = new List<TemplateModel>();
 
         public AdminController(DatabaseContext dbContext)
         {
-            _databaseContext = dbContext;
-
-           
-
-            
+            _databaseContext = dbContext;            
         }
 
         /// <summary>

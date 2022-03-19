@@ -40,17 +40,27 @@ namespace ae_resume_api.Controllers
 		{	
 			
 			// Find the template record
-			var template =  _databasecontext.Resume_Template.FindAsync(templateID);
+			var template = await  _databasecontext.Resume_Template.FindAsync(templateID);
 			
 
-			if( template == null )
+			if(template == null)
             {
 				return NotFound();
-            }				
+            }
+
+			var employee = await _databasecontext.Employee.FindAsync(EID);
+
+			if(employee == null)
+            {
+				return NotFound();
+            }
 
 			// Find the Sector Types associated with that template
-			var sectorTypes =  _databasecontext.Template_Type
-				.Where(x => x.TemplateID == templateID);
+			var sectorTypes = (from t in _databasecontext.Template_Type
+							  join s in _databasecontext.SectorType on t.TypeID equals s.TypeID
+							  where t.TemplateID == templateID
+							  select s)
+							  .ToList();				
 
 
 			ResumeEntity entity = new ResumeEntity
@@ -58,7 +68,12 @@ namespace ae_resume_api.Controllers
 			   Creation_Date = DateTime.Now.ToString("yyyyMMdd"),
 			   EID = EID,
 			   TemplateID = templateID,		
-			   Name = resumeName
+			   Name = resumeName,
+			   Last_Edited = DateTime.Now.ToString("yyyMMdd"),
+			   Status = Status.InProgress.ToString(),
+			   WID = 0,
+			   TemplateName = template.Title,
+			   EmployeeName = employee.Name
             };
 
             var resume = _databasecontext.Resume.Add(entity);
@@ -67,9 +82,13 @@ namespace ae_resume_api.Controllers
 			{
 				_databasecontext.Sector.Add(new SectorEntity { 
 					Creation_Date = DateTime.Now.ToString("yyyyMMdd"),
+					Last_Edited = DateTime.Now.ToString("yyyyMMdd"),
+					Content = "",
 					EID = EID,
 					TypeID = sector.TypeID,
-					RID = resume.Entity.RID
+					TypeTitle = sector.Title,
+					RID = resume.Entity.RID,
+					ResumeName = resumeName,
 				});
 			}
 
@@ -417,7 +436,7 @@ namespace ae_resume_api.Controllers
 			return BadRequest("Not implemented");
 			
 			
-             var resumes =  _databasecontext.Resume.Where(r => r.EID == EID && r.WID == null);
+             var resumes =  _databasecontext.Resume.Where(r => r.EID == EID && r.WID == 0);
 			 
 
             if(resumes == null)
