@@ -229,7 +229,7 @@ namespace ae_resume_api.Controllers
             }
 			
 			//resume.SectorList.Remove(sector);
-			_databasecontext.Remove(SID);
+			_databasecontext.Sector.Remove(sector);
 			await _databasecontext.SaveChangesAsync();
 
             return Ok();
@@ -240,12 +240,8 @@ namespace ae_resume_api.Controllers
 		/// </summary>
 		[HttpPut]
 		[Route("EditSector")]
-		public async Task<IActionResult> EditSector(int SID, SectorModel model)
-		{			
-            if(SID != model.SID)
-            {
-                return BadRequest();
-            }
+		public async Task<IActionResult> EditSector(int SID, string content)
+		{			            
             //var sector = Sectors.Find(x => x.SID == SID);
             var sector = await _databasecontext.Sector.FindAsync(SID);
 
@@ -254,11 +250,9 @@ namespace ae_resume_api.Controllers
                 return NotFound();
             }
 
-            sector.SID = model.SID;
-			sector.Creation_Date = model.CreationDate.ToString("yyyyMMdd");
+            sector.SID = SID;			
 			sector.Last_Edited = DateTime.Now.ToString("yyyyMMdd");
-			sector.Content = model.Content;
-			sector.TypeID = model.SectorType;
+			sector.Content = content;			
 
 			try
             {
@@ -277,7 +271,7 @@ namespace ae_resume_api.Controllers
 		/// </summary>
 		[HttpPost]
 		[Route("AddSectorToResume")]
-		public async Task<IActionResult> AddSectorToResume(int RID, string content, int typeID)
+		public async Task<IActionResult> AddSectorToResume(int RID, string? content, int typeID)
         {
 			
 			var resume = await _databasecontext.Resume.FindAsync(RID);
@@ -288,13 +282,26 @@ namespace ae_resume_api.Controllers
                 return NotFound();
             }
 
+			var sectorType = await _databasecontext.SectorType.FindAsync(typeID);
+			if (sectorType == null)
+            {
+				return NotFound();
+            }
+
+			// Clean null content
+			content = content == null ? "" : content;
+
 			//resume.SectorList.Add(model);
 			SectorEntity sector = new SectorEntity();
-			
+
+			sector.RID = RID;
 			sector.Creation_Date = DateTime.Now.ToString("yyyyMMdd");
 			sector.Last_Edited = DateTime.Now.ToString("yyyyMMdd");
 			sector.Content = content;
 			sector.TypeID = typeID;
+			sector.TypeTitle = sectorType.Title;			
+			sector.EID = resume.EID;
+			sector.ResumeName = resume.Name;
 
 			_databasecontext.Sector.Add(sector);
 			await _databasecontext.SaveChangesAsync();
@@ -436,6 +443,23 @@ namespace ae_resume_api.Controllers
 				Select(x => ControllerHelpers.SectorTypeEntityToModel(x));
 			return sectorTypes;
         }
+
+		/// <summary>
+		/// Get all Resume Templates
+		/// </summary>
+		[HttpGet]
+		[Route("GetAllTemplates")]
+		public IEnumerable<TemplateModel> GetAllTemplates()
+		{
+			var templates = _databasecontext.Resume_Template.ToList();
+			List<TemplateModel> result = new List<TemplateModel>();
+			foreach (var template in templates)
+			{
+				result.Add(ControllerHelpers.TemplateEntityToModel(template));
+			}
+
+			return result;
+		}
 
 		/// <summary>
 		/// Export Resume

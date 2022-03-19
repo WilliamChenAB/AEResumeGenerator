@@ -17,7 +17,7 @@ namespace ae_resume_api.Controllers.Tests
         public FacadeControllerTests(WebApplicationFactory<ae_resume_api.Startup> application)
         {
             _client = application.CreateClient();
-            Console.WriteLine(_client.BaseAddress);
+           
         }
 
         [Fact]
@@ -132,6 +132,15 @@ namespace ae_resume_api.Controllers.Tests
         public void SearchWorkspacesTest()
         {
             Assert.True(false);
+        }
+        
+        [Fact]
+        public async void GetAllTemplatesTest()
+        {
+            var response = await _client.GetAsync("/Facade/GetAllTemplates");
+            response.EnsureSuccessStatusCode();
+            var stringResponse = await response.Content.ReadAsStringAsync();
+            Console.WriteLine(stringResponse);
         }
 
         [Fact]

@@ -31,3 +31,4 @@ _ReSharper*/
 packages/
 /src/ae-resume-api/Properties
 /src/ae-resume-idp/Properties
+/src/ae-resume-idp/keys/is-signing-key-B9812845D94E701BE5AD2CD6657417EF.json

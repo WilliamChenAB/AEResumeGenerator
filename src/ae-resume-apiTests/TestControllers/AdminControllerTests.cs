@@ -104,13 +104,7 @@ namespace ae_resume_api.Controllers.Tests
         public void GetTemplateTest()
         {
            Assert.True(false);
-        }
-
-        [Fact]
-        public void GetAllTemplatesTest()
-        {
-           Assert.True(false);
-        }
+        }        
 
         [Fact]
         public void GetSectorsInTemplateTest()

@@ -387,22 +387,7 @@ namespace ae_resume_api.Controllers
             return ControllerHelpers.TemplateEntityToModel(template);
         }
 
-        /// <summary>
-        /// Get all Resume Templates
-        /// </summary>
-        [HttpGet]
-        [Route("GetAllTemplates")]
-        public IEnumerable<TemplateModel> GetAllTemplates()
-        {
-            var templates = _databaseContext.Resume_Template;
-            List<TemplateModel> result = new List<TemplateModel>();
-            foreach (var template in templates)
-            {
-                result.Add(ControllerHelpers.TemplateEntityToModel(template));
-            }
-
-            return result;
-        }
+       
 
         /// <summary>
         /// Get all the SectorTypes in a Resume Template
