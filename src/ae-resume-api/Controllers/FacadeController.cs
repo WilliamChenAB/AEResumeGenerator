@@ -426,6 +426,15 @@ namespace ae_resume_api.Controllers
             return result;
             //return EmployeeEntityToModel(employee);
 		}
+		
+		[HttpGet]
+		[Route("GetAllSectorTypes")]
+		public IEnumerable<SectorTypeModel> GetAllSectorTypes()
+        {
+			var sectorTypes = _databasecontext.SectorType.ToList().
+				Select(x => ControllerHelpers.SectorTypeEntityToModel(x));
+			return sectorTypes;
+        }
 
 		/// <summary>
 		/// Export Resume
@@ -434,6 +443,7 @@ namespace ae_resume_api.Controllers
 		[Route("ExportResume")]
 		public async Task<IActionResult> ExportResume(int RID)
 		{
+			//TODO: implement
 			return BadRequest("Not implemented");
 
 			// return JsonResult(resume);

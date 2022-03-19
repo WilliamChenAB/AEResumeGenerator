@@ -12,6 +12,7 @@ namespace ae_resume_api.Facade
 		public int EID { get; set; }
 		// TODO: propogate changes
 		public string Name { get; set; }
+		public string EmployeeName { get; set; }
 		public int? WID { get; set; }
 		public Status Status { get; set; }
 		public DateTime? CreationDate { get; set; }

@@ -281,6 +281,38 @@ namespace ae_resume_api.Controllers
 
 			return Ok(employee);
 		}
+
+		[HttpPost]
+		[Route("AddEmptyResumeToWorkspace")]
+		public async Task<IActionResult> AddEmptyResumeToWorkspace(int WID, int EID, string name)
+        {
+			var workspace = await _databaseContext.Workspace.FindAsync(WID);
+
+			if(workspace == null)
+            {
+				return NotFound();
+            }
+
+			ResumeEntity entity = new ResumeEntity();
+			entity.EID = EID;
+			entity.Status = Status.InProgress.ToString();
+			entity.WID = WID;
+			entity.Last_Edited = DateTime.Now.ToString("yyyMMdd");
+			entity.Creation_Date = DateTime.Now.ToString("yyyMMdd");
+			entity.Name = name;
+
+
+			try
+			{
+				await _databaseContext.SaveChangesAsync();
+			}
+			catch (Exception ex)
+			{
+				return NotFound(ex.Message);
+			}
+
+			return Ok(entity);
+        }
 		
 		
 
