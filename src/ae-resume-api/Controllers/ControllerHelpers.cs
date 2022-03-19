@@ -35,7 +35,9 @@ namespace ae_resume_api.Controllers
             {
                 TemplateID = entity.TemplateID,
                 Title = entity.Title,
-                Description = entity.Description
+                Description = entity.Description,
+                LastEdited = DateTime.Parse(entity.Last_Edited),
+                EID = entity.EID
             };
 
         public static SectorTypeModel SectorTypeEntityToModel(SectorTypeEntity entity) =>
