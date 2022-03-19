@@ -308,6 +308,13 @@ namespace ae_resume_api.Controllers
 				return NotFound();
             }
 
+			var employee = await _databaseContext.Employee.FindAsync(EID);
+
+			if(employee == null)
+            {
+				return NotFound();
+            }
+
 			ResumeEntity entity = new ResumeEntity();
 			entity.EID = EID;
 			entity.Status = Status.InProgress.ToString();
@@ -315,6 +322,9 @@ namespace ae_resume_api.Controllers
 			entity.Last_Edited = DateTime.Now.ToString("yyyyMMdd");
 			entity.Creation_Date = DateTime.Now.ToString("yyyyMMdd");
 			entity.Name = name;
+			entity.EmployeeName = employee.Name;
+			entity.TemplateID = 0;
+			entity.TemplateName = "";
 
 			_databaseContext.Resume.Add(entity);
 
