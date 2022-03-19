@@ -10,8 +10,8 @@ namespace ae_resume_api.Controllers
             new SectorModel
             {
                 SID = entity.SID,
-                CreationDate = DateTime.Parse(entity.Creation_Date),
-                LastEditedDate = DateTime.Parse(entity.Last_Edited),
+                CreationDate = DateTime.ParseExact(entity.Creation_Date, "yyyyMMdd", System.Globalization.CultureInfo.InvariantCulture),
+                LastEditedDate = DateTime.ParseExact(entity.Last_Edited, "yyyMMdd", System.Globalization.CultureInfo.InvariantCulture),
                 Content = entity.Content,
                 TypeID = entity.TypeID,
                 TypeTitle = entity.TypeTitle,
@@ -36,7 +36,7 @@ namespace ae_resume_api.Controllers
                 TemplateID = entity.TemplateID,
                 Title = entity.Title,
                 Description = entity.Description,
-                LastEdited = DateTime.Parse(entity.Last_Edited),
+                LastEdited = DateTime.ParseExact(entity.Last_Edited, "yyyMMdd", System.Globalization.CultureInfo.InvariantCulture),
                 EID = entity.EID
             };
 
@@ -52,7 +52,7 @@ namespace ae_resume_api.Controllers
             new WorkspaceModel
             {
                 WID = entity.WID,
-                CreationDate = DateTime.Parse(entity.Creation_Date),
+                CreationDate = DateTime.ParseExact(entity.Creation_Date, "yyyMMdd", System.Globalization.CultureInfo.InvariantCulture),
                 Division = entity.Division,
                 ProposalNumber = entity.Proposal_Number,
                 Name = entity.Name,
@@ -63,8 +63,8 @@ namespace ae_resume_api.Controllers
             {
                 WID = entity.WID,
                 EID = entity.EID,
-                CreationDate = DateTime.Parse(entity.Creation_Date),
-                LastEditedDate = DateTime.Parse(entity.Last_Edited),
+                CreationDate = DateTime.ParseExact(entity.Creation_Date, "yyyMMdd", System.Globalization.CultureInfo.InvariantCulture),
+                LastEditedDate = DateTime.ParseExact(entity.Last_Edited, "yyyMMdd", System.Globalization.CultureInfo.InvariantCulture),
                 Name = entity.Name,
                 RID = entity.RID,
                 TemplateID = entity.TemplateID,
