@@ -52,7 +52,7 @@ namespace ae_resume_api.Controllers
 			
 			_databaseContext.Workspace.Add(entity);
 			await _databaseContext.SaveChangesAsync();
-			var WID = _databaseContext.Workspace.Last();
+			var WID = _databaseContext.Workspace.OrderBy(x => x.WID).Last();
 
 			return CreatedAtAction(
 				nameof(GetWorkspace),
