@@ -311,14 +311,14 @@ namespace ae_resume_api.Controllers
         [HttpPost]
         [Route("CreateTemplate")]
         public async Task<ActionResult<TemplateModel>> CreateTemplate(
-            [FromBody] TemplateModel model, int EID)
+            [FromBody] TemplateModel model)
         {
             TemplateEntity entity = new TemplateEntity
             {                
                 Title = model.Title,
                 Description = model.Description,
                 Last_Edited = DateTime.Now.ToString("yyyMMdd"),
-                EID = EID
+                EID = model.EID
             };
 
                         
