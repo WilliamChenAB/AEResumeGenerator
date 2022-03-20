@@ -311,25 +311,25 @@ namespace ae_resume_api.Controllers
         /// </summary>
         [HttpPost]
         [Route("CreateTemplate")]
-        public async Task<ActionResult<TemplateModel>> CreateTemplate(TemplateModel model)
+        public async Task<ActionResult<TemplateModel>> CreateTemplate(int templateID, string title, string description, int EID)
         {
             TemplateEntity entity = new TemplateEntity
             {
-                TemplateID = model.TemplateID,
-                Title = model.Title,
-                Description = model.Description,
-                Last_Edited = DateTime.Now.ToString("yyyMMdd")
+                TemplateID = templateID,
+                Title = title,
+                Description = description,
+                Last_Edited = DateTime.Now.ToString("yyyMMdd"),
+                EID = EID
             };
 
-            
-            
+                        
              _databaseContext.Resume_Template.Add(entity);
             await _databaseContext.SaveChangesAsync();
 
             return CreatedAtAction(
                 nameof(GetTemplate),
-                new { TemplateID = model.TemplateID },
-                model);
+                new { TemplateID = templateID },
+                entity);
         }
 
         /// <summary>
