@@ -247,8 +247,7 @@ namespace ae_resume_api.Controllers
             }
 
             sectorType.Title = model.Title;
-            sectorType.Description = model.Description;
-            sectorType.TypeID = model.TypeID;
+            sectorType.Description = model.Description;            
             
             try
             {
@@ -312,13 +311,12 @@ namespace ae_resume_api.Controllers
         [HttpPost]
         [Route("CreateTemplate")]
         public async Task<ActionResult<TemplateModel>> CreateTemplate(
-            int templateID, string title, string description, int EID, List<int> sectorTypeIDs)
+            [FromBody] TemplateModel model, int EID)
         {
             TemplateEntity entity = new TemplateEntity
-            {
-                TemplateID = templateID,
-                Title = title,
-                Description = description,
+            {                
+                Title = model.Title,
+                Description = model.Description,
                 Last_Edited = DateTime.Now.ToString("yyyMMdd"),
                 EID = EID
             };
@@ -327,19 +325,19 @@ namespace ae_resume_api.Controllers
              _databaseContext.Resume_Template.Add(entity);
 
             // Add Sector Types to DB
-            foreach (var sectorType in sectorTypeIDs)
+            foreach (var sectorType in model.SectorTypes)
             {
                 _databaseContext.Template_Type.Add(new TemplateSectorsEntity
                 {
-                    TemplateID = templateID,
-                    TypeID = sectorType
+                    TemplateID = model.TemplateID,
+                    TypeID = sectorType.TypeID
                 });
             }
             await _databaseContext.SaveChangesAsync();
 
             return CreatedAtAction(
                 nameof(GetTemplate),
-                new { TemplateID = templateID },
+                new { TemplateID = model.TemplateID },
                 entity);
         }
 
@@ -416,8 +414,7 @@ namespace ae_resume_api.Controllers
                 return NotFound();
             }
 
-            template.Title = model.Title;
-            template.TemplateID = model.TemplateID;
+            template.Title = model.Title;            
             template.Description = model.Description;
         
             try
