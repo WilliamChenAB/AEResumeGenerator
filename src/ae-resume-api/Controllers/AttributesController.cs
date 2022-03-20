@@ -76,7 +76,21 @@ namespace ae_resume_api.Controllers
 				return NotFound();
 			}
 
-			WorkspaceModel result = ControllerHelpers.WorkspaceEntityToModel(workspace);			
+			WorkspaceModel result = ControllerHelpers.WorkspaceEntityToModel(workspace);
+
+			// Get all resumes in workspace
+			result.Resumes = (from r in _databaseContext.Resume							  
+							 where r.WID == WID
+							 select ControllerHelpers.ResumeEntityToModel(r))
+							 .ToList();
+
+			// Get all sectors in resumes
+			result.Resumes.ForEach(r => r.SectorList = (from s in _databaseContext.Sector
+													   where r.RID == s.RID
+													   select ControllerHelpers.SectorEntityToModel(s))
+													   .ToList());
+
+			
 			
 
 			return result;
