@@ -321,15 +321,15 @@ namespace ae_resume_api.Controllers
                 EID = model.EID
             };
 
-                        
-             _databaseContext.Resume_Template.Add(entity);
+
+            var template = _databaseContext.Resume_Template.Add(entity);            
 
             // Add Sector Types to DB
             foreach (var sectorType in model.SectorTypes)
             {
                 _databaseContext.Template_Type.Add(new TemplateSectorsEntity
                 {
-                    TemplateID = model.TemplateID,
+                    TemplateID = template.Entity.TemplateID,
                     TypeID = sectorType.TypeID
                 });
             }
