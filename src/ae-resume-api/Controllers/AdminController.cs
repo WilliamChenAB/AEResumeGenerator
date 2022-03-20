@@ -211,19 +211,19 @@ namespace ae_resume_api.Controllers
         public async Task<ActionResult<SectorTypeModel>> NewSectorType(SectorTypeModel model)
         {
             SectorTypeEntity entity = new SectorTypeEntity
-            {
-                TypeID = model.TypeID,
+            {                
                 Title = model.Title,
-                Description = model.Description
+                Description = model.Description,
+                EID = model.EID
             };
             // SectorTypes.Add(model);
             
-             _databaseContext.SectorType.Add(entity);
+             var result = _databaseContext.SectorType.Add(entity);
              await _databaseContext.SaveChangesAsync();
 
             return CreatedAtAction(
                 nameof(GetSectorType),
-                new { TypeID = model.TypeID },
+                new { TypeID = result.Entity.TypeID },
                 model);
         }
         /// <summary>
