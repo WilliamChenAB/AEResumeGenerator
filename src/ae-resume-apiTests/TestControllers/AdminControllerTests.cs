@@ -117,9 +117,26 @@ namespace ae_resume_api.Controllers.Tests
         }
 
         [Fact]
-        public void CreateTemplateTest()
+        public async void CreateTemplateTest()
         {
-           Assert.True(false);
+            var token = await _tokenService.GetSAAccessToken();
+            _client.SetBearerToken(token);
+
+            TemplateModel template = new TemplateModel
+            {
+                Title = "Create template test",
+                Description = "test template for api tests",
+                EID = 1,
+                SectorTypes = new List<SectorTypeModel> { 
+                    new SectorTypeModel { TypeID = 1 },
+                    new SectorTypeModel { TypeID = 2 },
+                    new SectorTypeModel { TypeID = 3 }
+                }
+            };
+            var response = await _client.PostAsJsonAsync("/Admin/CreateTemplate", template);
+            response.EnsureSuccessStatusCode();
+            var stringResponse = await response.Content.ReadAsStringAsync();
+            Console.WriteLine(stringResponse);
         }
 
         [Fact]

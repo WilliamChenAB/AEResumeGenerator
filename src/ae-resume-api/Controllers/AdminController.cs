@@ -214,7 +214,7 @@ namespace ae_resume_api.Controllers
             {                
                 Title = model.Title,
                 Description = model.Description,
-                EID = model.EID
+                EID = (int)model.EID
             };
             // SectorTypes.Add(model);
             
@@ -310,8 +310,7 @@ namespace ae_resume_api.Controllers
         /// </summary>
         [HttpPost]
         [Route("CreateTemplate")]
-        public async Task<ActionResult<TemplateModel>> CreateTemplate(
-            [FromBody] TemplateModel model)
+        public async Task<ActionResult<TemplateModel>> CreateTemplate([FromBody] TemplateModel model)
         {
             TemplateEntity entity = new TemplateEntity
             {                
@@ -321,15 +320,16 @@ namespace ae_resume_api.Controllers
                 EID = model.EID
             };
 
-
-            var template = _databaseContext.Resume_Template.Add(entity);            
+            _databaseContext.Resume_Template.Add(entity);
+            await _databaseContext.SaveChangesAsync();
+            var template = _databaseContext.Resume_Template.OrderBy(x => x.TemplateID).Last();
 
             // Add Sector Types to DB
             foreach (var sectorType in model.SectorTypes)
             {
                 _databaseContext.Template_Type.Add(new TemplateSectorsEntity
                 {
-                    TemplateID = template.Entity.TemplateID,
+                    TemplateID = template.TemplateID,
                     TypeID = sectorType.TypeID
                 });
             }
