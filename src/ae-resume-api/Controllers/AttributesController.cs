@@ -255,6 +255,13 @@ namespace ae_resume_api.Controllers
 				return NotFound();
 			}
 
+			var workspace = await _databaseContext.Workspace.FindAsync(WID); ;
+
+			if(workspace == null)
+            {
+				return NotFound();
+            }
+
 			// Create a blank resume that has all the sectors in the template
 			var template = await _databaseContext.Resume_Template.FindAsync(TemplateID);
             if (template == null)
@@ -262,6 +269,7 @@ namespace ae_resume_api.Controllers
 				return NotFound();
             }
 			var templateModel = ControllerHelpers.TemplateEntityToModel(template);
+
 
 
 			ResumeEntity templateResume = new ResumeEntity();
@@ -272,7 +280,7 @@ namespace ae_resume_api.Controllers
 			templateResume.TemplateName = template.Title;
 			templateResume.Creation_Date = DateTime.Now.ToString("yyyyMMdd HH:mm:ss");
 			templateResume.Last_Edited = DateTime.Now.ToString("yyyyMMdd HH:mm:ss");
-			templateResume.Name = template.Title;
+			templateResume.Name = $"Resume Request for {workspace.Name}: Employee {employee.Name}";
 			templateResume.EmployeeName = employee.Name;
 
 			// Get all sector types for the template
@@ -282,29 +290,35 @@ namespace ae_resume_api.Controllers
 										select ControllerHelpers.SectorTypeEntityToModel(s))
 										.ToList();
 
+			var resultResume =  _databaseContext.Resume.AddAsync(templateResume).Result;
+			await _databaseContext.SaveChangesAsync();			
 
+			// Add the sectors to the sector table and assign to created resume
 			foreach (var sectorType in templateModel.SectorTypes)
-			{
-				SectorModel sector = new SectorModel();
-				sector.SectorType = sectorType.TypeID;
-				sector.CreationDate = DateTime.Now;
-
-				_databaseContext.Template_Type.Add(new TemplateSectorsEntity
+			{							
+				_databaseContext.Sector.Add(new SectorEntity
 				{
-					TemplateID = TemplateID,
-					TypeID = sectorType.TypeID
-				});
-
-				await _databaseContext.Resume.AddAsync(templateResume);
-
+					Creation_Date = DateTime.Now.ToString("yyyMMdd HH:mm:ss"),
+					Last_Edited = DateTime.Now.ToString("yyyMMdd HH:mm:ss"),
+					Content = "",
+					EID = EID,
+					TypeID = sectorType.TypeID,
+					TypeTitle = sectorType.Title,
+					RID = resultResume.Entity.RID,
+					ResumeName = $"Resume Request for {workspace.Name}: Employee {employee.Name}",
+					Division = workspace.Division,
+					Image = ""
+				});				
 			}
+			
 			try
 			{
 				await _databaseContext.SaveChangesAsync();
 			}
 			catch (Exception ex)
 			{
-				return NotFound(ex.Message);
+				Console.WriteLine(ex.Message);
+				return BadRequest(ex.Message);
 			}
 
 			return Ok(employee);

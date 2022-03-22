@@ -263,7 +263,7 @@ namespace ae_resume_api.Controllers
 		/// </summary>
 		[HttpPut]
 		[Route("EditSector")]
-		public async Task<IActionResult> EditSector(int SID, string content)
+		public async Task<IActionResult> EditSector(int SID, string content,string division, string image)
 		{
 			//var sector = Sectors.Find(x => x.SID == SID);
 			var sector = await _databasecontext.Sector.FindAsync(SID);
@@ -276,6 +276,8 @@ namespace ae_resume_api.Controllers
 			sector.SID = SID;
 			sector.Last_Edited = ControllerHelpers.CurrentTimeAsString();
 			sector.Content = content;
+			sector.Division = division;
+			sector.Image = image;
 
 			try
 			{
