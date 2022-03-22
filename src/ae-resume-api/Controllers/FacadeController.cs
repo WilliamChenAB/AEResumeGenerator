@@ -65,11 +65,11 @@ namespace ae_resume_api.Controllers
 
 			ResumeEntity entity = new ResumeEntity
 			{
-				Creation_Date = DateTime.Now.ToString("yyyyMMdd HH:mm:ss"),
+				Creation_Date = ControllerHelpers.CurrentTimeAsString(),
 				EID = EID,
 				TemplateID = templateID,
 				Name = resumeName,
-				Last_Edited = DateTime.Now.ToString("yyyMMdd"),
+				Last_Edited = ControllerHelpers.CurrentTimeAsString(),
 				Status = Status.InProgress.ToString(),
 				WID = 0,
 				TemplateName = template.Title,
@@ -81,8 +81,8 @@ namespace ae_resume_api.Controllers
 			foreach (var sector in sectorTypes)
 			{
 				_databasecontext.Sector.Add(new SectorEntity {
-					Creation_Date = DateTime.Now.ToString("yyyyMMdd HH:mm:ss"),
-					Last_Edited = DateTime.Now.ToString("yyyyMMdd HH:mm:ss"),
+					Creation_Date = ControllerHelpers.CurrentTimeAsString(),
+					Last_Edited = ControllerHelpers.CurrentTimeAsString(),
 					Content = "",
 					EID = EID,
 					TypeID = sector.TypeID,
@@ -105,7 +105,7 @@ namespace ae_resume_api.Controllers
 
 		/// <summary>
 		/// Create a new Sector
-		/// </summary>		
+		/// </summary>
 		[HttpPost]
 		[Route("NewSector")]
 		public async Task<ActionResult<SectorModel>> NewSector(SectorModel model)
@@ -114,8 +114,8 @@ namespace ae_resume_api.Controllers
 			SectorEntity entity = new SectorEntity
 			{
 				SID = model.SID,
-				Creation_Date = DateTime.Now.ToString("yyyyMMdd HH:mm:ss"),
-				Last_Edited = DateTime.Now.ToString("yyyyMMdd HH:mm:ss"),
+				Creation_Date = ControllerHelpers.CurrentTimeAsString(),
+				Last_Edited = ControllerHelpers.CurrentTimeAsString(),
 				Content = model.Content,
 				Image = model.Image,
 				Division = model.Division
@@ -135,7 +135,7 @@ namespace ae_resume_api.Controllers
 
 		/// <summary>
 		/// Get a Sector based on SID
-		/// </summary>	
+		/// </summary>
 		[HttpGet]
 		[Route("GetSector")]
 		public async Task<ActionResult<SectorModel>> GetSector(int SID)
@@ -155,7 +155,7 @@ namespace ae_resume_api.Controllers
 
 		/// <summary>
 		/// Get all Sectors from an Employee
-		/// </summary>	
+		/// </summary>
 		[HttpGet]
 		[Route("GetAllSectorsForEmployee")]
 		public async Task<ActionResult<IEnumerable<SectorModel>>> GetAllSectorsForEmployee(int EID)
@@ -184,7 +184,7 @@ namespace ae_resume_api.Controllers
 
 		/// <summary>
 		/// Get all Sectors from an Employee
-		/// </summary>	
+		/// </summary>
 		[HttpGet]
 		[Route("GetAllSectorsForEmployeeByType")]
 		public async Task<ActionResult<IEnumerable<SectorModel>>> GetAllSectorsForEmployeeByType(int EID, int TypeID)
@@ -213,7 +213,7 @@ namespace ae_resume_api.Controllers
 
 		/// <summary>
 		/// Delete a Resume
-		/// </summary>	
+		/// </summary>
 		[HttpDelete]
 		[Route("DeleteResume")]
 		public async Task<IActionResult> DeleteResume(int RID)
@@ -229,7 +229,7 @@ namespace ae_resume_api.Controllers
 				return NotFound();
 			}
 
-			//Resumes.Remove(resume);			
+			//Resumes.Remove(resume);
 			_databasecontext.Resume.Remove(resume);
 			await _databasecontext.SaveChangesAsync();
 			return Ok();
@@ -237,7 +237,7 @@ namespace ae_resume_api.Controllers
 
 		/// <summary>
 		/// Delete a Sector from a Resume
-		/// </summary>	
+		/// </summary>
 		[HttpDelete]
 		[Route("DeleteSector")]
 		public async Task<IActionResult> DeleteSector(int SID)
@@ -274,7 +274,7 @@ namespace ae_resume_api.Controllers
 			}
 
 			sector.SID = SID;
-			sector.Last_Edited = DateTime.Now.ToString("yyyyMMdd HH:mm:ss");
+			sector.Last_Edited = ControllerHelpers.CurrentTimeAsString();
 			sector.Content = content;
 
 			try
@@ -322,8 +322,8 @@ namespace ae_resume_api.Controllers
 			SectorEntity sector = new SectorEntity();
 
 			sector.RID = RID;
-			sector.Creation_Date = DateTime.Now.ToString("yyyyMMdd HH:mm:ss");
-			sector.Last_Edited = DateTime.Now.ToString("yyyyMMdd HH:mm:ss");
+			sector.Creation_Date = ControllerHelpers.CurrentTimeAsString();
+			sector.Last_Edited = ControllerHelpers.CurrentTimeAsString();
 			sector.Content = content;
 			sector.TypeID = typeID;
 			sector.TypeTitle = sectorType.Title;
@@ -362,13 +362,13 @@ namespace ae_resume_api.Controllers
 			}
 
 			sector.SID = model.SID;
-			sector.Creation_Date = model.CreationDate.ToString("yyyyMMdd HH:mm:ss HH:mm:ss");
-			sector.Last_Edited = model.LastEditedDate.ToString("yyyyMMdd HH:mm:ss");
+			sector.Creation_Date = ControllerHelpers.CurrentTimeAsString();
+			sector.Last_Edited = ControllerHelpers.CurrentTimeAsString();
 			sector.Content = model.Content;
 			sector.TypeID = model.SectorType;
 			sector.RID = RID;
 
-			resume.Last_Edited = DateTime.Now.ToString("yyyyMMdd HH:mm:ss");
+			resume.Last_Edited = ControllerHelpers.CurrentTimeAsString();
 
 
 			try
@@ -393,7 +393,7 @@ namespace ae_resume_api.Controllers
 		public async Task<ActionResult<ResumeModel>> GetResume(int RID)
 		{
 
-			///var resume = Resumes.Find(x => x.RID == RID);			
+			///var resume = Resumes.Find(x => x.RID == RID);
 			var resume = await _databasecontext.Resume.FindAsync(RID);
 
 			if (resume == null)
@@ -498,7 +498,7 @@ namespace ae_resume_api.Controllers
 		public async Task<IActionResult> ExportResume(int RID)
 		{
 			var resume = await _databasecontext.Resume.FindAsync(RID);
-			
+
 
 			if(resume == null)
             {
@@ -533,7 +533,7 @@ namespace ae_resume_api.Controllers
             {
 				return NotFound();
             }
-			
+
 			var resumes = from r in _databasecontext.Resume
 						  join s in _databasecontext.Sector on r.RID equals s.RID
 						  where r.WID == WID
@@ -551,7 +551,7 @@ namespace ae_resume_api.Controllers
 			// TODO: set status as exported and save for future use PA
 			// Employees cannot use exported resumes
 
-			return new JsonResult(resumes);								
+			return new JsonResult(resumes);
 		}
 
 		/// <summary>
@@ -605,12 +605,13 @@ namespace ae_resume_api.Controllers
 								  e.JobTitle.Contains(filter)
 						  select new EmployeeModel{
 							  EID = e.EID,
+							  Name = e.Name,
 							  Email = e.Email,
 							  Access = e.Access,
 							  Username = e.Username,
 							  JobTitle = e.JobTitle
                           };
-			
+
             return employees;
         }
 
@@ -643,7 +644,7 @@ namespace ae_resume_api.Controllers
 						  s.TypeTitle.Contains(filter) ||
 						  s.TypeID.ToString().Contains(filter)
 						  )
-						  select new ResumeModel { 
+						  select new ResumeModel {
 							  EID = r.EID,
 							  CreationDate = DateTime.Parse(r.Creation_Date),
 							  LastEditedDate = DateTime.Parse(r.Last_Edited),
@@ -652,9 +653,9 @@ namespace ae_resume_api.Controllers
 							  WID = r.WID,
 							  Name = r.Name,
 							  TemplateID = r.TemplateID,
-							  TemplateName = r.TemplateName,							  
+							  TemplateName = r.TemplateName,
 						  };
-			
+
             foreach (var resume in resumes)
             {
 				resume.SectorList = _databasecontext.Sector
