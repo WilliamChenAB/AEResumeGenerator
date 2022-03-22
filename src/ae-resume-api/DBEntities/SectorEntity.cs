@@ -10,10 +10,13 @@ public class SectorEntity
 	public string? Last_Edited { get; set; }
 	public string Content { get; set; }	
     public int EID { get; internal set; }
-    public int TypeID { get; set; }
-	// TODO: Propogate changes
+    public int TypeID { get; set; }	
 	public string TypeTitle { get; set; }
 	public int RID { get; set; }
 	public string ResumeName { get; set; }
+
+	public string Division { get; set; }
+
+	public string Image { get; set; }
 }
 

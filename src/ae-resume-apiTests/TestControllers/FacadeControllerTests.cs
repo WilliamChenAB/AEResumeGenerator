@@ -14,8 +14,9 @@ using IdentityModel.Client;
 
 namespace ae_resume_api.Controllers.Tests
 {
-    
-    public class FacadeControllerTests: IClassFixture<WebApplicationFactory<ae_resume_api.Startup>>
+
+   
+    public class FacadeControllerTests : IClassFixture<WebApplicationFactory<ae_resume_api.Startup>>
     {
         private readonly IConfigurationRoot _config;
         private readonly HttpClient _client;
@@ -106,9 +107,15 @@ namespace ae_resume_api.Controllers.Tests
         }
 
         [Fact]
-        public void GetResumesForEmployeeTest()
+        public async void GetResumesForEmployeeTest()
         {
-            Assert.True(false);
+            var token = await _tokenService.GetSAAccessToken();
+            _client.SetBearerToken(token);
+
+            var response = await _client.GetAsync("/Facade/GetResumesForEmployee?EID=1");
+            response.EnsureSuccessStatusCode();
+            var stringResponse = await response.Content.ReadAsStringAsync();
+            Console.WriteLine(stringResponse);
         }
 
         [Fact]
@@ -152,7 +159,7 @@ namespace ae_resume_api.Controllers.Tests
         {
             Assert.True(false);
         }
-        
+
         [Fact]
         public async void GetAllTemplatesTest()
         {
@@ -169,6 +176,18 @@ namespace ae_resume_api.Controllers.Tests
         public void SectorEntityToModelTest()
         {
             Assert.True(false);
+        }
+
+        [Fact]
+        public async void ExportResumesInWorkspaceTest()
+        {
+            var token = await _tokenService.GetSAAccessToken();
+            _client.SetBearerToken(token);
+
+            var response = await _client.GetAsync("/Facade/ExportResumesInWorkspace?WID=1");
+            response.EnsureSuccessStatusCode();
+            var stringResponse = await response.Content.ReadAsStringAsync();
+            Console.WriteLine(stringResponse);
         }
     }
 }

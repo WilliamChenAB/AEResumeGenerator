@@ -81,9 +81,6 @@ namespace ae_resume_api.Controllers.Tests
             response.EnsureSuccessStatusCode();
             var stringResponse = await response.Content.ReadAsStringAsync();
             Console.WriteLine(stringResponse);
-            //var terms = JsonSerializer.Deserialize<List<GlossaryItem>>(stringResponse, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
-
-            //Assert.Equal(3, terms.Count);
         }
 
         [Fact]
@@ -125,8 +122,7 @@ namespace ae_resume_api.Controllers.Tests
             TemplateModel template = new TemplateModel
             {
                 Title = "Create template test",
-                Description = "test template for api tests",
-                EID = 1,
+                Description = "test template for api tests",                
                 SectorTypes = new List<SectorTypeModel> { 
                     new SectorTypeModel { TypeID = 1 },
                     new SectorTypeModel { TypeID = 2 },

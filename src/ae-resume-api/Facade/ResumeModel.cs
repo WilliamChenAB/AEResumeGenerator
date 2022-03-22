@@ -4,13 +4,12 @@ using System.Collections.Generic;
 
 namespace ae_resume_api.Facade
 {
-	public enum Status { Requested, InProgress, Submitted}
+	public enum Status { Requested, InProgress, Submitted, Exported}
 
 	public class ResumeModel
 	{
 		public int RID { get; set; }
-		public int EID { get; set; }
-		// TODO: propogate changes
+		public int EID { get; set; }	
 		public string Name { get; set; }
 		public string EmployeeName { get; set; }
 		public int? WID { get; set; }

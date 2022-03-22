@@ -34,10 +34,7 @@ namespace ae_resume_api
 
             // For Entity Framework
             services.AddDbContext<DatabaseContext>(options => options.UseSqlServer(Configuration.GetConnectionString("ConnStr")));
-
-            services.AddTransient<IAdminService, AdminService>();
-            services.AddTransient<IAttributeService, AttributeService>();
-            services.AddTransient<IFacadeService, FacadeService>();
+           
 
             // Adding Authentication
             services.AddAuthentication("Bearer")

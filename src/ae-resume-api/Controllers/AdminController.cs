@@ -52,7 +52,8 @@ namespace ae_resume_api.Controllers
                 Name = model.Name,
                 Email = model.Email,
                 Username = model.Username,
-                Password = model.Password
+                Password = model.Password,
+                JobTitle = model.JobTitle
             };
             
             _databaseContext.Employee.Add(entity);
@@ -67,7 +68,7 @@ namespace ae_resume_api.Controllers
         
 
         /// <summary>
-        /// Edit an Employee based on thier EID
+        /// Edit an Employee based on their EID
         /// </summary>
         [HttpPut]
         [Route("EditEmployee")]
@@ -89,12 +90,10 @@ namespace ae_resume_api.Controllers
             {
                 return NotFound();
             }
-
-            employee.EID = employeeModel.EID;
+            
             employee.Name = employeeModel.Name;
             employee.Email = employeeModel.Email;
-            employee.Username = employeeModel.Username;
-            employee.Password = employeeModel.Password;
+            employee.JobTitle = employeeModel.JobTitle;
         
             try
             {
@@ -316,10 +315,10 @@ namespace ae_resume_api.Controllers
             {                
                 Title = model.Title,
                 Description = model.Description,
-                Last_Edited = DateTime.Now.ToString("yyyMMdd"),
-                EID = model.EID
+                Last_Edited = DateTime.Now.ToString("yyyyMMdd HH:mm:ss")                
             };
 
+            // Add the new Template and get its ID to add types to associative table
             _databaseContext.Resume_Template.Add(entity);
             await _databaseContext.SaveChangesAsync();
             var template = _databaseContext.Resume_Template.OrderBy(x => x.TemplateID).Last();

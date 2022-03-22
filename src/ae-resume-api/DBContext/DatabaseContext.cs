@@ -11,8 +11,15 @@ namespace ae_resume_api.DBContext
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
+            // Add associative table key
             builder.Entity<TemplateSectorsEntity>().
                 HasKey(x => new { x.TemplateID, x.TypeID });
+
+            // Add unique name constraints
+            //builder.Entity<ResumeEntity>().
+            //    HasIndex(r => r.Name).IsUnique();
+            builder.Entity<SectorTypeEntity>().
+                HasIndex(st => st.Title).IsUnique();
         }
 
         // Entity tables

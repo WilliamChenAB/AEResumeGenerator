@@ -13,6 +13,7 @@ namespace ae_resume_api.Admin
 		public string Access { get; set; }
 		public string? Name { get; set; }
 		public string? Email { get; set; }
+		public string? JobTitle { get; set; }
 		public List<ResumeModel>? Resumes { get; set; }
 
 	}

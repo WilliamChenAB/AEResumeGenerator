@@ -11,8 +11,8 @@ namespace ae_resume_api.Controllers
             new SectorModel
             {
                 SID = entity.SID,
-                CreationDate = DateTime.ParseExact(entity.Creation_Date, "yyyyMMdd", CultureInfo.InvariantCulture),
-                LastEditedDate = DateTime.ParseExact(entity.Last_Edited, "yyyyMMdd", CultureInfo.InvariantCulture),
+                CreationDate = DateTime.ParseExact(entity.Creation_Date, "yyyyMMdd HH:mm:ss", CultureInfo.InvariantCulture),
+                LastEditedDate = DateTime.ParseExact(entity.Last_Edited, "yyyyMMdd HH:mm:ss", CultureInfo.InvariantCulture),
                 Content = entity.Content,
                 TypeID = entity.TypeID,
                 TypeTitle = entity.TypeTitle,
@@ -27,7 +27,8 @@ namespace ae_resume_api.Controllers
                 Email = entity.Email,
                 Name = entity.Name,
                 Username = entity.Username,
-                Password = entity.Password
+                Password = entity.Password,
+                JobTitle = entity.JobTitle
             };
 
 
@@ -37,8 +38,7 @@ namespace ae_resume_api.Controllers
                 TemplateID = entity.TemplateID,
                 Title = entity.Title,
                 Description = entity.Description,
-                LastEdited = DateTime.ParseExact(entity.Last_Edited, "yyyyMMdd", CultureInfo.InvariantCulture),
-                EID = entity.EID
+                LastEdited = DateTime.ParseExact(entity.Last_Edited, "yyyyMMdd HH:mm:ss", CultureInfo.InvariantCulture)                
             };
 
         public static SectorTypeModel SectorTypeEntityToModel(SectorTypeEntity entity) =>
@@ -54,7 +54,7 @@ namespace ae_resume_api.Controllers
             new WorkspaceModel
             {
                 WID = entity.WID,
-                CreationDate = DateTime.ParseExact(entity.Creation_Date, "yyyyMMdd", CultureInfo.InvariantCulture),
+                CreationDate = DateTime.ParseExact(entity.Creation_Date, "yyyyMMdd HH:mm:ss", CultureInfo.InvariantCulture),
                 Division = entity.Division,
                 ProposalNumber = entity.Proposal_Number,
                 Name = entity.Name,
@@ -65,8 +65,8 @@ namespace ae_resume_api.Controllers
             {
                 WID = entity.WID,
                 EID = entity.EID,
-                CreationDate = DateTime.ParseExact(entity.Creation_Date, "yyyyMMdd", CultureInfo.InvariantCulture),
-                LastEditedDate = DateTime.ParseExact(entity.Last_Edited, "yyyyMMdd", CultureInfo.InvariantCulture),
+                CreationDate = DateTime.ParseExact(entity.Creation_Date, "yyyyMMdd HH:mm:ss", CultureInfo.InvariantCulture),
+                LastEditedDate = DateTime.ParseExact(entity.Last_Edited, "yyyyMMdd HH:mm:ss", CultureInfo.InvariantCulture),
                 Name = entity.Name,
                 RID = entity.RID,
                 TemplateID = entity.TemplateID,

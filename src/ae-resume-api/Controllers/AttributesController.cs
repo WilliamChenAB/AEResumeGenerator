@@ -44,7 +44,7 @@ namespace ae_resume_api.Controllers
 			WorkspaceEntity entity = new WorkspaceEntity
 			{				
 				Division = division,
-				Creation_Date = DateTime.Now.ToString("yyyyMMdd"),
+				Creation_Date = DateTime.Now.ToString("yyyyMMdd HH:mm:ss"),
 				Proposal_Number = proposalNumber,
 				Name = name,
 				EID = EID
@@ -89,10 +89,7 @@ namespace ae_resume_api.Controllers
 													   where r.RID == s.RID
 													   select ControllerHelpers.SectorEntityToModel(s))
 													   .ToList());
-
-			
-			
-
+						
 			return result;
 
 		}
@@ -130,7 +127,7 @@ namespace ae_resume_api.Controllers
 			// Create a new Resume with the same sectors but new SID and add to Workspace
 			ResumeEntity entity = new ResumeEntity
 			{
-				Creation_Date = DateTime.Now.ToString("yyyyMMdd"),
+				Creation_Date = DateTime.Now.ToString("yyyyMMdd HH:mm:ss"),
 				EID = resume.EID,
 				TemplateID = resume.TemplateID,
 				Status = resume.Status,
@@ -150,11 +147,13 @@ namespace ae_resume_api.Controllers
 			{
 				Content = s.Content,
 				EID = s.EID,
-				Creation_Date = DateTime.Now.ToString("yyyyMMdd"),
+				Creation_Date = DateTime.Now.ToString("yyyyMMdd HH:mm:ss"),
 				TypeID = s.TypeID,
 				TypeTitle = s.TypeTitle,
 				Last_Edited = s.Last_Edited,
-				RID = newResume.RID
+				RID = newResume.RID,
+				Image = s.Image,
+				Division = s.Division
 			}));
 
 			try
@@ -271,8 +270,8 @@ namespace ae_resume_api.Controllers
 			templateResume.EID = EID;		
 			templateResume.WID = WID;
 			templateResume.TemplateName = template.Title;
-			templateResume.Creation_Date = DateTime.Now.ToString("yyyyMMdd");
-			templateResume.Last_Edited = DateTime.Now.ToString("yyyyMMdd");
+			templateResume.Creation_Date = DateTime.Now.ToString("yyyyMMdd HH:mm:ss");
+			templateResume.Last_Edited = DateTime.Now.ToString("yyyyMMdd HH:mm:ss");
 			templateResume.Name = template.Title;
 			templateResume.EmployeeName = employee.Name;
 
@@ -333,8 +332,8 @@ namespace ae_resume_api.Controllers
 			entity.EID = EID;
 			entity.Status = Status.InProgress.ToString();
 			entity.WID = WID;
-			entity.Last_Edited = DateTime.Now.ToString("yyyyMMdd");
-			entity.Creation_Date = DateTime.Now.ToString("yyyyMMdd");
+			entity.Last_Edited = DateTime.Now.ToString("yyyyMMdd HH:mm:ss");
+			entity.Creation_Date = DateTime.Now.ToString("yyyyMMdd HH:mm:ss");
 			entity.Name = name;
 			entity.EmployeeName = employee.Name;
 			entity.TemplateID = 0;
