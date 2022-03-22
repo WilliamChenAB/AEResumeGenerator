@@ -112,36 +112,36 @@ namespace ae_resume_api.Controllers
 
 			// Update old copy to submitted
 			var resume = await _databaseContext.Resume.FindAsync(RID);
-			resume.Status = "Submitted";
-			resume.WID = WID;
-			// var resume = Workspaces.First().Resumes.Last();
 
 			if (resume == null)
 			{
 				return NotFound();
 			}
-
-			//resume.WID = workspace.WID;
-			//workspace.Resumes.Add(resume);
+			resume.Status = "Submitted";
+						
 
 			// Create a new Resume with the same sectors but new SID and add to Workspace
 			ResumeEntity entity = new ResumeEntity
 			{
 				Creation_Date = DateTime.Now.ToString("yyyyMMdd HH:mm:ss"),
+				Last_Edited = DateTime.Now.ToString("yyyyMMdd HH:mm:ss"),
 				EID = resume.EID,
+				EmployeeName = resume.EmployeeName,
+				Status = Status.Submitted.ToString(),
 				TemplateID = resume.TemplateID,
-				Status = resume.Status,
-				Last_Edited = resume.Last_Edited,
-				WID = WID
+				WID = WID,
+				Name = $"Copy of {resume.Name}",
+				TemplateName = resume.TemplateName
 			};
 
-			_databaseContext.Resume.Add(entity);
+
+			// Add copy resume to db			
+			var resultResume = _databaseContext.Resume.AddAsync(entity).Result;
 			await _databaseContext.SaveChangesAsync();
 
 
 			// Copy all of the sectors from the old resume to add to the Sector table
-			var sectors = _databaseContext.Sector.Where(sector => sector.RID == resume.RID);
-			var newResume = await _databaseContext.Resume.FindAsync(entity);
+			var sectors = _databaseContext.Sector.Where(sector => sector.RID == resume.RID);			
 
 			sectors.ToList().ForEach(s => _databaseContext.Sector.Add(new SectorEntity
 			{
@@ -151,9 +151,10 @@ namespace ae_resume_api.Controllers
 				TypeID = s.TypeID,
 				TypeTitle = s.TypeTitle,
 				Last_Edited = s.Last_Edited,
-				RID = newResume.RID,
+				RID = resultResume.Entity.RID,
 				Image = s.Image,
-				Division = s.Division
+				Division = s.Division,
+				ResumeName = resultResume.Entity.Name				
 			}));
 
 			try
@@ -165,9 +166,7 @@ namespace ae_resume_api.Controllers
 				return NotFound(ex.Message);
 			}
 
-			return Ok(resume);
-
-
+			return Ok(resultResume);
 		}
 
 		/// <summary>
