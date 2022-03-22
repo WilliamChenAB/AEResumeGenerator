@@ -24,13 +24,13 @@ namespace ae_resume_api.Controllers
 	public class AtrributesController : ControllerBase
 	{
 		readonly DatabaseContext _databaseContext;
-		
+
 
 
 		public AtrributesController(DatabaseContext dbContext)
 		{
 			_databaseContext = dbContext;
-			
+
 		}
 
 		/// <summary>
@@ -42,14 +42,14 @@ namespace ae_resume_api.Controllers
 		{
 
 			WorkspaceEntity entity = new WorkspaceEntity
-			{				
+			{
 				Division = division,
 				Creation_Date = DateTime.Now.ToString("yyyyMMdd HH:mm:ss"),
 				Proposal_Number = proposalNumber,
 				Name = name,
 				EID = EID
 			};
-			
+
 			_databaseContext.Workspace.Add(entity);
 			await _databaseContext.SaveChangesAsync();
 			var WID = _databaseContext.Workspace.OrderBy(x => x.WID).Last();
@@ -79,7 +79,7 @@ namespace ae_resume_api.Controllers
 			WorkspaceModel result = ControllerHelpers.WorkspaceEntityToModel(workspace);
 
 			// Get all resumes in workspace
-			result.Resumes = (from r in _databaseContext.Resume							  
+			result.Resumes = (from r in _databaseContext.Resume
 							 where r.WID == WID
 							 select ControllerHelpers.ResumeEntityToModel(r))
 							 .ToList();
@@ -89,7 +89,7 @@ namespace ae_resume_api.Controllers
 													   where r.RID == s.RID
 													   select ControllerHelpers.SectorEntityToModel(s))
 													   .ToList());
-						
+
 			return result;
 
 		}
@@ -101,7 +101,7 @@ namespace ae_resume_api.Controllers
 		[Route("CopyResume")]
 		public async Task<IActionResult> CopyResume(int RID, int WID)
 		{
-			// var workspace = Workspaces.Find(x => x.WID == WID);			
+			// var workspace = Workspaces.Find(x => x.WID == WID);
 			var workspace = await _databaseContext.Workspace.FindAsync(WID);
 
 			if (workspace == null)
@@ -121,7 +121,7 @@ namespace ae_resume_api.Controllers
 				return NotFound();
 			}
 
-			//resume.WID = workspace.WID;			
+			//resume.WID = workspace.WID;
 			//workspace.Resumes.Add(resume);
 
 			// Create a new Resume with the same sectors but new SID and add to Workspace
@@ -135,7 +135,7 @@ namespace ae_resume_api.Controllers
 				WID = WID
 			};
 
-			_databaseContext.Resume.Add(entity);			
+			_databaseContext.Resume.Add(entity);
 			await _databaseContext.SaveChangesAsync();
 
 
@@ -262,12 +262,12 @@ namespace ae_resume_api.Controllers
 				return NotFound();
             }
 			var templateModel = ControllerHelpers.TemplateEntityToModel(template);
-			
-			
+
+
 			ResumeEntity templateResume = new ResumeEntity();
 			templateResume.TemplateID = TemplateID;
 			templateResume.Status = Status.Requested.ToString();
-			templateResume.EID = EID;		
+			templateResume.EID = EID;
 			templateResume.WID = WID;
 			templateResume.TemplateName = template.Title;
 			templateResume.Creation_Date = DateTime.Now.ToString("yyyyMMdd HH:mm:ss");
@@ -281,8 +281,8 @@ namespace ae_resume_api.Controllers
 										where t.TemplateID == TemplateID
 										select ControllerHelpers.SectorTypeEntityToModel(s))
 										.ToList();
-					
-										
+
+
 			foreach (var sectorType in templateModel.SectorTypes)
 			{
 				SectorModel sector = new SectorModel();
@@ -296,7 +296,7 @@ namespace ae_resume_api.Controllers
 				});
 
 				await _databaseContext.Resume.AddAsync(templateResume);
-				
+
 			}
 			try
 			{
@@ -353,8 +353,8 @@ namespace ae_resume_api.Controllers
 
 			return Ok(entity);
         }
-		
-		
+
+
 
 	}
 }

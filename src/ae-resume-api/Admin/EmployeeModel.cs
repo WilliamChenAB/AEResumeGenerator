@@ -17,6 +17,6 @@ namespace ae_resume_api.Admin
 		public List<ResumeModel>? Resumes { get; set; }
 
 	}
-	
+
 }
 

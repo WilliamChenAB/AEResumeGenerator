@@ -8,7 +8,7 @@ namespace ae_resume_api.Attributes
 	{
 		public int WID { get; set; }
 		public int ProposalNumber{ get; set; }
-		public string Division { get; set; }		
+		public string Division { get; set; }
 		public string Name { get; set; }
 
 		public int EID { get; set; }
@@ -16,6 +16,6 @@ namespace ae_resume_api.Attributes
 		public List<ResumeModel>? Resumes { get; set; }
 
 	}
-	
+
 }
 

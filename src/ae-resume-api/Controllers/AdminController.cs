@@ -25,7 +25,7 @@ namespace ae_resume_api.Controllers
 
         public AdminController(DatabaseContext dbContext)
         {
-            _databaseContext = dbContext;            
+            _databaseContext = dbContext;
         }
 
         /// <summary>
@@ -55,7 +55,7 @@ namespace ae_resume_api.Controllers
                 Password = model.Password,
                 JobTitle = model.JobTitle
             };
-            
+
             _databaseContext.Employee.Add(entity);
              await _databaseContext.SaveChangesAsync();
 
@@ -65,7 +65,7 @@ namespace ae_resume_api.Controllers
                 model);
         }
 
-        
+
 
         /// <summary>
         /// Edit an Employee based on their EID
@@ -82,7 +82,7 @@ namespace ae_resume_api.Controllers
 
             // var employee = Employees.Find(x => x.EID == EID);
 
-            
+
             var employee = await _databaseContext.Employee.FindAsync(EID);
 
             // Check if the employee already exists
@@ -90,11 +90,11 @@ namespace ae_resume_api.Controllers
             {
                 return NotFound();
             }
-            
+
             employee.Name = employeeModel.Name;
             employee.Email = employeeModel.Email;
             employee.JobTitle = employeeModel.JobTitle;
-        
+
             try
             {
                 await _databaseContext.SaveChangesAsync();
@@ -117,7 +117,7 @@ namespace ae_resume_api.Controllers
         {
 
             // var employee = Employees.Find(x => x.EID == EID);
-            
+
             var employee = await _databaseContext.Employee.FindAsync(EID);
 
             if (employee == null)
@@ -126,7 +126,7 @@ namespace ae_resume_api.Controllers
             }
 
             // Employees.Remove(employee);
-            
+
             _databaseContext.Employee.Remove(employee);
             await _databaseContext.SaveChangesAsync();
             return Ok();
@@ -140,7 +140,7 @@ namespace ae_resume_api.Controllers
         public async Task<ActionResult<EmployeeModel>> GetEmployee(int EID)
         {
             // var employee = Employees.Find(x => x.EID == EID);
-            
+
             var employee = await _databaseContext.Employee.FindAsync(EID);
 
             if (employee == null)
@@ -176,7 +176,7 @@ namespace ae_resume_api.Controllers
         {
             // var employee = Employees.Find(x => x.EID == EID);
 
-            
+
             var employee = await _databaseContext.Employee.FindAsync(EID);
 
             // Check if the employee already exists
@@ -187,7 +187,7 @@ namespace ae_resume_api.Controllers
 
             employee.Access = access;
 
-        
+
             try
             {
                 await _databaseContext.SaveChangesAsync();
@@ -210,13 +210,13 @@ namespace ae_resume_api.Controllers
         public async Task<ActionResult<SectorTypeModel>> NewSectorType(SectorTypeModel model)
         {
             SectorTypeEntity entity = new SectorTypeEntity
-            {                
+            {
                 Title = model.Title,
                 Description = model.Description,
                 EID = (int)model.EID
             };
             // SectorTypes.Add(model);
-            
+
              var result = _databaseContext.SectorType.Add(entity);
              await _databaseContext.SaveChangesAsync();
 
@@ -237,7 +237,7 @@ namespace ae_resume_api.Controllers
                 return BadRequest();
             }
             // var sectorType = SectorTypes.Find(x => x.TypeID == sectorTypeID);
-            
+
             var sectorType = await _databaseContext.SectorType.FindAsync(sectorTypeID);
 
             if (sectorType == null)
@@ -246,8 +246,8 @@ namespace ae_resume_api.Controllers
             }
 
             sectorType.Title = model.Title;
-            sectorType.Description = model.Description;            
-            
+            sectorType.Description = model.Description;
+
             try
             {
                 await _databaseContext.SaveChangesAsync();
@@ -270,7 +270,7 @@ namespace ae_resume_api.Controllers
         public async Task<ActionResult<SectorTypeModel>> GetSectorType(int sectorTypeID)
         {
             //var sectorType = SectorTypes.Find(x => x.TypeID == sectorTypeID);
-            
+
             var sectorType = await _databaseContext.SectorType.FindAsync(sectorTypeID);
 
             if (sectorType == null)
@@ -279,7 +279,7 @@ namespace ae_resume_api.Controllers
             }
             return ControllerHelpers.SectorTypeEntityToModel(sectorType);
         }
-       
+
 
         /// <summary>
         /// Delete a Sector Type
@@ -289,7 +289,7 @@ namespace ae_resume_api.Controllers
         public async Task<IActionResult> DeleteSectorType(int sectorTypeID)
         {
             // var sectorType = SectorTypes.Find(x => x.TypeID == sectorTypeID);
-            
+
             var sectorType = await _databaseContext.SectorType.FindAsync(sectorTypeID);
 
             if (sectorType == null)
@@ -298,7 +298,7 @@ namespace ae_resume_api.Controllers
             }
 
             // SectorTypes.Remove(sectorType);
-            
+
             _databaseContext.SectorType.Remove(sectorType);
             await _databaseContext.SaveChangesAsync();
             return Ok();
@@ -312,10 +312,10 @@ namespace ae_resume_api.Controllers
         public async Task<ActionResult<TemplateModel>> CreateTemplate([FromBody] TemplateModel model)
         {
             TemplateEntity entity = new TemplateEntity
-            {                
+            {
                 Title = model.Title,
                 Description = model.Description,
-                Last_Edited = DateTime.Now.ToString("yyyyMMdd HH:mm:ss")                
+                Last_Edited = DateTime.Now.ToString("yyyyMMdd HH:mm:ss")
             };
 
             // Add the new Template and get its ID to add types to associative table
@@ -348,7 +348,7 @@ namespace ae_resume_api.Controllers
         public async Task<ActionResult<TemplateModel>> GetTemplate(int templateID)
         {
             //var template = templateModels.Find(x => x.TemplateID == templateID);
-            
+
             var template = await _databaseContext.Resume_Template.FindAsync(templateID);
 
             if (template == null)
@@ -358,7 +358,7 @@ namespace ae_resume_api.Controllers
             return ControllerHelpers.TemplateEntityToModel(template);
         }
 
-       
+
 
         /// <summary>
         /// Get all the SectorTypes in a Resume Template
@@ -371,7 +371,7 @@ namespace ae_resume_api.Controllers
         {
 
             //var template = templateModels.Find(x => x.TemplateID == templateID);
-            
+
             var template = await _databaseContext.Resume_Template.FindAsync(templateID);
 
             if (template == null)
@@ -387,7 +387,7 @@ namespace ae_resume_api.Controllers
                                    where t.TemplateID == template.TemplateID
                                    select ControllerHelpers.SectorTypeEntityToModel(s))
                                    .ToList();
-         
+
 
             return sectorTypesModel;
         }
@@ -405,7 +405,7 @@ namespace ae_resume_api.Controllers
                 return BadRequest();
             }
             // var template = templateModels.Find(x => x.TemplateID == templateID);
-            
+
             var template = await _databaseContext.Resume_Template.FindAsync(templateID);
 
             if (template == null)
@@ -413,9 +413,9 @@ namespace ae_resume_api.Controllers
                 return NotFound();
             }
 
-            template.Title = model.Title;            
+            template.Title = model.Title;
             template.Description = model.Description;
-        
+
             try
             {
                 await _databaseContext.SaveChangesAsync();
@@ -440,7 +440,7 @@ namespace ae_resume_api.Controllers
         public async Task<IActionResult> AssignSectorType(int templateID, int sectorTypeID)
         {
             // var template = templateModels.Find(x => x.TemplateID == templateID);
-            
+
             var template = await _databaseContext.Resume_Template.FindAsync(templateID);
 
 
@@ -455,14 +455,14 @@ namespace ae_resume_api.Controllers
             {
                 TemplateID = templateID,
                 TypeID = sectorTypeID
-            };               
-                
-            
+            };
+
+
             _databaseContext.Template_Type.Add(entity);
 
             await _databaseContext.SaveChangesAsync();
             var templateType = await _databaseContext.Template_Type.FindAsync(entity);
-            
+
 
             return Ok(templateType);
         }
@@ -476,7 +476,7 @@ namespace ae_resume_api.Controllers
 
 
             //var template = templateModels.Find(x => x.TemplateID == templateID);
-            
+
             var template = await _databaseContext.Resume_Template.FindAsync(templateID);
 
             if (template == null)
@@ -485,7 +485,7 @@ namespace ae_resume_api.Controllers
             }
 
             //templateModels.Remove(template);
-            
+
             _databaseContext.Resume_Template.Remove(template);
              await _databaseContext.SaveChangesAsync();
             return Ok();
@@ -494,11 +494,11 @@ namespace ae_resume_api.Controllers
         /// Check to see if an Employee Exists in the db
         /// </summary>
         private bool EmployeeExists(long EID)
-        {           
+        {
             return _databaseContext.Employee.Any(e => e.EID == EID);
         }
-        
-        
+
+
 
     }
 }
