@@ -53,9 +53,15 @@ namespace ae_resume_api.Controllers.Tests
         }
 
         [Fact]
-        public void GetSectorTest()
+        public async void GetSectorTest()
         {
-            Assert.True(false);
+            var token = await _tokenService.GetSAAccessToken();
+            _client.SetBearerToken(token);
+            
+            var response = await _client.GetAsync("/Facade/GetSector?SID=1");
+            response.EnsureSuccessStatusCode();
+            var stringResponse = await response.Content.ReadAsStringAsync();
+            Console.WriteLine(stringResponse);
         }
 
         [Fact]
@@ -89,7 +95,7 @@ namespace ae_resume_api.Controllers.Tests
             _client.SetBearerToken(token);
 
             var stringContent = new StringContent("");
-            var response = await _client.PutAsync("/Facade/EditSector?SID=52&content=some%20content&division=Utility&Image=test.png", stringContent);
+            var response = await _client.PutAsync("/Facade/EditSector?SID=1&content=some%20content&division=Utility&Image=test.png", stringContent);
             response.EnsureSuccessStatusCode();
             var stringResponse = await response.Content.ReadAsStringAsync();
             Console.WriteLine(stringResponse);

@@ -30,7 +30,9 @@ namespace ae_resume_api.Controllers
                 TypeID = entity.TypeID,
                 TypeTitle = entity.TypeTitle,
                 RID = entity.RID,
-                ResumeName = entity.ResumeName
+                ResumeName = entity.ResumeName,
+                Division = entity.Division,
+                Image = entity.Image
             };
 
         public static EmployeeModel EmployeeEntityToModel(EmployeeEntity entity) =>
@@ -84,6 +86,11 @@ namespace ae_resume_api.Controllers
                 TemplateName = entity.TemplateName,
                 Status = (Status)Enum.Parse(typeof(Status), entity.Status)
             };
+
+        public static Status ParseStatus(string status)
+        {
+            return (Status)Enum.Parse(typeof(Status), status);
+        }
 
 
 

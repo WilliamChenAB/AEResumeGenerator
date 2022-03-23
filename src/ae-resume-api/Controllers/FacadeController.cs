@@ -649,7 +649,9 @@ namespace ae_resume_api.Controllers
 						  r.TemplateID.ToString().Contains(filter) ||
 						  s.Content.Contains(filter) ||
 						  s.TypeTitle.Contains(filter) ||
-						  s.TypeID.ToString().Contains(filter)
+						  s.TypeID.ToString().Contains(filter) ||
+						  s.Division.Contains(filter) ||
+						  s.Image.Contains(filter)
 						  )
 						  select new ResumeModel {
 							  EID = r.EID,
