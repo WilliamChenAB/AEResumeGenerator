@@ -687,6 +687,31 @@ namespace ae_resume_api.Controllers
         {
 			return BadRequest("Not implemented");
         }
-    }
+
+		[HttpGet]
+		[Route("SearchEmployeeSectors")]
+
+		public IEnumerable<SectorModel> SearchEmployeeSectors(string? filter, int EID)
+        {
+			// Clean input filter
+			filter = filter ?? string.Empty;
+
+			var sectors = (from s in _databasecontext.Sector
+						   where s.EID == EID &&
+						   (s.Content.Contains(filter) ||
+							s.TypeTitle.Contains(filter) ||
+							s.Last_Edited.Contains(filter) ||
+							s.Creation_Date.Contains(filter) ||
+							s.ResumeName.Contains(filter) ||
+							s.Division.Contains(filter) ||
+							s.Image.Contains(filter))
+						   select ControllerHelpers.SectorEntityToModel(s))
+						   .ToList();
+
+			return sectors;
+
+
+        }
+	}
 }
 
