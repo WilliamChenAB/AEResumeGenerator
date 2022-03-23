@@ -81,7 +81,8 @@ namespace ae_resume_api.Controllers
                 Name = entity.Name,
                 RID = entity.RID,
                 TemplateID = entity.TemplateID,
-                TemplateName = entity.TemplateName
+                TemplateName = entity.TemplateName,
+                Status = (Status)Enum.Parse(typeof(Status), entity.Status)
             };
 
 

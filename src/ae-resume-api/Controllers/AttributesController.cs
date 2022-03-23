@@ -365,10 +365,21 @@ namespace ae_resume_api.Controllers
 			}
 
 			return Ok(entity);
+        }		
+		[HttpGet]
+		[Route("GetAllSectorTypesInWorkspace")]
+		public async Task<ActionResult<IEnumerable<SectorTypeEntity>>> GetAllSectorTypesInWorkspace(int WID)
+        {
+			return BadRequest("Not implemented");
+
+
+			var workspace = await _databaseContext.Workspace.FindAsync(WID);
+
+			if(workspace == null)
+            {
+				NotFound();
+            }
         }
-
-
-
 	}
 }
 

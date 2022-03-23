@@ -83,9 +83,16 @@ namespace ae_resume_api.Controllers.Tests
         }
 
         [Fact]
-        public void EditSectorTest()
+        public async void EditSectorTest()
         {
-            Assert.True(false);
+            var token = await _tokenService.GetSAAccessToken();
+            _client.SetBearerToken(token);
+
+            var stringContent = new StringContent("");
+            var response = await _client.PutAsync("/Facade/EditSector?SID=52&content=some%20content&division=Utility&Image=test.png", stringContent);
+            response.EnsureSuccessStatusCode();
+            var stringResponse = await response.Content.ReadAsStringAsync();
+            Console.WriteLine(stringResponse);
         }
 
         [Fact]

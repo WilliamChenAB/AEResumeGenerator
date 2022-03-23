@@ -355,7 +355,15 @@ namespace ae_resume_api.Controllers
             {
                 return NotFound();
             }
-            return ControllerHelpers.TemplateEntityToModel(template);
+
+            // Convert template to Model and add sector types
+            var result = ControllerHelpers.TemplateEntityToModel(template);
+            //result.SectorTypes = (from s in _databaseContext.Template_Type
+            //                     join t in _databaseContext.SectorType on s.TypeID equals t.TypeID
+            //                     where s.TemplateID == templateID
+            //                     select ControllerHelpers.SectorTypeEntityToModel(t)).ToList();
+                                 
+            return result;
         }
 
 
