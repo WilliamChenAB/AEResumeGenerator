@@ -636,8 +636,6 @@ namespace ae_resume_api.Controllers
 			}
 
 			// Get all Resumes for that EID
-			//var resumes = _databasecontext.Resume.AsQueryable().
-			//	Where(r => r.EID == EID);
 			var resumes = from r in _databasecontext.Resume
 						  join s in _databasecontext.Sector on r.EID equals s.EID
 						  where r.EID == EID && (

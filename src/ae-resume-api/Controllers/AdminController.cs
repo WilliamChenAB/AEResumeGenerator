@@ -262,6 +262,33 @@ namespace ae_resume_api.Controllers
 
         }
 
+        [HttpPut]
+        [Route("EditSectorTypeTitle")]
+        public async Task<IActionResult> EditSectorTypeTitle(int sectorTypeID, string title)
+        {
+            var sectorType = await _databaseContext.SectorType.FindAsync(sectorTypeID);
+
+            if(sectorType == null)
+            {
+                return NotFound();
+            }
+
+            sectorType.Title = title;
+
+            try
+            {
+                await _databaseContext.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                return NotFound(ex.Message);
+
+            }
+
+            return Ok(sectorType);
+
+        }
+
         /// <summary>
         /// Get Sector Type from its sectorTypeID
         /// </summary>
