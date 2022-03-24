@@ -14,28 +14,12 @@ using IdentityModel.Client;
 
 namespace ae_resume_api.Controllers.Tests
 {
-    
-    public class AttributesControllerTests: IClassFixture<WebApplicationFactory<ae_resume_api.Startup>>
+
+    public class AttributesControllerTests : APITest
     {
-        private readonly IConfigurationRoot _config;
-        private readonly HttpClient _client;
-        private readonly ApiTokenInMemoryClient _tokenService;
-        public AttributesControllerTests(WebApplicationFactory<ae_resume_api.Startup> application)
+
+        public AttributesControllerTests(WebApplicationFactory<ae_resume_api.Startup> application) : base(application)
         {
-            _client = application.CreateClient();
-
-            _config = new ConfigurationBuilder()
-               .SetBasePath(Directory.GetCurrentDirectory())
-               .AddJsonFile("appsettings.json")
-               .AddJsonFile("appsettings.Development.json", optional: true)
-               .Build();
-
-            _client = application.CreateClient(new WebApplicationFactoryClientOptions()
-            {
-                BaseAddress = new Uri(_config["Tests:API"])
-            });
-
-            _tokenService = new ApiTokenInMemoryClient(_config);
         }
 
         [Fact]

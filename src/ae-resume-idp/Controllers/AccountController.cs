@@ -114,8 +114,7 @@ namespace aeresumeidp.Core.Controllers
         {
             var user = new ApplicationUser
             {
-                UserName = model.UserName,
-                Role = "admin"
+                UserName = model.UserName
             };
 
             var result = await _userManager.CreateAsync(user, model.Password);

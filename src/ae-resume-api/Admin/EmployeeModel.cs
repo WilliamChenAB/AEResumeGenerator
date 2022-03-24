@@ -7,10 +7,8 @@ namespace ae_resume_api.Admin
 {
 	public class EmployeeModel
 	{
-		public string Username { get; set; }
-		public string Password { get; set; }
-		public int EID { get; set; }
-		public string Access { get; set; }
+		public string EID { get; set; }
+		public Access Access { get; set; }
 		public string? Name { get; set; }
 		public string? Email { get; set; }
 		public string? JobTitle { get; set; }

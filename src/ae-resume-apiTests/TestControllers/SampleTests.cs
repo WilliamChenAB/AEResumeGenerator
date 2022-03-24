@@ -15,13 +15,13 @@ using System.IO;
 namespace ae_resume_api.Controllers.Tests
 {
 
-    public class SampleTests : IClassFixture<WebApplicationFactory<ae_resume_api.Startup>>
+    public class APITest : IClassFixture<WebApplicationFactory<ae_resume_api.Startup>>
     {
-        private readonly IConfigurationRoot _config;
-        private readonly HttpClient _client;
-        private readonly ApiTokenInMemoryClient _tokenService;
+        protected readonly IConfigurationRoot _config;
+        protected readonly HttpClient _client;
+        protected readonly ApiTokenInMemoryClient _tokenService;
 
-        public SampleTests(WebApplicationFactory<ae_resume_api.Startup> application)
+        public APITest(WebApplicationFactory<ae_resume_api.Startup> application)
         {
             _config = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
@@ -31,7 +31,7 @@ namespace ae_resume_api.Controllers.Tests
 
             _client = application.CreateClient(new WebApplicationFactoryClientOptions()
                 {
-                    BaseAddress = new Uri(_config["Tests:API"])
+                    BaseAddress = new Uri(_config["API"])
                 });
 
             _tokenService = new ApiTokenInMemoryClient(_config);

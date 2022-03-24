@@ -1,6 +1,5 @@
 ﻿using System;
 
-
 namespace ae_resume_api.Facade
 {
 	public class SectorModel

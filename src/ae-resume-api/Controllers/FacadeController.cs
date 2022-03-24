@@ -1,34 +1,39 @@
-﻿using System;
-using ae_resume_api.Admin;
+﻿using ae_resume_api.Admin;
 using ae_resume_api.DBContext;
 using ae_resume_api.Facade;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Core;
-using Microsoft.Extensions.Configuration;
-using Microsoft.IdentityModel.Tokens;
-using System;
-using System.Collections.Generic;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
-using System.Threading.Tasks;
-using System.Net;
 
 
 namespace ae_resume_api.Controllers
 {
-	[Route("Facade")]
+    [Route("Facade")]
 	[ApiController]
 	public class FacadeController : ControllerBase
 	{
-		readonly DatabaseContext _databasecontext;
+		readonly DatabaseContext _databaseContext;
+        private readonly IConfiguration configuration;
 
-		public FacadeController(DatabaseContext databaseContext)
+        public FacadeController(DatabaseContext databaseContext, IConfiguration configuration)
 		{
-			_databasecontext = databaseContext;
+			_databaseContext = databaseContext;
+            this.configuration = configuration;
+        }
 
+		// ===============================================================================
+		// RESUMES
+		// ===============================================================================
+
+		/// <summary>
+		/// Add a Resume to personal resumes
+		/// </summary>
+		[HttpPost]
+		[Route("NewPersonalResume")]
+		public async Task<ActionResult<ResumeModel>> NewResume(int templateID, string resumeName)
+		{
+			var EID = User.FindFirst(configuration["TokenIDClaimType"])?.Value;
+			if (EID == null) return NotFound();
+			return await NewResume(templateID, resumeName, EID);
 		}
 
 		/// <summary>
@@ -36,11 +41,12 @@ namespace ae_resume_api.Controllers
 		/// </summary>
 		[HttpPost]
 		[Route("NewResume")]
-		public async Task<ActionResult<ResumeModel>> NewResume(int templateID, string resumeName, int EID)
+		[Authorize(Policy = "PA")]
+		public async Task<ActionResult<ResumeModel>> NewResume(int templateID, string resumeName, string EID)
 		{
 
 			// Find the template record
-			var template = await _databasecontext.Resume_Template.FindAsync(templateID);
+			var template = await _databaseContext.Resume_Template.FindAsync(templateID);
 
 
 			if (template == null)
@@ -48,7 +54,7 @@ namespace ae_resume_api.Controllers
 				return NotFound();
 			}
 
-			var employee = await _databasecontext.Employee.FindAsync(EID);
+			var employee = await _databaseContext.Employee.FindAsync(EID);
 
 			if (employee == null)
 			{
@@ -56,8 +62,8 @@ namespace ae_resume_api.Controllers
 			}
 
 			// Find the Sector Types associated with that template
-			var sectorTypes = (from t in _databasecontext.Template_Type
-							   join s in _databasecontext.SectorType on t.TypeID equals s.TypeID
+			var sectorTypes = (from t in _databaseContext.Template_Type
+							   join s in _databaseContext.SectorType on t.TypeID equals s.TypeID
 							   where t.TemplateID == templateID
 							   select s)
 							  .ToList();
@@ -76,11 +82,12 @@ namespace ae_resume_api.Controllers
 				EmployeeName = employee.Name
 			};
 
-			var resume = _databasecontext.Resume.Add(entity);
+			var resume = _databaseContext.Resume.Add(entity);
 
 			foreach (var sector in sectorTypes)
 			{
-				_databasecontext.Sector.Add(new SectorEntity {
+				_databaseContext.Sector.Add(new SectorEntity
+				{
 					Creation_Date = ControllerHelpers.CurrentTimeAsString(),
 					Last_Edited = ControllerHelpers.CurrentTimeAsString(),
 					Content = "",
@@ -95,13 +102,132 @@ namespace ae_resume_api.Controllers
 			}
 
 
-			await _databasecontext.SaveChangesAsync();
+			await _databaseContext.SaveChangesAsync();
 
 			return CreatedAtAction(
 				nameof(GetResume),
 				new { RID = resume.Entity.RID },
 				 resume.Entity);
 		}
+
+
+		/// <summary>
+		/// Delete a Resume
+		/// </summary>
+		[HttpDelete]
+		[Route("DeleteResume")]
+		public async Task<IActionResult> DeleteResume(int RID)
+		{
+
+
+			//var resume = Resumes.Find(x => x.RID == RID);
+
+			var resume = await _databaseContext.Resume.FindAsync(RID);
+
+			if (resume == null)
+			{
+				return NotFound();
+			}
+
+			//Resumes.Remove(resume);
+			_databaseContext.Resume.Remove(resume);
+			await _databaseContext.SaveChangesAsync();
+			return Ok();
+		}
+
+		/// <summary>
+		/// Get a Resume
+		/// </summary>
+		[HttpGet]
+		[Route("GetResume")]
+		public async Task<ActionResult<ResumeModel>> GetResume(int RID)
+		{
+
+			///var resume = Resumes.Find(x => x.RID == RID);
+			var resume = await _databaseContext.Resume.FindAsync(RID);
+
+			if (resume == null)
+			{
+				return NotFound();
+			}
+
+			// Get all sectors for this resume
+			ResumeModel result = ControllerHelpers.ResumeEntityToModel(resume);
+
+			var sectors = _databaseContext.Sector.Where(s => s.RID == RID).ToList();
+
+			result.SectorList = new List<SectorModel>();
+			foreach (var sector in sectors)
+			{
+				result.SectorList.Add(ControllerHelpers.SectorEntityToModel(sector));
+			}
+
+			return result;
+		}
+
+		/// <summary>
+		/// Get all Resumes for an Employee
+		/// </summary>
+		[HttpGet]
+		[Route("GetResumesForEmployee")]
+		[Authorize(Policy = "PA")]
+		public async Task<ActionResult<IEnumerable<ResumeModel>>> GetResumesForEmployee(string EID)
+		{
+			//var resumes = Resumes;
+
+
+			var resumes = _databaseContext.Resume.Where(r => r.EID == EID);
+			List<ResumeModel> result = new List<ResumeModel>();
+			foreach (var resume in resumes)
+			{
+				result.Add(ControllerHelpers.ResumeEntityToModel(resume));
+			}
+			return result;
+		}
+
+		/// <summary>
+		/// Get personal Resumes
+		/// </summary>
+		[HttpGet]
+		[Route("GetPersonalResumes")]
+		public async Task<ActionResult<IEnumerable<ResumeModel>>> GetPersonalResumes()
+		{
+			var EID = User.FindFirst(configuration["TokenIDClaimType"])?.Value;
+			if (EID == null) return NotFound();
+			return await GetPersonalResumesForEmployee(EID);
+		}
+
+		/// <summary>
+		/// Get personal Resume for an Employee
+		/// </summary>
+		[HttpGet]
+		[Route("GetPersonalResumesForEmployee")]
+		[Authorize(Policy = "PA")]
+		public async Task<ActionResult<IEnumerable<ResumeModel>>> GetPersonalResumesForEmployee(string EID)
+		{
+
+
+			// TODO: add only three statuses fore resumes reqested, regular, exported
+			var resumes = _databaseContext.Resume.Where(r => r.EID == EID && r.WID == 0);
+
+			if (resumes == null)
+			{
+				return NotFound();
+			}
+
+			List<ResumeModel> result = new List<ResumeModel>();
+			foreach (var resume in resumes)
+			{
+				result.Add(ControllerHelpers.ResumeEntityToModel(resume));
+			}
+
+			return result;
+			//return EmployeeEntityToModel(employee);
+		}
+
+		// ===============================================================================
+		// SECTORS
+		// ===============================================================================
 
 		/// <summary>
 		/// Create a new Sector
@@ -123,8 +249,8 @@ namespace ae_resume_api.Controllers
 
 			// Sectors.Add(model);
 
-			_databasecontext.Sector.Add(entity);
-			await _databasecontext.SaveChangesAsync();
+			_databaseContext.Sector.Add(entity);
+			await _databaseContext.SaveChangesAsync();
 
 
 			return CreatedAtAction(
@@ -144,7 +270,7 @@ namespace ae_resume_api.Controllers
 
 			//var sector = Sectors.Find(x => x.SID == SID);
 
-			var sector = await _databasecontext.Sector.FindAsync(SID);
+			var sector = await _databaseContext.Sector.FindAsync(SID);
 
 			if (sector == null)
 			{
@@ -157,11 +283,36 @@ namespace ae_resume_api.Controllers
 		/// Get all Sectors from an Employee
 		/// </summary>
 		[HttpGet]
+		[Route("GetAllSectors")]
+		public async Task<ActionResult<IEnumerable<SectorModel>>> GetAllSectorsForEmployee()
+		{
+			var EID = User.FindFirst(configuration["TokenIDClaimType"])?.Value;
+			if (EID == null) return NotFound();
+			return await GetAllSectorsForEmployee(EID);
+		}
+
+		/// <summary>
+		/// Get all Sectors from an Employee
+		/// </summary>
+		[HttpGet]
+		[Route("GetAllSectorsByType")]
+		public async Task<ActionResult<IEnumerable<SectorModel>>> GetAllSectorsForEmployeeByType(int TypeID)
+		{
+			var EID = User.FindFirst(configuration["TokenIDClaimType"])?.Value;
+			if (EID == null) return NotFound();
+			return await GetAllSectorsForEmployeeByType(EID, TypeID);
+		}
+
+		/// <summary>
+		/// Get all Sectors from an Employee
+		/// </summary>
+		[HttpGet]
 		[Route("GetAllSectorsForEmployee")]
-		public async Task<ActionResult<IEnumerable<SectorModel>>> GetAllSectorsForEmployee(int EID)
+		[Authorize(Policy = "PA")]
+		public async Task<ActionResult<IEnumerable<SectorModel>>> GetAllSectorsForEmployee(string EID)
 		{
 
-			var employee = await _databasecontext.Employee.FindAsync(EID);
+			var employee = await _databaseContext.Employee.FindAsync(EID);
 
 			if (employee == null)
 			{
@@ -169,7 +320,7 @@ namespace ae_resume_api.Controllers
 			}
 
 			List<SectorModel> sectorList = new List<SectorModel>();
-			var sectors = _databasecontext.Sector.Where(s => s.EID == EID).OrderBy(s => s.TypeID);
+			var sectors = _databaseContext.Sector.Where(s => s.EID == EID).OrderBy(s => s.TypeID);
 
 
 
@@ -187,10 +338,11 @@ namespace ae_resume_api.Controllers
 		/// </summary>
 		[HttpGet]
 		[Route("GetAllSectorsForEmployeeByType")]
-		public async Task<ActionResult<IEnumerable<SectorModel>>> GetAllSectorsForEmployeeByType(int EID, int TypeID)
+		[Authorize(Policy = "PA")]
+		public async Task<ActionResult<IEnumerable<SectorModel>>> GetAllSectorsForEmployeeByType(string EID, int TypeID)
 		{
 
-			var employee = await _databasecontext.Employee.FindAsync(EID);
+			var employee = await _databaseContext.Employee.FindAsync(EID);
 
 			if (employee == null)
 			{
@@ -198,7 +350,7 @@ namespace ae_resume_api.Controllers
 			}
 
 			List<SectorModel> sectorList = new List<SectorModel>();
-			var sectors = _databasecontext.Sector.Where(s => s.EID == EID && s.TypeID == TypeID)
+			var sectors = _databaseContext.Sector.Where(s => s.EID == EID && s.TypeID == TypeID)
 				.OrderBy(s => s.TypeID);
 
 
@@ -212,30 +364,6 @@ namespace ae_resume_api.Controllers
 		}
 
 		/// <summary>
-		/// Delete a Resume
-		/// </summary>
-		[HttpDelete]
-		[Route("DeleteResume")]
-		public async Task<IActionResult> DeleteResume(int RID)
-		{
-
-
-			//var resume = Resumes.Find(x => x.RID == RID);
-
-			var resume = await _databasecontext.Resume.FindAsync(RID);
-
-			if (resume == null)
-			{
-				return NotFound();
-			}
-
-			//Resumes.Remove(resume);
-			_databasecontext.Resume.Remove(resume);
-			await _databasecontext.SaveChangesAsync();
-			return Ok();
-		}
-
-		/// <summary>
 		/// Delete a Sector from a Resume
 		/// </summary>
 		[HttpDelete]
@@ -245,15 +373,15 @@ namespace ae_resume_api.Controllers
 			//var sector = Sectors.Find(x => x.SID == SID);
 
 
-			var sector = await _databasecontext.Sector.FindAsync(SID);
+			var sector = await _databaseContext.Sector.FindAsync(SID);
 			if (sector == null)
 			{
 				return NotFound();
 			}
 
 			//resume.SectorList.Remove(sector);
-			_databasecontext.Sector.Remove(sector);
-			await _databasecontext.SaveChangesAsync();
+			_databaseContext.Sector.Remove(sector);
+			await _databaseContext.SaveChangesAsync();
 
 			return Ok();
 		}
@@ -266,7 +394,7 @@ namespace ae_resume_api.Controllers
 		public async Task<IActionResult> EditSector(int SID, string? content, string? division, string? image)
 		{
 			//var sector = Sectors.Find(x => x.SID == SID);
-			var sector = await _databasecontext.Sector.FindAsync(SID);
+			var sector = await _databaseContext.Sector.FindAsync(SID);
 
 			if (sector == null)
 			{
@@ -286,7 +414,7 @@ namespace ae_resume_api.Controllers
 
 			try
 			{
-				await _databasecontext.SaveChangesAsync();
+				await _databaseContext.SaveChangesAsync();
 			}
 			catch (Exception ex)
 			{
@@ -305,7 +433,7 @@ namespace ae_resume_api.Controllers
 			int RID, string? content, int typeID, string? division, string? image)
 		{
 
-			var resume = await _databasecontext.Resume.FindAsync(RID);
+			var resume = await _databaseContext.Resume.FindAsync(RID);
 
 
 			if (resume == null)
@@ -313,7 +441,7 @@ namespace ae_resume_api.Controllers
 				return NotFound();
 			}
 
-			var sectorType = await _databasecontext.SectorType.FindAsync(typeID);
+			var sectorType = await _databaseContext.SectorType.FindAsync(typeID);
 			if (sectorType == null)
 			{
 				return NotFound();
@@ -339,8 +467,8 @@ namespace ae_resume_api.Controllers
 			sector.Image = image;
 			sector.Division = division;
 
-			_databasecontext.Sector.Add(sector);
-			await _databasecontext.SaveChangesAsync();
+			_databaseContext.Sector.Add(sector);
+			await _databaseContext.SaveChangesAsync();
 
 			return Ok(sector);
 
@@ -354,14 +482,14 @@ namespace ae_resume_api.Controllers
 		[Route("EditResumeSector")]
 		public async Task<IActionResult> EditResume(int RID, int SID, SectorModel model)
 		{
-			var resume = await _databasecontext.Resume.FindAsync(RID);
+			var resume = await _databaseContext.Resume.FindAsync(RID);
 
 			if (resume == null)
 			{
 				return NotFound();
 			}
 
-			var sector = await _databasecontext.Sector.FindAsync(SID);
+			var sector = await _databaseContext.Sector.FindAsync(SID);
 
 			if (sector == null)
 			{
@@ -380,7 +508,7 @@ namespace ae_resume_api.Controllers
 
 			try
 			{
-				await _databasecontext.SaveChangesAsync();
+				await _databaseContext.SaveChangesAsync();
 			}
 			catch (Exception ex)
 			{
@@ -391,91 +519,15 @@ namespace ae_resume_api.Controllers
 
 		}
 
-
-		/// <summary>
-		/// Get a Resume
-		/// </summary>
-		[HttpGet]
-		[Route("GetResume")]
-		public async Task<ActionResult<ResumeModel>> GetResume(int RID)
-		{
-
-			///var resume = Resumes.Find(x => x.RID == RID);
-			var resume = await _databasecontext.Resume.FindAsync(RID);
-
-			if (resume == null)
-			{
-				return NotFound();
-			}
-
-			// Get all sectors for this resume
-			ResumeModel result = ControllerHelpers.ResumeEntityToModel(resume);
-
-			var sectors = _databasecontext.Sector.Where(s => s.RID == RID).ToList();
-
-			result.SectorList = new List<SectorModel>();
-			foreach (var sector in sectors)
-			{
-				result.SectorList.Add(ControllerHelpers.SectorEntityToModel(sector));
-			}
-
-			return result;
-		}
-
-
-		/// <summary>
-		/// Get all Resumes for an Employee
-		/// </summary>
-		[HttpGet]
-		[Route("GetResumesForEmployee")]
-		public async Task<ActionResult<IEnumerable<ResumeModel>>> GetResumesForEmployee(int EID)
-		{
-			//var resumes = Resumes;
-
-
-			var resumes = _databasecontext.Resume.Where(r => r.EID == EID);
-			List<ResumeModel> result = new List<ResumeModel>();
-			foreach (var resume in resumes)
-			{
-				result.Add(ControllerHelpers.ResumeEntityToModel(resume));
-			}
-			return result;
-		}
-
-		/// <summary>
-		/// Get presonal Resume for an Employee
-		/// </summary>
-		[HttpGet]
-		[Route("GetPersonalResumesForEmployee")]
-		public async Task<ActionResult<IEnumerable<ResumeModel>>> GetPersonalResumesForEmployee(int EID)
-		{
-
-			return BadRequest("Not implemented");
-
-			// TODO: add only three statuses fore resumes reqested, regular, exported			
-			var resumes = _databasecontext.Resume.Where(r => r.EID == EID && r.WID == 0);
-
-
-			if (resumes == null)
-			{
-				return NotFound();
-			}
-
-			List<ResumeModel> result = new List<ResumeModel>();
-			foreach (var resume in resumes)
-			{
-				result.Add(ControllerHelpers.ResumeEntityToModel(resume));
-			}
-
-			return result;
-			//return EmployeeEntityToModel(employee);
-		}
+		// ===============================================================================
+		// TEMPLATING
+		// ===============================================================================
 
 		[HttpGet]
 		[Route("GetAllSectorTypes")]
 		public IEnumerable<SectorTypeModel> GetAllSectorTypes()
 		{
-			var sectorTypes = _databasecontext.SectorType.ToList().
+			var sectorTypes = _databaseContext.SectorType.ToList().
 				Select(x => ControllerHelpers.SectorTypeEntityToModel(x));
 			return sectorTypes;
 		}
@@ -487,7 +539,7 @@ namespace ae_resume_api.Controllers
 		[Route("GetAllTemplates")]
 		public IEnumerable<TemplateModel> GetAllTemplates()
 		{
-			var templates = _databasecontext.Resume_Template.ToList();
+			var templates = _databaseContext.Resume_Template.ToList();
 			List<TemplateModel> result = new List<TemplateModel>();
 			foreach (var template in templates)
 			{
@@ -497,6 +549,10 @@ namespace ae_resume_api.Controllers
 			return result;
 		}
 
+		// ===============================================================================
+		// EXPORT
+		// ===============================================================================
+
 		/// <summary>
 		/// Export Resume
 		/// </summary>
@@ -504,7 +560,7 @@ namespace ae_resume_api.Controllers
 		[Route("ExportResume")]
 		public async Task<IActionResult> ExportResume(int RID)
 		{
-			var resume = await _databasecontext.Resume.FindAsync(RID);
+			var resume = await _databaseContext.Resume.FindAsync(RID);
 
 
 			if(resume == null)
@@ -513,7 +569,7 @@ namespace ae_resume_api.Controllers
             }
 
 
-			var sectors = from s in _databasecontext.Sector
+			var sectors = from s in _databaseContext.Sector
 						  where s.RID == RID
 						  select ControllerHelpers.SectorEntityToModel(s);
 
@@ -534,21 +590,21 @@ namespace ae_resume_api.Controllers
 		[Route("ExportResumesInWorkspace")]
 		public async Task<IActionResult> ExportResumesInWorkspace(int WID)
 		{
-			var workspace = await _databasecontext.Workspace.FindAsync(WID);
+			var workspace = await _databaseContext.Workspace.FindAsync(WID);
 
 			if(workspace == null)
             {
 				return NotFound();
             }
 
-			var resumes = from r in _databasecontext.Resume
-						  join s in _databasecontext.Sector on r.RID equals s.RID
+			var resumes = from r in _databaseContext.Resume
+						  join s in _databaseContext.Sector on r.RID equals s.RID
 						  where r.WID == WID
 						  select ControllerHelpers.ResumeEntityToModel(r);
 
 			foreach (var resume in resumes)
 			{
-				resume.SectorList = _databasecontext.Sector
+				resume.SectorList = _databaseContext.Sector
 					.Where(s => s.RID == resume.RID)
 					.Select(s => ControllerHelpers.SectorEntityToModel(s))
 					.ToList();
@@ -560,6 +616,10 @@ namespace ae_resume_api.Controllers
 
 			return new JsonResult(resumes);
 		}
+
+		// ===============================================================================
+		// SEARCH
+		// ===============================================================================
 
 		/// <summary>
 		/// Search all Resumes
@@ -587,6 +647,7 @@ namespace ae_resume_api.Controllers
 		/// </summary>
 		[HttpGet]
 		[Route("SearchEmployees")]
+		[Authorize(Policy = "PA")]
 		public IEnumerable<EmployeeModel> SearchEmployees(string? filter)
 		{
 			// Ensure that null value returns all Employees
@@ -603,11 +664,9 @@ namespace ae_resume_api.Controllers
 			//			   e.Access.Contains(filter)||
 			//			   e.Username.Contains(filter));
 			// Search all Employees by Employee joined with Resume and Sectors
-			var employees = from e in _databasecontext.Employee
+			var employees = from e in _databaseContext.Employee
 							where e.Name.Contains(filter) ||
 								  e.Email.Contains(filter) ||
-								  e.Access.Contains(filter) ||
-								  e.Username.Contains(filter) ||
 								  e.EID.ToString().Contains(filter) ||
 								  e.JobTitle.Contains(filter)
 						  select new EmployeeModel{
@@ -615,7 +674,6 @@ namespace ae_resume_api.Controllers
 							  Name = e.Name,
 							  Email = e.Email,
 							  Access = e.Access,
-							  Username = e.Username,
 							  JobTitle = e.JobTitle
                           };
 
@@ -627,7 +685,8 @@ namespace ae_resume_api.Controllers
 		/// </summary>
 		[HttpGet]
 		[Route("SearchAllEmployeeResumes")]
-		public IEnumerable<ResumeModel> SearchEmployeeResume(string? filter, int EID)
+		[Authorize(Policy = "PA")]
+		public IEnumerable<ResumeModel> SearchEmployeeResumes(string? filter, string EID)
 		{
 			// Ensure that null value returns all Employees
 			if (filter == null)
@@ -636,8 +695,8 @@ namespace ae_resume_api.Controllers
 			}
 
 			// Get all Resumes for that EID
-			var resumes = from r in _databasecontext.Resume
-						  join s in _databasecontext.Sector on r.EID equals s.EID
+			var resumes = from r in _databaseContext.Resume
+						  join s in _databaseContext.Sector on r.EID equals s.EID
 						  where r.EID == EID && (
 						  r.Name.Contains(filter) ||
 						  r.Creation_Date.Contains(filter) ||
@@ -665,7 +724,7 @@ namespace ae_resume_api.Controllers
 
             foreach (var resume in resumes)
             {
-				resume.SectorList = _databasecontext.Sector
+				resume.SectorList = _databaseContext.Sector
 					.Where(s => s.RID == resume.RID)
 					.Select(s => ControllerHelpers.SectorEntityToModel(s))
 					.ToList();
@@ -681,6 +740,7 @@ namespace ae_resume_api.Controllers
 		/// </summary>
 		[HttpGet]
 		[Route("SearchWorkspaces")]
+		[Authorize(Policy = "PA")]
 		public async Task<IActionResult> SearchWorkspaces(string filter)
         {
 			return BadRequest("Not implemented");
@@ -688,13 +748,13 @@ namespace ae_resume_api.Controllers
 
 		[HttpGet]
 		[Route("SearchEmployeeSectors")]
-
-		public IEnumerable<SectorModel> SearchEmployeeSectors(string? filter, int EID)
+		[Authorize(Policy = "PA")]
+		public IEnumerable<SectorModel> SearchEmployeeSectors(string? filter, string EID)
         {
 			// Clean input filter
 			filter = filter ?? string.Empty;
 
-			var sectors = (from s in _databasecontext.Sector
+			var sectors = (from s in _databaseContext.Sector
 						   where s.EID == EID &&
 						   (s.Content.Contains(filter) ||
 							s.TypeTitle.Contains(filter) ||

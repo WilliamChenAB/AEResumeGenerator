@@ -1,17 +1,7 @@
-﻿using ae_resume_api.Admin;
-using ae_resume_api.Attributes;
-using ae_resume_api.Facade;
-using ae_resume_api.DBContext;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Identity;
+﻿using ae_resume_api.DBContext;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.IdentityModel.Tokens;
-using System.Text;
+using ae_resume_api.Authorization;
+using Microsoft.AspNetCore.Authorization;
 
 namespace ae_resume_api
 {
@@ -33,13 +23,16 @@ namespace ae_resume_api
             services.AddSwaggerGen();
 
             // For Entity Framework
-            services.AddDbContext<DatabaseContext>(options => options.UseSqlServer(Configuration.GetConnectionString("ConnStr")));
+            services.AddDbContext<DatabaseContext>(options => options.UseSqlServer(Configuration.GetConnectionString("ConnStr3")));
+
+            services.AddScoped<IAuthorizationHandler, AccessHandler>();
 
             // Adding Authentication
             services.AddAuthentication("Bearer")
                 .AddJwtBearer("Bearer", options =>
                 {
-                    options.Authority = Configuration.GetValue<string>("Authority");
+                    options.Authority = Configuration["Authority"];
+                    //options.Audience = Configuration["API"];
                     options.TokenValidationParameters.ValidateAudience = false;
                     options.TokenValidationParameters.ValidTypes = new[] { "at+jwt" };
                     // it's recommended to check the type header to avoid "JWT confusion" attacks
@@ -52,14 +45,21 @@ namespace ae_resume_api
                 {
                     policy.RequireAuthenticatedUser();
                     policy.RequireClaim("scope", "ae-resume-api");
+                    policy.Requirements.Add(new AccessRequirement(Access.Employee));
                 });
+                options.AddPolicy("PA",
+                    policy => policy.Requirements.Add(new AccessRequirement(Access.ProjectAdmin))
+                );
+                options.AddPolicy("SA",
+                    policy => policy.Requirements.Add(new AccessRequirement(Access.SystemAdmin))
+                );
             });
 
             services.AddCors(options =>
             {
                 options.AddPolicy("default", policy =>
                 {
-                    policy.WithOrigins(Configuration.GetValue<string>("AllowedCORS"))
+                    policy.WithOrigins(Configuration["AllowedCORS"])
                         .AllowAnyHeader()
                         .AllowAnyMethod();
                 });

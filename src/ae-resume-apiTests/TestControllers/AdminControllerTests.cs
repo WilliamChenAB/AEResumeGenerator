@@ -20,30 +20,12 @@ using IdentityModel.Client;
 
 namespace ae_resume_api.Controllers.Tests
 {
-    
-    public class AdminControllerTests: IClassFixture<WebApplicationFactory<ae_resume_api.Startup>>
+
+    public class AdminControllerTests : APITest
     {
-        private readonly IConfigurationRoot _config;
-        private readonly HttpClient _client;
-        private readonly ApiTokenInMemoryClient _tokenService;
-        public AdminControllerTests(WebApplicationFactory<ae_resume_api.Startup> application)
-        {            
-            _client = application.CreateClient();
 
-            _config = new ConfigurationBuilder()
-               .SetBasePath(Directory.GetCurrentDirectory())
-               .AddJsonFile("appsettings.json")
-               .AddJsonFile("appsettings.Development.json", optional: true)
-               .Build();
-
-            _client = application.CreateClient(new WebApplicationFactoryClientOptions()
-            {
-                BaseAddress = new Uri(_config["Tests:API"])
-            });
-
-            _tokenService = new ApiTokenInMemoryClient(_config);
-
-
+        public AdminControllerTests(WebApplicationFactory<ae_resume_api.Startup> application) : base(application)
+        {
         }
 
         [Fact]
@@ -122,8 +104,8 @@ namespace ae_resume_api.Controllers.Tests
             TemplateModel template = new TemplateModel
             {
                 Title = "Create template test",
-                Description = "test template for api tests",                
-                SectorTypes = new List<SectorTypeModel> { 
+                Description = "test template for api tests",
+                SectorTypes = new List<SectorTypeModel> {
                     new SectorTypeModel { TypeID = 1 },
                     new SectorTypeModel { TypeID = 2 },
                     new SectorTypeModel { TypeID = 3 }
@@ -139,7 +121,7 @@ namespace ae_resume_api.Controllers.Tests
         public void GetTemplateTest()
         {
            Assert.True(false);
-        }        
+        }
 
         [Fact]
         public void GetSectorsInTemplateTest()

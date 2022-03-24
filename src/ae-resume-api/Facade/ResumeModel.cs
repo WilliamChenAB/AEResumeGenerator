@@ -9,7 +9,7 @@ namespace ae_resume_api.Facade
 	public class ResumeModel
 	{
 		public int RID { get; set; }
-		public int EID { get; set; }
+		public string EID { get; set; }
 		public string Name { get; set; }
 		public string EmployeeName { get; set; }
 		public int? WID { get; set; }

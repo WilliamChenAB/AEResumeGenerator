@@ -42,11 +42,6 @@ namespace aeresumeidp
                     RequireClientSecret = true,
                     ClientSecrets = { new Secret(config.GetValue<string>("TestSecret").Sha256()) },
 
-                    //AlwaysSendClientClaims = true,
-                    //AlwaysIncludeUserClaimsInIdToken = true,
-                    //UpdateAccessTokenClaimsOnRefresh = true,
-                    //AllowAccessTokensViaBrowser = true,
-
                     AllowedScopes =
                     {
                         IdentityServerConstants.StandardScopes.OpenId,
@@ -62,11 +57,6 @@ namespace aeresumeidp
                     ClientName = "JavaScript Client",
                     AllowedGrantTypes = GrantTypes.Code,
                     RequireClientSecret = false,
-
-                    //AlwaysSendClientClaims = true,
-                    //AlwaysIncludeUserClaimsInIdToken = true,
-                    //UpdateAccessTokenClaimsOnRefresh = true,
-                    //AllowAccessTokensViaBrowser = true,
 
                     RedirectUris =           { config.GetValue<string>("ApplicationCallback"),  "http://localhost:3000/auth/login-callback" },
                     PostLogoutRedirectUris = { config.GetValue<string>("ApplicationRedirect"), "http://localhost:3000/login"},

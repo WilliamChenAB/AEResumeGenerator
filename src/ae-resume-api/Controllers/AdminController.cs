@@ -1,18 +1,7 @@
 ﻿using ae_resume_api.Admin;
 using ae_resume_api.DBContext;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Core;
-using Microsoft.Extensions.Configuration;
-using Microsoft.IdentityModel.Tokens;
-using System;
-using System.Collections.Generic;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
-using System.Threading.Tasks;
-using System.Net;
+using Microsoft.AspNetCore.Authorization;
 
 namespace ae_resume_api.Controllers
 {
@@ -22,10 +11,12 @@ namespace ae_resume_api.Controllers
     {
 
         readonly DatabaseContext _databaseContext;
+        private readonly IConfiguration configuration;
 
-        public AdminController(DatabaseContext dbContext)
+        public AdminController(DatabaseContext dbContext, IConfiguration configuration)
         {
             _databaseContext = dbContext;
+            this.configuration = configuration;
         }
 
         /// <summary>
@@ -33,57 +24,27 @@ namespace ae_resume_api.Controllers
         /// </summary>
         [HttpPost]
         [Route("LoadTestData")]
+        [Authorize (Policy = "SA")]
         public async Task<IActionResult> LoadTestData()
         {
             // TODO: Implement
             return BadRequest("Not implemented");
         }
-        /// <summary>
-        ///  Create a new Employee
-        /// </summary>
-        [HttpPost]
-        [Route("NewEmployee")]
-        public async Task<ActionResult<EmployeeModel>> NewEmployee([FromBody] EmployeeModel model)
-        {
 
-            EmployeeEntity entity = new EmployeeEntity
-            {
-                EID = model.EID,
-                Name = model.Name,
-                Email = model.Email,
-                Username = model.Username,
-                Password = model.Password,
-                JobTitle = model.JobTitle
-            };
-
-            _databaseContext.Employee.Add(entity);
-             await _databaseContext.SaveChangesAsync();
-
-            return CreatedAtAction(
-                nameof(GetEmployee),
-                new { EID = model.EID },
-                model);
-        }
-
-
+        // ===============================================================================
+        // EMPLOYEES
+        // ===============================================================================
 
         /// <summary>
-        /// Edit an Employee based on their EID
+        /// Edit an Employee
         /// </summary>
         [HttpPut]
         [Route("EditEmployee")]
-        public async Task<IActionResult> EditEmployee(int EID, EmployeeModel employeeModel)
+        [Authorize(Policy = "SA")]
+        public async Task<IActionResult> EditEmployee(EmployeeModel employeeModel)
         {
-            // Ensure editing the correct Employee
-            if (EID != employeeModel.EID)
-            {
-                return BadRequest();
-            }
 
-            // var employee = Employees.Find(x => x.EID == EID);
-
-
-            var employee = await _databaseContext.Employee.FindAsync(EID);
+            var employee = await _databaseContext.Employee.FindAsync(employeeModel.EID);
 
             // Check if the employee already exists
             if (employee == null)
@@ -113,7 +74,8 @@ namespace ae_resume_api.Controllers
         /// </summary>
         [HttpDelete]
         [Route("DeleteEmployee")]
-        public async Task<IActionResult> DeleteEmployee(int EID)
+        [Authorize(Policy = "SA")]
+        public async Task<IActionResult> DeleteEmployee(string EID)
         {
 
             // var employee = Employees.Find(x => x.EID == EID);
@@ -133,11 +95,24 @@ namespace ae_resume_api.Controllers
         }
 
         /// <summary>
+        /// Get self
+        /// </summary>
+        [HttpGet]
+        [Route("GetEmployee")]
+        public async Task<ActionResult<EmployeeModel>> GetEmployee()
+        {
+            var EID = User.FindFirst(configuration["TokenIDClaimType"])?.Value;
+            if (EID == null) return NotFound();
+            return await GetEmployee(EID);
+        }
+
+        /// <summary>
         /// Get an Employee from their EID
         /// </summary>
         [HttpGet]
         [Route("GetEmployee")]
-        public async Task<ActionResult<EmployeeModel>> GetEmployee(int EID)
+        [Authorize(Policy = "SA")]
+        public async Task<ActionResult<EmployeeModel>> GetEmployee(string EID)
         {
             // var employee = Employees.Find(x => x.EID == EID);
 
@@ -172,7 +147,8 @@ namespace ae_resume_api.Controllers
         /// </summary>
         [HttpPost]
         [Route("AssignAccess")]
-        public async Task<IActionResult> AssignAccess(int EID, string access)
+        [Authorize(Policy = "SA")]
+        public async Task<IActionResult> AssignAccess(string EID, Access access)
         {
             // var employee = Employees.Find(x => x.EID == EID);
 
@@ -202,18 +178,27 @@ namespace ae_resume_api.Controllers
 
         }
 
+        // ===============================================================================
+        // TEMPLATING
+        // ===============================================================================
+
+        // TODO: Fix this so it doesn't take a model with unneeded params
         /// <summary>
         /// Create a new Sector Type
         /// </summary>
         [HttpPost]
         [Route("NewSectorType")]
+        [Authorize(Policy = "SA")]
         public async Task<ActionResult<SectorTypeModel>> NewSectorType(SectorTypeModel model)
         {
+            var EID = User.FindFirst(configuration["TokenIDClaimType"])?.Value;
+            if (EID == null) return NotFound();
+
             SectorTypeEntity entity = new SectorTypeEntity
             {
                 Title = model.Title,
                 Description = model.Description,
-                EID = (int)model.EID
+                EID = EID
             };
             // SectorTypes.Add(model);
 
@@ -230,6 +215,7 @@ namespace ae_resume_api.Controllers
         /// </summary>
         [HttpPut]
         [Route("EditSectorType")]
+        [Authorize(Policy = "SA")]
         public async Task<IActionResult> EditSectorType(int sectorTypeID, SectorTypeModel model)
         {
             if (sectorTypeID != model.TypeID)
@@ -264,6 +250,7 @@ namespace ae_resume_api.Controllers
 
         [HttpPut]
         [Route("EditSectorTypeTitle")]
+        [Authorize(Policy = "SA")]
         public async Task<IActionResult> EditSectorTypeTitle(int sectorTypeID, string title)
         {
             var sectorType = await _databaseContext.SectorType.FindAsync(sectorTypeID);
@@ -313,6 +300,7 @@ namespace ae_resume_api.Controllers
         /// </summary>
         [HttpDelete]
         [Route("DeleteSectorType")]
+        [Authorize(Policy = "SA")]
         public async Task<IActionResult> DeleteSectorType(int sectorTypeID)
         {
             // var sectorType = SectorTypes.Find(x => x.TypeID == sectorTypeID);
@@ -336,6 +324,7 @@ namespace ae_resume_api.Controllers
         /// </summary>
         [HttpPost]
         [Route("CreateTemplate")]
+        [Authorize(Policy = "SA")]
         public async Task<ActionResult<TemplateModel>> CreateTemplate([FromBody] TemplateModel model)
         {
             TemplateEntity entity = new TemplateEntity
@@ -389,11 +378,9 @@ namespace ae_resume_api.Controllers
             //                     join t in _databaseContext.SectorType on s.TypeID equals t.TypeID
             //                     where s.TemplateID == templateID
             //                     select ControllerHelpers.SectorTypeEntityToModel(t)).ToList();
-                                 
+
             return result;
         }
-
-
 
         /// <summary>
         /// Get all the SectorTypes in a Resume Template
@@ -418,9 +405,9 @@ namespace ae_resume_api.Controllers
             // Get the Sector Type IDs from associative table
             // Get all Sectors that are in the associative table with matching IDs
             var sectorTypesModel = (from t in _databaseContext.Template_Type
-                                   join s in _databaseContext.SectorType on t.TypeID equals s.TypeID
-                                   where t.TemplateID == template.TemplateID
-                                   select ControllerHelpers.SectorTypeEntityToModel(s))
+                                    join s in _databaseContext.SectorType on t.TypeID equals s.TypeID
+                                    where t.TemplateID == template.TemplateID
+                                    select ControllerHelpers.SectorTypeEntityToModel(s))
                                    .ToList();
 
 
@@ -432,6 +419,7 @@ namespace ae_resume_api.Controllers
         /// </summary>
         [HttpPut]
         [Route("EditTemplate")]
+        [Authorize(Policy = "SA")]
         public async Task<IActionResult> EditTemplate(int templateID, TemplateModel model)
         {
 
@@ -472,6 +460,7 @@ namespace ae_resume_api.Controllers
         /// <returns></returns>
         [HttpPost]
         [Route("AssignSectorType")]
+        [Authorize(Policy = "SA")]
         public async Task<IActionResult> AssignSectorType(int templateID, IEnumerable<int> sectorTypeID)
         {
             // var template = templateModels.Find(x => x.TemplateID == templateID);
@@ -496,8 +485,8 @@ namespace ae_resume_api.Controllers
 
                 _databaseContext.Template_Type.Add(entity);
             }
-            
-            await _databaseContext.SaveChangesAsync();            
+
+            await _databaseContext.SaveChangesAsync();
 
 
             return Ok(template);
@@ -507,6 +496,7 @@ namespace ae_resume_api.Controllers
         /// Delete a Resume Template
         [HttpDelete]
         [Route("DeleteTemplate")]
+        [Authorize(Policy = "SA")]
         public async Task<IActionResult> DeleteTemplate(int templateID)
         {
 
@@ -526,10 +516,11 @@ namespace ae_resume_api.Controllers
              await _databaseContext.SaveChangesAsync();
             return Ok();
         }
+
         /// <summary>
         /// Check to see if an Employee Exists in the db
         /// </summary>
-        private bool EmployeeExists(long EID)
+        private bool EmployeeExists(string EID)
         {
             return _databaseContext.Employee.Any(e => e.EID == EID);
         }

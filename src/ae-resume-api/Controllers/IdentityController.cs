@@ -1,12 +1,11 @@
-﻿
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 
 namespace ae_resume_api.Controllers
 {
     [Route("identity")]
     [ApiController]
-    [Authorize (Roles = "admin")]
+    [Authorize (Policy = "SA")]
     public class IdentityController : ControllerBase
     {
         [HttpGet]

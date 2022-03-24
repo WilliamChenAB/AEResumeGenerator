@@ -8,7 +8,7 @@ public class WorkspaceEntity
 	public int Proposal_Number { get; set; }
 	public string Division { get; set; }
 	public string Creation_Date { get; set; }
-	public int EID { get; set; }
+	public string EID { get; set; }
 	public string Name { get; set; }
 
 }

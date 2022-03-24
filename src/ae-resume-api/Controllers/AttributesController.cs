@@ -1,50 +1,40 @@
-﻿using System;
-using ae_resume_api.Attributes;
+﻿using ae_resume_api.Attributes;
 using ae_resume_api.Facade;
-using ae_resume_api.Admin;
 using ae_resume_api.DBContext;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Core;
-using Microsoft.Extensions.Configuration;
-using Microsoft.IdentityModel.Tokens;
-using System;
-using System.Collections.Generic;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
-using System.Threading.Tasks;
-
+using Microsoft.AspNetCore.Authorization;
 
 namespace ae_resume_api.Controllers
 {
-	[Route("Attributes")]
+    [Route("Attributes")]
 	[ApiController]
 	public class AtrributesController : ControllerBase
 	{
 		readonly DatabaseContext _databaseContext;
+        private readonly IConfiguration configuration;
 
-
-
-		public AtrributesController(DatabaseContext dbContext)
+        public AtrributesController(DatabaseContext dbContext, IConfiguration configuration)
 		{
 			_databaseContext = dbContext;
-
-		}
+            this.configuration = configuration;
+        }
 
 		/// <summary>
 		/// Create a new Workspace
 		/// </summary>
 		[HttpPost]
 		[Route("NewWorkspace")]
-		public async Task<IActionResult> NewWorkspace(string division, int proposalNumber, string name, int EID)
+		[Authorize (Policy = "PA")]
+		public async Task<IActionResult> NewWorkspace(string division, int proposalNumber, string name)
 		{
+
+			var EID = User.FindFirst(configuration["TokenIDClaimType"])?.Value;
+			if (EID == null) return NotFound();
 
 			WorkspaceEntity entity = new WorkspaceEntity
 			{
 				Division = division,
-				Creation_Date = DateTime.Now.ToString("yyyyMMdd HH:mm:ss"),
+				Creation_Date = ControllerHelpers.CurrentTimeAsString(),
 				Proposal_Number = proposalNumber,
 				Name = name,
 				EID = EID
@@ -65,6 +55,7 @@ namespace ae_resume_api.Controllers
 		/// </summary>
 		[HttpGet]
 		[Route("GetWorkspace")]
+		[Authorize(Policy = "PA")]
 		public async Task<ActionResult<WorkspaceModel>> GetWorkspace(int WID)
 		{
 			// var workspace = Workspaces.Find(x => x.WID == WID);
@@ -99,6 +90,7 @@ namespace ae_resume_api.Controllers
 		/// </summary>
 		[HttpPost]
 		[Route("CopyResume")]
+		[Authorize(Policy = "PA")]
 		public async Task<IActionResult> CopyResume(int RID, int WID)
 		{
 			// var workspace = Workspaces.Find(x => x.WID == WID);
@@ -118,13 +110,13 @@ namespace ae_resume_api.Controllers
 				return NotFound();
 			}
 			resume.Status = "Submitted";
-						
+
 
 			// Create a new Resume with the same sectors but new SID and add to Workspace
 			ResumeEntity entity = new ResumeEntity
 			{
-				Creation_Date = DateTime.Now.ToString("yyyyMMdd HH:mm:ss"),
-				Last_Edited = DateTime.Now.ToString("yyyyMMdd HH:mm:ss"),
+				Creation_Date = ControllerHelpers.CurrentTimeAsString(),
+				Last_Edited = ControllerHelpers.CurrentTimeAsString(),
 				EID = resume.EID,
 				EmployeeName = resume.EmployeeName,
 				Status = Status.Submitted.ToString(),
@@ -135,26 +127,26 @@ namespace ae_resume_api.Controllers
 			};
 
 
-			// Add copy resume to db			
+			// Add copy resume to db
 			var resultResume = _databaseContext.Resume.AddAsync(entity).Result;
 			await _databaseContext.SaveChangesAsync();
 
 
 			// Copy all of the sectors from the old resume to add to the Sector table
-			var sectors = _databaseContext.Sector.Where(sector => sector.RID == resume.RID);			
+			var sectors = _databaseContext.Sector.Where(sector => sector.RID == resume.RID);
 
 			sectors.ToList().ForEach(s => _databaseContext.Sector.Add(new SectorEntity
 			{
 				Content = s.Content,
 				EID = s.EID,
-				Creation_Date = DateTime.Now.ToString("yyyyMMdd HH:mm:ss"),
+				Creation_Date = ControllerHelpers.CurrentTimeAsString(),
 				TypeID = s.TypeID,
 				TypeTitle = s.TypeTitle,
 				Last_Edited = s.Last_Edited,
 				RID = resultResume.Entity.RID,
 				Image = s.Image,
 				Division = s.Division,
-				ResumeName = resultResume.Entity.Name				
+				ResumeName = resultResume.Entity.Name
 			}));
 
 			try
@@ -174,6 +166,7 @@ namespace ae_resume_api.Controllers
 		/// </summary>
 		[HttpDelete]
 		[Route("DeleteWorkspace")]
+		[Authorize(Policy = "PA")]
 		public async Task<IActionResult> DeleteWorkspace(int WID)
 		{
 			//var workspace = Workspaces.Find(x => x.WID == WID);
@@ -199,6 +192,7 @@ namespace ae_resume_api.Controllers
 		/// </summary>
 		[HttpGet]
 		[Route("GetResumesForWorkspace")]
+		[Authorize(Policy = "PA")]
 		public async Task<ActionResult<IEnumerable<ResumeModel>>> GetResumesForWorkspace(int WID)
 		{
 			//var workspace = Workspaces.Find(x => x.WID == WID);
@@ -226,9 +220,13 @@ namespace ae_resume_api.Controllers
 		/// Get all Workspaces or a PA
 		/// </summary>
 		[HttpGet]
-		[Route("GetAllWorkspacesForEmployee")]
-		public IEnumerable<WorkspaceModel> GetAllWorkspacesForEmployee(int EID)
+		[Route("GetAllWorkspaces")]
+		[Authorize(Policy = "PA")]
+		public async Task<ActionResult<IEnumerable<WorkspaceModel>>> GetAllWorkspaces()
         {
+			var EID = User.FindFirst(configuration["TokenIDClaimType"])?.Value;
+			if (EID == null) return NotFound();
+
 			var workspaces = _databaseContext.Workspace.Where(w => w.EID == EID);
 			List<WorkspaceModel> result = new List<WorkspaceModel>();
             foreach (var workspace in workspaces)
@@ -244,7 +242,8 @@ namespace ae_resume_api.Controllers
 		/// </summary>
 		[HttpPost]
 		[Route("CreateTemplateRequest")]
-		public async Task<IActionResult> CreateTemplateRequest(int TemplateID, int EID, int WID)
+		[Authorize(Policy = "PA")]
+		public async Task<IActionResult> CreateTemplateRequest(int TemplateID, string EID, int WID)
 		{
 			// Create a blank resume in the employee with the template type
 			var employee = await _databaseContext.Employee.FindAsync(EID);
@@ -277,8 +276,8 @@ namespace ae_resume_api.Controllers
 			templateResume.EID = EID;
 			templateResume.WID = WID;
 			templateResume.TemplateName = template.Title;
-			templateResume.Creation_Date = DateTime.Now.ToString("yyyyMMdd HH:mm:ss");
-			templateResume.Last_Edited = DateTime.Now.ToString("yyyyMMdd HH:mm:ss");
+			templateResume.Creation_Date = ControllerHelpers.CurrentTimeAsString();
+			templateResume.Last_Edited = ControllerHelpers.CurrentTimeAsString();
 			templateResume.Name = $"Resume Request for {workspace.Name}: Employee {employee.Name}";
 			templateResume.EmployeeName = employee.Name;
 
@@ -290,15 +289,15 @@ namespace ae_resume_api.Controllers
 										.ToList();
 
 			var resultResume =  _databaseContext.Resume.AddAsync(templateResume).Result;
-			await _databaseContext.SaveChangesAsync();			
+			await _databaseContext.SaveChangesAsync();
 
 			// Add the sectors to the sector table and assign to created resume
 			foreach (var sectorType in templateModel.SectorTypes)
-			{							
+			{
 				_databaseContext.Sector.Add(new SectorEntity
 				{
-					Creation_Date = DateTime.Now.ToString("yyyMMdd HH:mm:ss"),
-					Last_Edited = DateTime.Now.ToString("yyyMMdd HH:mm:ss"),
+					Creation_Date = ControllerHelpers.CurrentTimeAsString(),
+					Last_Edited = ControllerHelpers.CurrentTimeAsString(),
 					Content = "",
 					EID = EID,
 					TypeID = sectorType.TypeID,
@@ -307,9 +306,9 @@ namespace ae_resume_api.Controllers
 					ResumeName = $"Resume Request for {workspace.Name}: Employee {employee.Name}",
 					Division = workspace.Division,
 					Image = ""
-				});				
+				});
 			}
-			
+
 			try
 			{
 				await _databaseContext.SaveChangesAsync();
@@ -325,8 +324,13 @@ namespace ae_resume_api.Controllers
 
 		[HttpPost]
 		[Route("AddEmptyResumeToWorkspace")]
-		public async Task<IActionResult> AddEmptyResumeToWorkspace(int WID, int EID, string name)
+		[Authorize(Policy = "PA")]
+		public async Task<IActionResult> AddEmptyResumeToWorkspace(int WID, string name)
         {
+
+			var EID = User.FindFirst(configuration["TokenIDClaimType"])?.Value;
+			if (EID == null) return NotFound();
+
 			var workspace = await _databaseContext.Workspace.FindAsync(WID);
 
 			if(workspace == null)
@@ -345,8 +349,8 @@ namespace ae_resume_api.Controllers
 			entity.EID = EID;
 			entity.Status = Status.InProgress.ToString();
 			entity.WID = WID;
-			entity.Last_Edited = DateTime.Now.ToString("yyyyMMdd HH:mm:ss");
-			entity.Creation_Date = DateTime.Now.ToString("yyyyMMdd HH:mm:ss");
+			entity.Last_Edited = ControllerHelpers.CurrentTimeAsString();
+			entity.Creation_Date = ControllerHelpers.CurrentTimeAsString();
 			entity.Name = name;
 			entity.EmployeeName = employee.Name;
 			entity.TemplateID = 0;
@@ -365,9 +369,10 @@ namespace ae_resume_api.Controllers
 			}
 
 			return Ok(entity);
-        }		
+        }
 		[HttpGet]
 		[Route("GetAllSectorTypesInWorkspace")]
+		[Authorize(Policy = "PA")]
 		public async Task<ActionResult<IEnumerable<SectorTypeEntity>>> GetAllSectorTypesInWorkspace(int WID)
         {
 			return BadRequest("Not implemented");

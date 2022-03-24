@@ -44,8 +44,7 @@ namespace aeresumeidp
                 //.AddInMemoryApiResources(Config.ApiResources)
                 .AddInMemoryClients(Config.Clients(config))
                 //.AddTestUsers(TestUsers.Users)
-                .AddAspNetIdentity<ApplicationUser>()
-                .AddProfileService<ProfileService>();
+                .AddAspNetIdentity<ApplicationUser>();
 
             //services.AddAuthentication()
             //    .AddGoogle("Google", options =>
