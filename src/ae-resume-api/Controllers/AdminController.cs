@@ -472,10 +472,9 @@ namespace ae_resume_api.Controllers
         /// <returns></returns>
         [HttpPost]
         [Route("AssignSectorType")]
-        public async Task<IActionResult> AssignSectorType(int templateID, int sectorTypeID)
+        public async Task<IActionResult> AssignSectorType(int templateID, IEnumerable<int> sectorTypeID)
         {
             // var template = templateModels.Find(x => x.TemplateID == templateID);
-
             var template = await _databaseContext.Resume_Template.FindAsync(templateID);
 
 
@@ -486,20 +485,22 @@ namespace ae_resume_api.Controllers
 
             //var sectorType = SectorTypes.Find(x => x.TypeID == sectorTypeID);
             //Create new entry in associative table
-            TemplateSectorsEntity entity = new TemplateSectorsEntity
+            foreach (var id in sectorTypeID)
             {
-                TemplateID = templateID,
-                TypeID = sectorTypeID
-            };
+                TemplateSectorsEntity entity = new TemplateSectorsEntity
+                {
+                    TemplateID = templateID,
+                    TypeID = id
+                };
 
 
-            _databaseContext.Template_Type.Add(entity);
+                _databaseContext.Template_Type.Add(entity);
+            }
+            
+            await _databaseContext.SaveChangesAsync();            
 
-            await _databaseContext.SaveChangesAsync();
-            var templateType = await _databaseContext.Template_Type.FindAsync(entity);
 
-
-            return Ok(templateType);
+            return Ok(template);
         }
 
         /// <summary>

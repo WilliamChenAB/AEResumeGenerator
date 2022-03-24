@@ -452,7 +452,7 @@ namespace ae_resume_api.Controllers
 
 			return BadRequest("Not implemented");
 
-
+			// TODO: add only three statuses fore resumes reqested, regular, exported			
 			var resumes = _databasecontext.Resume.Where(r => r.EID == EID && r.WID == 0);
 
 

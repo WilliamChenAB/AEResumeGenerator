@@ -154,9 +154,17 @@ namespace ae_resume_api.Controllers.Tests
         }
 
         [Fact]
-        public void AssignSectorTypeTest()
+        public async void AssignSectorTypeTest()
         {
-           Assert.True(false);
+            var token = await _tokenService.GetSAAccessToken();
+            _client.SetBearerToken(token);
+
+            List<int> ids = new List<int> { 1,2 };
+            
+            var response = await _client.PostAsJsonAsync("/Admin/AssignSectorType?templateID=2",ids);
+            response.EnsureSuccessStatusCode();
+            var stringResponse = await response.Content.ReadAsStringAsync();
+            Console.WriteLine(stringResponse);
         }
 
         [Fact]
