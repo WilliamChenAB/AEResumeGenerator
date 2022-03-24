@@ -52,7 +52,7 @@ function login() {
 
 function api() {
     mgr.getUser().then(function (user) {
-        var url = "https://localhost:5001/identity";
+        var url = "https://localhost:5001/Admin/GetOwnEmployee";
 
         var xhr = new XMLHttpRequest();
         xhr.open("GET", url);

@@ -98,8 +98,8 @@ namespace ae_resume_api.Controllers
         /// Get self
         /// </summary>
         [HttpGet]
-        [Route("GetEmployee")]
-        public async Task<ActionResult<EmployeeModel>> GetEmployee()
+        [Route("GetOwnEmployee")]
+        public async Task<ActionResult<EmployeeModel>> GetOwnEmployee()
         {
             var EID = User.FindFirst(configuration["TokenIDClaimType"])?.Value;
             if (EID == null) return NotFound();
