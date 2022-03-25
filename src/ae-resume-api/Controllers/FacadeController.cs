@@ -4,6 +4,8 @@ using ae_resume_api.Facade;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Xml;
+using System.Xml.Serialization;
 
 namespace ae_resume_api.Controllers
 {
@@ -617,6 +619,41 @@ namespace ae_resume_api.Controllers
 			await _databaseContext.SaveChangesAsync();
 
 			return new JsonResult(resumes);
+		}
+
+		/// <summary>
+		/// Export Resumes in Workspace
+		/// </summary>
+		[HttpGet]
+		[Route("ExportResumesInWorkspaceXML.xml")]
+		public async Task<ActionResult<IEnumerable<ResumeModel>>> ExportResumesInWorkspaceXML(int WID)
+		{
+			var workspace = await _databaseContext.Workspace.FindAsync(WID);
+
+			if (workspace == null)
+			{
+				return NotFound();
+			}
+
+			var resumes = await (from r in _databaseContext.Resume
+								 join s in _databaseContext.Sector on r.RID equals s.RID
+								 where r.WID == WID
+								 select ControllerHelpers.ResumeEntityToModel(r)).ToListAsync();
+
+			// Get all sectors in resume and set status as exported
+			// Employees cannot use exported resumes
+			foreach (var resume in resumes)
+			{
+				resume.SectorList = await _databaseContext.Sector
+					.Where(s => s.RID == resume.RID)
+					.Select(s => ControllerHelpers.SectorEntityToModel(s))
+					.ToListAsync();
+				resume.Status = Status.Exported;
+			}
+
+			await _databaseContext.SaveChangesAsync();			
+
+			return resumes;
 		}
 
 		// ===============================================================================

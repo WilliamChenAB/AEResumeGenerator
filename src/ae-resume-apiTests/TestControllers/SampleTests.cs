@@ -26,7 +26,7 @@ namespace ae_resume_api.Controllers.Tests
             _config = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
                 .AddJsonFile("appsettings.json")
-                .AddJsonFile("appsettings.Development.json", optional: true)
+                .AddJsonFile("appsettings.Development.json", optional: true)                
                 .Build();
 
             _client = application.CreateClient(new WebApplicationFactoryClientOptions()

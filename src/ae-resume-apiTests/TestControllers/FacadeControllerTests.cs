@@ -127,6 +127,21 @@ namespace ae_resume_api.Controllers.Tests
         }
 
         [Fact]
+        public async void ExportResumesInWorkspaceXML()
+        {
+            var token = await _tokenService.GetSAAccessToken();
+            _client.SetBearerToken(token);
+
+            var request = new HttpRequestMessage(HttpMethod.Get, "/Facade/ExportResumesInWorkspaceXML.xml?WID=4");
+            request.Headers.Add("accept", "application/xml");
+
+            var response = await _client.SendAsync(request);
+            response.EnsureSuccessStatusCode();
+            var stringResponse = await response.Content.ReadAsStringAsync();
+            Console.WriteLine(stringResponse);
+        }
+
+        [Fact]
         public void SearchResumeTest()
         {
             Assert.True(false);

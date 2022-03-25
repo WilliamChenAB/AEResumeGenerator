@@ -64,6 +64,9 @@ namespace ae_resume_api
                         .AllowAnyMethod();
                 });
             });
+
+            services.AddMvc()
+                    .AddXmlSerializerFormatters();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
