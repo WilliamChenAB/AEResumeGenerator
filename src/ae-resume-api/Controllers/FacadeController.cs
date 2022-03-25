@@ -3,7 +3,7 @@ using ae_resume_api.DBContext;
 using ae_resume_api.Facade;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-
+using Microsoft.EntityFrameworkCore;
 
 namespace ae_resume_api.Controllers
 {
@@ -76,7 +76,7 @@ namespace ae_resume_api.Controllers
 				TemplateID = templateID,
 				Name = resumeName,
 				Last_Edited = ControllerHelpers.CurrentTimeAsString(),
-				Status = Status.InProgress.ToString(),
+				Status = Status.Regular.ToString(),
 				WID = 0,
 				TemplateName = template.Title,
 				EmployeeName = employee.Name
@@ -207,8 +207,10 @@ namespace ae_resume_api.Controllers
 		{
 
 
-			// TODO: add only three statuses fore resumes reqested, regular, exported
-			var resumes = _databaseContext.Resume.Where(r => r.EID == EID && r.WID == 0);
+			// TODO: add only three statuses for resumes reqested, regular, exported
+			var resumes = _databaseContext.Resume.Where(r => r.EID == EID && 
+															(r.Status == Status.Regular.ToString() ||
+															 r.Status == Status.Requested.ToString()));
 
 			if (resumes == null)
 			{
@@ -221,8 +223,7 @@ namespace ae_resume_api.Controllers
 				result.Add(ControllerHelpers.ResumeEntityToModel(resume));
 			}
 
-			return result;
-			//return EmployeeEntityToModel(employee);
+			return result;	
 		}
 
 		// ===============================================================================
@@ -597,22 +598,23 @@ namespace ae_resume_api.Controllers
 				return NotFound();
             }
 
-			var resumes = from r in _databaseContext.Resume
+			var resumes = await (from r in _databaseContext.Resume
 						  join s in _databaseContext.Sector on r.RID equals s.RID
 						  where r.WID == WID
-						  select ControllerHelpers.ResumeEntityToModel(r);
+						  select ControllerHelpers.ResumeEntityToModel(r)).ToListAsync();
 
+			// Get all sectors in resume and set status as exported
+			// Employees cannot use exported resumes
 			foreach (var resume in resumes)
 			{
-				resume.SectorList = _databaseContext.Sector
+				resume.SectorList = await  _databaseContext.Sector
 					.Where(s => s.RID == resume.RID)
 					.Select(s => ControllerHelpers.SectorEntityToModel(s))
-					.ToList();
-
+					.ToListAsync();
+				resume.Status = Status.Exported;
 			}
-
-			// TODO: set status as exported and save for future use PA
-			// Employees cannot use exported resumes
+			
+			await _databaseContext.SaveChangesAsync();
 
 			return new JsonResult(resumes);
 		}
@@ -657,7 +659,6 @@ namespace ae_resume_api.Controllers
 			}
 
 			// Current search only supports text fields
-			// TODO: search by resume content
 			//var employees = _databasecontext.Employee.AsQueryable().
 			//	Where(e => e.Name.Contains(filter) ||
 			//			   e.Email.Contains(filter)||

@@ -181,23 +181,22 @@ namespace ae_resume_api.Controllers
         // ===============================================================================
         // TEMPLATING
         // ===============================================================================
-
-        // TODO: Fix this so it doesn't take a model with unneeded params
+        
         /// <summary>
         /// Create a new Sector Type
         /// </summary>
         [HttpPost]
         [Route("NewSectorType")]
         [Authorize(Policy = "SA")]
-        public async Task<ActionResult<SectorTypeModel>> NewSectorType(SectorTypeModel model)
+        public async Task<ActionResult<SectorTypeModel>> NewSectorType(string title, string description)
         {
             var EID = User.FindFirst(configuration["TokenIDClaimType"])?.Value;
             if (EID == null) return NotFound();
 
             SectorTypeEntity entity = new SectorTypeEntity
             {
-                Title = model.Title,
-                Description = model.Description,
+                Title = title,
+                Description = description,
                 EID = EID
             };
             // SectorTypes.Add(model);
@@ -208,7 +207,7 @@ namespace ae_resume_api.Controllers
             return CreatedAtAction(
                 nameof(GetSectorType),
                 new { TypeID = result.Entity.TypeID },
-                model);
+                result.Entity);
         }
         /// <summary>
         /// Edit a Sector Type from its sectorTypeID
@@ -335,16 +334,15 @@ namespace ae_resume_api.Controllers
             };
 
             // Add the new Template and get its ID to add types to associative table
-            _databaseContext.Resume_Template.Add(entity);
-            await _databaseContext.SaveChangesAsync();
-            var template = _databaseContext.Resume_Template.OrderBy(x => x.TemplateID).Last();
+            var result = _databaseContext.Resume_Template.Add(entity).Entity;
+            await _databaseContext.SaveChangesAsync();            
 
             // Add Sector Types to DB
             foreach (var sectorType in model.SectorTypes)
             {
                 _databaseContext.Template_Type.Add(new TemplateSectorsEntity
                 {
-                    TemplateID = template.TemplateID,
+                    TemplateID = result.TemplateID,
                     TypeID = sectorType.TypeID
                 });
             }
@@ -353,7 +351,7 @@ namespace ae_resume_api.Controllers
             return CreatedAtAction(
                 nameof(GetTemplate),
                 new { TemplateID = model.TemplateID },
-                entity);
+                result);
         }
 
         /// <summary>

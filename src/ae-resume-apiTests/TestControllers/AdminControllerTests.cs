@@ -19,8 +19,7 @@ using System.IO;
 using IdentityModel.Client;
 
 namespace ae_resume_api.Controllers.Tests
-{
-
+{    
     public class AdminControllerTests : APITest
     {
 
@@ -49,7 +48,7 @@ namespace ae_resume_api.Controllers.Tests
         [Fact]
         public void GetEmployeeTest()
         {
-           Assert.True(false);
+            Assert.True(false);
         }
 
         [Fact]
@@ -68,31 +67,31 @@ namespace ae_resume_api.Controllers.Tests
         [Fact]
         public void AssignAccessTest()
         {
-           Assert.True(false);
+            Assert.True(false);
         }
 
         [Fact]
         public void NewSectorTypeTest()
         {
-           Assert.True(false);
+            Assert.True(false);
         }
 
         [Fact]
         public void EditSectorTypeTest()
         {
-           Assert.True(false);
+            Assert.True(false);
         }
 
         [Fact]
         public void GetSectorTypeTest()
         {
-           Assert.True(false);
+            Assert.True(false);
         }
 
         [Fact]
         public void DeleteSectorTypeTest()
         {
-           Assert.True(false);
+            Assert.True(false);
         }
 
         [Fact]
@@ -120,19 +119,19 @@ namespace ae_resume_api.Controllers.Tests
         [Fact]
         public void GetTemplateTest()
         {
-           Assert.True(false);
+            Assert.True(false);
         }
 
         [Fact]
         public void GetSectorsInTemplateTest()
         {
-           Assert.True(false);
+            Assert.True(false);
         }
 
         [Fact]
         public void EditTemplateTest()
         {
-           Assert.True(false);
+            Assert.True(false);
         }
 
         [Fact]
@@ -141,9 +140,9 @@ namespace ae_resume_api.Controllers.Tests
             var token = await _tokenService.GetSAAccessToken();
             _client.SetBearerToken(token);
 
-            List<int> ids = new List<int> { 1,2 };
-            
-            var response = await _client.PostAsJsonAsync("/Admin/AssignSectorType?templateID=2",ids);
+            List<int> ids = new List<int> { 1, 2 };
+
+            var response = await _client.PostAsJsonAsync("/Admin/AssignSectorType?templateID=2", ids);
             response.EnsureSuccessStatusCode();
             var stringResponse = await response.Content.ReadAsStringAsync();
             Console.WriteLine(stringResponse);
@@ -152,19 +151,31 @@ namespace ae_resume_api.Controllers.Tests
         [Fact]
         public void DeleteTemplateTest()
         {
-           Assert.True(false);
+            Assert.True(false);
         }
 
         [Fact]
         public void EmployeeEntityToModelTest()
         {
-           Assert.True(false);
+            Assert.True(false);
         }
 
         [Fact]
         public void TemplateEntityToModelTest()
         {
-           Assert.True(false);
+            Assert.True(false);
+        }
+
+        [Fact]
+        public async void EditSectorTypeTitleTest()
+        {
+            var token = await _tokenService.GetSAAccessToken();
+            _client.SetBearerToken(token);
+
+            var response = await _client.PutAsync("/Admin/EditSectorTypeTitle?sectorTypeID=11&title=new", new StringContent(""));
+            response.EnsureSuccessStatusCode();
+            var stringResponse = await response.Content.ReadAsStringAsync();
+            Console.WriteLine(stringResponse);
         }
     }
 }

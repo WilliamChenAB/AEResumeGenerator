@@ -3,17 +3,19 @@ using ae_resume_api.Facade;
 using ae_resume_api.DBContext;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.EntityFrameworkCore;
+using ae_resume_api.Admin;
 
 namespace ae_resume_api.Controllers
 {
     [Route("Attributes")]
 	[ApiController]
-	public class AtrributesController : ControllerBase
+	public class AttributesController : ControllerBase
 	{
 		readonly DatabaseContext _databaseContext;
         private readonly IConfiguration configuration;
 
-        public AtrributesController(DatabaseContext dbContext, IConfiguration configuration)
+        public AttributesController(DatabaseContext dbContext, IConfiguration configuration)
 		{
 			_databaseContext = dbContext;
             this.configuration = configuration;
@@ -26,8 +28,7 @@ namespace ae_resume_api.Controllers
 		[Route("NewWorkspace")]
 		[Authorize (Policy = "PA")]
 		public async Task<IActionResult> NewWorkspace(string division, int proposalNumber, string name)
-		{
-
+		{			
 			var EID = User.FindFirst(configuration["TokenIDClaimType"])?.Value;
 			if (EID == null) return NotFound();
 
@@ -98,18 +99,30 @@ namespace ae_resume_api.Controllers
 
 			if (workspace == null)
 			{
-				return NotFound();
+				return NotFound("Workspace not found");
 			}
 
 
-			// Update old copy to submitted
+			// Update old copy to regular
 			var resume = await _databaseContext.Resume.FindAsync(RID);
 
 			if (resume == null)
 			{
-				return NotFound();
+				return NotFound("Resume Not found");
 			}
-			resume.Status = "Submitted";
+			resume.Status = Status.Regular.ToString();
+
+			//Check if the employee already has a resume in the workspace and remove it
+			bool exists = await _databaseContext.Resume.AnyAsync(r => r.WID == WID &&
+													 r.EID == resume.EID);
+			if (exists)
+            {
+				_databaseContext.Resume.Where(r => r.WID == WID &&
+												   r.EID == resume.EID)
+					.ToList().ForEach(r => _databaseContext.Resume.Remove(r));								
+				await _databaseContext.SaveChangesAsync();
+            }
+			
 
 
 			// Create a new Resume with the same sectors but new SID and add to Workspace
@@ -119,7 +132,7 @@ namespace ae_resume_api.Controllers
 				Last_Edited = ControllerHelpers.CurrentTimeAsString(),
 				EID = resume.EID,
 				EmployeeName = resume.EmployeeName,
-				Status = Status.Submitted.ToString(),
+				Status = Status.Requested.ToString(),
 				TemplateID = resume.TemplateID,
 				WID = WID,
 				Name = $"Copy of {resume.Name}",
@@ -135,7 +148,8 @@ namespace ae_resume_api.Controllers
 			// Copy all of the sectors from the old resume to add to the Sector table
 			var sectors = _databaseContext.Sector.Where(sector => sector.RID == resume.RID);
 
-			sectors.ToList().ForEach(s => _databaseContext.Sector.Add(new SectorEntity
+			sectors.ToList().ForEach(
+				async s => await _databaseContext.Sector.AddAsync(new SectorEntity
 			{
 				Content = s.Content,
 				EID = s.EID,
@@ -158,7 +172,7 @@ namespace ae_resume_api.Controllers
 				return NotFound(ex.Message);
 			}
 
-			return Ok(resultResume);
+			return Ok(resultResume.Entity);
 		}
 
 		/// <summary>
@@ -227,7 +241,7 @@ namespace ae_resume_api.Controllers
 			var EID = User.FindFirst(configuration["TokenIDClaimType"])?.Value;
 			if (EID == null) return NotFound();
 
-			var workspaces = _databaseContext.Workspace.Where(w => w.EID == EID);
+			var workspaces = await _databaseContext.Workspace.Where(w => w.EID == EID).ToListAsync();
 			List<WorkspaceModel> result = new List<WorkspaceModel>();
             foreach (var workspace in workspaces)
             {
@@ -259,6 +273,17 @@ namespace ae_resume_api.Controllers
             {
 				return NotFound();
             }
+			
+			//Check if the employee already has a resume in the workspace and remove it
+			bool exists = await _databaseContext.Resume.AnyAsync(r => r.WID == WID &&
+													 r.EID == EID);
+			if (exists)
+			{
+				_databaseContext.Resume.Where(r => r.WID == WID &&
+												   r.EID == EID)
+					.ToList().ForEach(r => _databaseContext.Resume.Remove(r));
+				await _databaseContext.SaveChangesAsync();
+			}
 
 			// Create a blank resume that has all the sectors in the template
 			var template = await _databaseContext.Resume_Template.FindAsync(TemplateID);
@@ -325,11 +350,11 @@ namespace ae_resume_api.Controllers
 		[HttpPost]
 		[Route("AddEmptyResumeToWorkspace")]
 		[Authorize(Policy = "PA")]
-		public async Task<IActionResult> AddEmptyResumeToWorkspace(int WID, string name)
+		public async Task<IActionResult> AddEmptyResumeToWorkspace(int WID, string resumeName, string EID)
         {
-
-			var EID = User.FindFirst(configuration["TokenIDClaimType"])?.Value;
-			if (EID == null) return NotFound();
+			// I dont think we can pull EID from token cause it will always be the PA
+			//var EID = User.FindFirst(configuration["TokenIDClaimType"])?.Value;
+			//if (EID == null) return NotFound();
 
 			var workspace = await _databaseContext.Workspace.FindAsync(WID);
 
@@ -344,19 +369,30 @@ namespace ae_resume_api.Controllers
             {
 				return NotFound();
             }
+			
+			//Check if the employee already has a resume in the workspace and remove it
+			bool existsResume = await _databaseContext.Resume.AnyAsync(r => r.WID == WID &&
+													 r.EID == EID);
+			if (existsResume)
+			{
+				_databaseContext.Resume.Where(r => r.WID == WID &&
+												   r.EID == EID)
+					.ToList().ForEach(r => _databaseContext.Resume.Remove(r));
+				await _databaseContext.SaveChangesAsync();
+			}
 
 			ResumeEntity entity = new ResumeEntity();
 			entity.EID = EID;
-			entity.Status = Status.InProgress.ToString();
+			entity.Status = Status.Requested.ToString();
 			entity.WID = WID;
 			entity.Last_Edited = ControllerHelpers.CurrentTimeAsString();
 			entity.Creation_Date = ControllerHelpers.CurrentTimeAsString();
-			entity.Name = name;
+			entity.Name = resumeName;
 			entity.EmployeeName = employee.Name;
 			entity.TemplateID = 0;
 			entity.TemplateName = "";
 
-			_databaseContext.Resume.Add(entity);
+			await _databaseContext.Resume.AddAsync(entity);
 
 
 			try
@@ -373,17 +409,24 @@ namespace ae_resume_api.Controllers
 		[HttpGet]
 		[Route("GetAllSectorTypesInWorkspace")]
 		[Authorize(Policy = "PA")]
-		public async Task<ActionResult<IEnumerable<SectorTypeEntity>>> GetAllSectorTypesInWorkspace(int WID)
-        {
-			return BadRequest("Not implemented");
-
-
+		public async Task<IEnumerable<SectorTypeModel>> GetAllSectorTypesInWorkspace(int WID)
+        {						
 			var workspace = await _databaseContext.Workspace.FindAsync(WID);
 
 			if(workspace == null)
             {
 				NotFound();
             }
+
+			var sectorTypes = await (from r in _databaseContext.Resume
+							   join s in _databaseContext.Sector on r.RID equals s.RID
+							   join st in _databaseContext.SectorType on s.TypeID equals st.TypeID
+							   where r.WID == WID
+							   select ControllerHelpers.SectorTypeEntityToModel(st))
+							  .ToListAsync();
+
+			return sectorTypes;
+			
         }
 	}
 }
