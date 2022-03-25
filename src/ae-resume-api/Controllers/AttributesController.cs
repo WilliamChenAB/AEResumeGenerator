@@ -28,7 +28,7 @@ namespace ae_resume_api.Controllers
 		[Route("NewWorkspace")]
 		[Authorize (Policy = "PA")]
 		public async Task<IActionResult> NewWorkspace(string division, int proposalNumber, string name)
-		{			
+		{
 			var EID = User.FindFirst(configuration["TokenIDClaimType"])?.Value;
 			if (EID == null) return NotFound();
 
@@ -119,10 +119,10 @@ namespace ae_resume_api.Controllers
             {
 				_databaseContext.Resume.Where(r => r.WID == WID &&
 												   r.EID == resume.EID)
-					.ToList().ForEach(r => _databaseContext.Resume.Remove(r));								
+					.ToList().ForEach(r => _databaseContext.Resume.Remove(r));
 				await _databaseContext.SaveChangesAsync();
             }
-			
+
 
 
 			// Create a new Resume with the same sectors but new SID and add to Workspace
@@ -273,7 +273,7 @@ namespace ae_resume_api.Controllers
             {
 				return NotFound();
             }
-			
+
 			//Check if the employee already has a resume in the workspace and remove it
 			bool exists = await _databaseContext.Resume.AnyAsync(r => r.WID == WID &&
 													 r.EID == EID);
@@ -350,7 +350,7 @@ namespace ae_resume_api.Controllers
 		[HttpPost]
 		[Route("AddEmptyResumeToWorkspace")]
 		[Authorize(Policy = "PA")]
-		public async Task<IActionResult> AddEmptyResumeToWorkspace(int WID, string resumeName, string EID)
+		public async Task<IActionResult> AddEmptyResumeToWorkspace(int WID, int TID, string resumeName, string EID)
         {
 			// I dont think we can pull EID from token cause it will always be the PA
 			//var EID = User.FindFirst(configuration["TokenIDClaimType"])?.Value;
@@ -369,7 +369,7 @@ namespace ae_resume_api.Controllers
             {
 				return NotFound();
             }
-			
+
 			//Check if the employee already has a resume in the workspace and remove it
 			bool existsResume = await _databaseContext.Resume.AnyAsync(r => r.WID == WID &&
 													 r.EID == EID);
@@ -389,7 +389,7 @@ namespace ae_resume_api.Controllers
 			entity.Creation_Date = ControllerHelpers.CurrentTimeAsString();
 			entity.Name = resumeName;
 			entity.EmployeeName = employee.Name;
-			entity.TemplateID = 0;
+			entity.TemplateID = TID;
 			entity.TemplateName = "";
 
 			await _databaseContext.Resume.AddAsync(entity);
@@ -410,7 +410,7 @@ namespace ae_resume_api.Controllers
 		[Route("GetAllSectorTypesInWorkspace")]
 		[Authorize(Policy = "PA")]
 		public async Task<IEnumerable<SectorTypeModel>> GetAllSectorTypesInWorkspace(int WID)
-        {						
+        {
 			var workspace = await _databaseContext.Workspace.FindAsync(WID);
 
 			if(workspace == null)
@@ -426,7 +426,7 @@ namespace ae_resume_api.Controllers
 							  .ToListAsync();
 
 			return sectorTypes;
-			
+
         }
 	}
 }
