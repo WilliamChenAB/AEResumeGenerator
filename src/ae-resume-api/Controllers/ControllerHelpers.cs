@@ -41,7 +41,8 @@ namespace ae_resume_api.Controllers
                 EID = entity.EID,
                 Email = entity.Email,
                 Name = entity.Name,
-                JobTitle = entity.JobTitle
+                JobTitle = entity.JobTitle,
+                Access = entity.Access
             };
 
 
