@@ -132,7 +132,7 @@ namespace ae_resume_api.Controllers
 				Last_Edited = ControllerHelpers.CurrentTimeAsString(),
 				EID = resume.EID,
 				EmployeeName = resume.EmployeeName,
-				Status = Status.Requested.ToString(),
+				Status = Status.Regular.ToString(),
 				TemplateID = resume.TemplateID,
 				WID = WID,
 				Name = $"Copy of {resume.Name}",
@@ -220,7 +220,8 @@ namespace ae_resume_api.Controllers
 			}
 
 			//var resumes = workspace.Resumes;
-			var resumes = _databaseContext.Resume.Where(r => r.WID == workspace.WID);
+			var resumes = _databaseContext.Resume.Where(r => r.WID == workspace.WID && 
+															 r.Status != Status.Exported.ToString());
 			List<ResumeModel> result = new List<ResumeModel>();
 			foreach (var resume in resumes)
 			{
@@ -383,7 +384,7 @@ namespace ae_resume_api.Controllers
 
 			ResumeEntity entity = new ResumeEntity();
 			entity.EID = EID;
-			entity.Status = Status.Requested.ToString();
+			entity.Status = Status.Regular.ToString();
 			entity.WID = WID;
 			entity.Last_Edited = ControllerHelpers.CurrentTimeAsString();
 			entity.Creation_Date = ControllerHelpers.CurrentTimeAsString();

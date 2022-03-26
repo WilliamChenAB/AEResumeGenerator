@@ -211,7 +211,7 @@ namespace ae_resume_api.Controllers
 
 			// TODO: add only three statuses for resumes reqested, regular, exported
 			var resumes = _databaseContext.Resume.Where(r => r.EID == EID && 
-															(r.Status == Status.Regular.ToString() ||
+															(r.Status == Status.Regular.ToString() && r.WID == null ||
 															 r.Status == Status.Requested.ToString()));
 
 			if (resumes == null)
@@ -603,22 +603,26 @@ namespace ae_resume_api.Controllers
 			var resumes = await (from r in _databaseContext.Resume
 						  join s in _databaseContext.Sector on r.RID equals s.RID
 						  where r.WID == WID
-						  select ControllerHelpers.ResumeEntityToModel(r)).ToListAsync();
+						  select r).ToListAsync();
 
 			// Get all sectors in resume and set status as exported
 			// Employees cannot use exported resumes
+
+			List<ResumeModel> result = new List<ResumeModel>();
 			foreach (var resume in resumes)
 			{
-				resume.SectorList = await  _databaseContext.Sector
+				resume.Status = Status.Exported.ToString();
+				ResumeModel r = ControllerHelpers.ResumeEntityToModel(resume);
+				r.SectorList = await  _databaseContext.Sector
 					.Where(s => s.RID == resume.RID)
 					.Select(s => ControllerHelpers.SectorEntityToModel(s))
 					.ToListAsync();
-				resume.Status = Status.Exported;
+				result.Add(r);
 			}
 			
 			await _databaseContext.SaveChangesAsync();
 
-			return new JsonResult(resumes);
+			return new JsonResult(result);
 		}
 
 		/// <summary>
@@ -733,6 +737,7 @@ namespace ae_resume_api.Controllers
 			}
 
 			// Get all Resumes for that EID
+			// TODO: test search
 			var resumes = from r in _databaseContext.Resume
 						  join s in _databaseContext.Sector on r.EID equals s.EID
 						  where r.EID == EID && (
@@ -792,6 +797,7 @@ namespace ae_resume_api.Controllers
 			// Clean input filter
 			filter = filter ?? string.Empty;
 
+			// TODO: test search
 			var sectors = (from s in _databaseContext.Sector
 						   where s.EID == EID &&
 						   (s.Content.Contains(filter) ||

@@ -390,13 +390,12 @@ namespace ae_resume_api.Controllers
         public async Task<ActionResult<IEnumerable<SectorTypeModel>>> GetSectorsInTemplate(int templateID)
         {
 
-            //var template = templateModels.Find(x => x.TemplateID == templateID);
-
+            //var template = templateModels.Find(x => x.TemplateID == templateID);            
             var template = await _databaseContext.Resume_Template.FindAsync(templateID);
 
             if (template == null)
             {
-                return NotFound();
+                return new List<SectorTypeModel>();
             }
 
 
