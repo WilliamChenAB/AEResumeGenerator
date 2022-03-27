@@ -4,6 +4,8 @@ using ae_resume_api.Facade;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.IO;
+using System.IO.Compression;
 using System.Xml;
 using System.Xml.Serialization;
 
@@ -207,7 +209,7 @@ namespace ae_resume_api.Controllers
 
 			// TODO: add only three statuses for resumes reqested, regular, exported
 			var resumes = _databaseContext.Resume.Where(r => r.EID == EID && 
-															(r.Status == Status.Regular.ToString() && r.WID == null ||
+															(r.Status == Status.Regular.ToString() && r.WID == 0 ||
 															 r.Status == Status.Requested.ToString()));
 
 			if (resumes == null)
@@ -615,7 +617,9 @@ namespace ae_resume_api.Controllers
 			
 			await _databaseContext.SaveChangesAsync();
 
+			// TODO: zip output
 			return new JsonResult(result);
+			
 		}
 
 		/// <summary>
@@ -751,7 +755,7 @@ namespace ae_resume_api.Controllers
 							  CreationDate = DateTime.Parse(r.Creation_Date),
 							  LastEditedDate = DateTime.Parse(r.Last_Edited),
 							  RID = r.RID,
-							  Status = (Status)Enum.Parse(typeof(Status), r.Status),
+							  Status = ControllerHelpers.ParseStatus(r.Status),
 							  WID = r.WID,
 							  Name = r.Name,
 							  TemplateID = r.TemplateID,
