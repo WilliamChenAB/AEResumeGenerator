@@ -809,6 +809,15 @@ namespace ae_resume_api.Controllers
 
 
         }
+
+		[HttpGet]
+		[Route("SearchOwnSectors")]		
+		public IEnumerable<SectorModel> SearchEmployeeSectors(string? filter)
+		{
+			var EID = User.FindFirst(configuration["TokenIDClaimType"])?.Value;
+			return SearchEmployeeSectors(filter, EID);
+			
+		}
 	}
 }
 
