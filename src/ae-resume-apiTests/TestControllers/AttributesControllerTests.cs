@@ -41,8 +41,8 @@ namespace ae_resume_api.Controllers.Tests
             _client.SetBearerToken(token);
 
 
-            var stringContent = new StringContent("{\"TemplateID\":1, \"EID\":3, \"WID\":2}");
-            var response = await _client.PostAsync("/Attributes/CopyResume?RID=31&WID=4", stringContent);
+            var stringContent = new StringContent("{\"TemplateID\":1, \"EmployeeId\":3, \"WorkspaceId\":2}");
+            var response = await _client.PostAsync("/Attributes/CopyResume?ResumeId=31&WorkspaceId=4", stringContent);
             response.EnsureSuccessStatusCode();
             var stringResponse = await response.Content.ReadAsStringAsync();
             Console.WriteLine(stringResponse);
@@ -67,8 +67,8 @@ namespace ae_resume_api.Controllers.Tests
             _client.SetBearerToken(token);
 
             
-            var stringContent = new StringContent("{\"TemplateID\":1, \"EID\":eebc735b-b277-43f0-a882-8391177dd93a, \"WID\":2}");
-            var response = await _client.PostAsync("/Attributes/CreateTemplateRequest?TemplateID=1&EID=eebc735b-b277-43f0-a882-8391177dd93a&WID=4", stringContent);
+            var stringContent = new StringContent("{\"TemplateID\":1, \"EmployeeId\":eebc735b-b277-43f0-a882-8391177dd93a, \"WorkspaceId\":2}");
+            var response = await _client.PostAsync("/Attributes/CreateTemplateRequest?TemplateID=1&EmployeeId=eebc735b-b277-43f0-a882-8391177dd93a&WorkspaceId=4", stringContent);
             response.EnsureSuccessStatusCode();
             var stringResponse = await response.Content.ReadAsStringAsync();
             Console.WriteLine(stringResponse);
@@ -82,7 +82,7 @@ namespace ae_resume_api.Controllers.Tests
 
 
             var stringContent = new StringContent("");
-            var response = await _client.PostAsync("/Attributes/AddEmptyResumeToWorkspace?WID=4&resumeName=blankTest&EID=eebc735b-b277-43f0-a882-8391177dd93a", stringContent);
+            var response = await _client.PostAsync("/Attributes/AddEmptyResumeToWorkspace?WorkspaceId=4&resumeName=blankTest&EmployeeId=eebc735b-b277-43f0-a882-8391177dd93a", stringContent);
             response.EnsureSuccessStatusCode();
             var stringResponse = await response.Content.ReadAsStringAsync();
             Console.WriteLine(stringResponse);

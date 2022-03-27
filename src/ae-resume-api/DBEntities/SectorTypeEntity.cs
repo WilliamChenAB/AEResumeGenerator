@@ -4,9 +4,11 @@ using System.ComponentModel.DataAnnotations;
 public class SectorTypeEntity
 {
 	[Key]
-	public int TypeID { get; set; }
+	public int TypeId { get; set; }
 	public string Title { get; set; }
 	public string Description { get; set; }
-	public string EID { get; set; }
+
+	public virtual List<TemplateSectorEntity> TemplateSectors { get; set; }
+
 }
 

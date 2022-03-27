@@ -41,7 +41,7 @@ namespace ae_resume_api.Controllers.Tests
             var token = await _tokenService.GetSAAccessToken();
             _client.SetBearerToken(token);
             
-            var response = await _client.GetAsync("/Facade/GetSector?SID=1");
+            var response = await _client.GetAsync("/Facade/GetSector?SectorId=1");
             response.EnsureSuccessStatusCode();
             var stringResponse = await response.Content.ReadAsStringAsync();
             Console.WriteLine(stringResponse);
@@ -78,7 +78,7 @@ namespace ae_resume_api.Controllers.Tests
             _client.SetBearerToken(token);
 
             var stringContent = new StringContent("");
-            var response = await _client.PutAsync("/Facade/EditSector?SID=1&content=some%20content&division=Utility&Image=test.png", stringContent);
+            var response = await _client.PutAsync("/Facade/EditSector?SectorId=1&content=some%20content&division=Utility&Image=test.png", stringContent);
             response.EnsureSuccessStatusCode();
             var stringResponse = await response.Content.ReadAsStringAsync();
             Console.WriteLine(stringResponse);
@@ -108,7 +108,7 @@ namespace ae_resume_api.Controllers.Tests
             var token = await _tokenService.GetSAAccessToken();
             _client.SetBearerToken(token);
 
-            var response = await _client.GetAsync("/Facade/GetResumesForEmployee?EID=1");
+            var response = await _client.GetAsync("/Facade/GetResumesForEmployee?EmployeeId=1");
             response.EnsureSuccessStatusCode();
             var stringResponse = await response.Content.ReadAsStringAsync();
             Console.WriteLine(stringResponse);
@@ -132,7 +132,7 @@ namespace ae_resume_api.Controllers.Tests
             var token = await _tokenService.GetSAAccessToken();
             _client.SetBearerToken(token);
 
-            var request = new HttpRequestMessage(HttpMethod.Get, "/Facade/ExportResumesInWorkspaceXML.xml?WID=4");
+            var request = new HttpRequestMessage(HttpMethod.Get, "/Facade/ExportResumesInWorkspaceXML.xml?WorkspaceId=4");
             request.Headers.Add("accept", "application/xml");
 
             var response = await _client.SendAsync(request);
@@ -173,7 +173,7 @@ namespace ae_resume_api.Controllers.Tests
             var token = await _tokenService.GetSAAccessToken();
             _client.SetBearerToken(token);
 
-            var response = await _client.GetAsync("/Facade/SearchAllEmployeeResumes?filter=test&EID=eebc735b-b277-43f0-a882-8391177dd93a");
+            var response = await _client.GetAsync("/Facade/SearchAllEmployeeResumes?filter=test&EmployeeId=eebc735b-b277-43f0-a882-8391177dd93a");
             response.EnsureSuccessStatusCode();
             var stringResponse = await response.Content.ReadAsStringAsync();
             Console.WriteLine(stringResponse);
@@ -209,7 +209,7 @@ namespace ae_resume_api.Controllers.Tests
             var token = await _tokenService.GetSAAccessToken();
             _client.SetBearerToken(token);
 
-            var response = await _client.GetAsync("/Facade/ExportResumesInWorkspace?WID=1");
+            var response = await _client.GetAsync("/Facade/ExportResumesInWorkspace?WorkspaceId=1");
             response.EnsureSuccessStatusCode();
             var stringResponse = await response.Content.ReadAsStringAsync();
             Console.WriteLine(stringResponse);

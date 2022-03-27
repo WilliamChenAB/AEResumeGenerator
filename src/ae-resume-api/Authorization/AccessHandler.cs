@@ -28,13 +28,15 @@ namespace ae_resume_api.Authorization
                 return;
             }
 
-            var employee = await _databaseContext.Employee.FindAsync(userID);
+            var guid = Guid.Parse(userID);
+
+            var employee = await _databaseContext.Employee.FindAsync(guid);
 
             if (employee == null) {
                 var chngEntity = _databaseContext.Employee.Add(new EmployeeEntity
                 {
-                    EID = userID,
-                    Access = Access.Employee
+                    EmployeeId = guid,
+                    Access = Access.Employee,
                 });
                 await _databaseContext.SaveChangesAsync();
 
