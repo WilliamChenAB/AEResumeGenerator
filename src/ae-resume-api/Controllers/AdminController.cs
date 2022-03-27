@@ -421,7 +421,7 @@ namespace ae_resume_api.Controllers
         [HttpPut]
         [Route("EditTemplate")]
         [Authorize(Policy = "SA")]
-        public async Task<IActionResult> EditTemplate(int templateID, string title, string description)
+        public async Task<IActionResult> EditTemplate(int templateID, string? title, string? description)
         {
 
             var template = await _databaseContext.Resume_Template.FindAsync(templateID);
@@ -430,6 +430,10 @@ namespace ae_resume_api.Controllers
             {
                 return NotFound("Template not found");
             }
+
+            // Clean input filter
+            title = title ?? "";
+            description = description ?? "";
 
             template.Title = title;
             template.Description = description;
