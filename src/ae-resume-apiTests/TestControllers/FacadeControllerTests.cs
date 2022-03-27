@@ -154,15 +154,29 @@ namespace ae_resume_api.Controllers.Tests
         }
 
         [Fact]
-        public void SearchEmployeesTest()
+        public async void SearchEmployeesTest()
         {
-            Assert.True(false);
+            
+                var token = await _tokenService.GetSAAccessToken();
+                _client.SetBearerToken(token);
+
+                var response = await _client.GetAsync("/Facade/SearchEmployees?filter=james");
+                response.EnsureSuccessStatusCode();
+                var stringResponse = await response.Content.ReadAsStringAsync();
+                Console.WriteLine(stringResponse);
+            
         }
 
         [Fact]
-        public void SearchEmployeeResumeTest()
+        public async void SearchEmployeeResumeTest()
         {
-            Assert.True(false);
+            var token = await _tokenService.GetSAAccessToken();
+            _client.SetBearerToken(token);
+
+            var response = await _client.GetAsync("/Facade/SearchAllEmployeeResumes?filter=test&EID=eebc735b-b277-43f0-a882-8391177dd93a");
+            response.EnsureSuccessStatusCode();
+            var stringResponse = await response.Content.ReadAsStringAsync();
+            Console.WriteLine(stringResponse);
         }
 
         [Fact]

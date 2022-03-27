@@ -706,7 +706,7 @@ namespace ae_resume_api.Controllers
 			var employees = from e in _databaseContext.Employee
 							where e.Name.Contains(filter) ||
 								  e.Email.Contains(filter) ||
-								  e.EID.ToString().Contains(filter) ||
+								  e.EID.Contains(filter) ||
 								  e.JobTitle.Contains(filter)
 						  select new EmployeeModel{
 							  EID = e.EID,
@@ -725,7 +725,7 @@ namespace ae_resume_api.Controllers
 		[HttpGet]
 		[Route("SearchAllEmployeeResumes")]
 		[Authorize(Policy = "PA")]
-		public IEnumerable<ResumeModel> SearchEmployeeResumes(string? filter, string EID)
+		public async Task<IEnumerable<ResumeModel>> SearchEmployeeResumes(string? filter, string EID)
 		{
 			// Ensure that null value returns all Employees
 			if (filter == null)
@@ -734,7 +734,6 @@ namespace ae_resume_api.Controllers
 			}
 
 			// Get all Resumes for that EID
-			// TODO: test search
 			var resumes = from r in _databaseContext.Resume
 						  join s in _databaseContext.Sector on r.EID equals s.EID
 						  where r.EID == EID && (
@@ -752,26 +751,25 @@ namespace ae_resume_api.Controllers
 						  )
 						  select new ResumeModel {
 							  EID = r.EID,
-							  CreationDate = DateTime.Parse(r.Creation_Date),
-							  LastEditedDate = DateTime.Parse(r.Last_Edited),
+							  CreationDate = ControllerHelpers.parseDate(r.Creation_Date),
+							  LastEditedDate = ControllerHelpers.parseDate(r.Last_Edited),
 							  RID = r.RID,
 							  Status = ControllerHelpers.ParseStatus(r.Status),
 							  WID = r.WID,
 							  Name = r.Name,
 							  TemplateID = r.TemplateID,
-							  TemplateName = r.TemplateName,
+							  TemplateName = r.TemplateName							  
 						  };
 
-            foreach (var resume in resumes)
-            {
-				resume.SectorList = _databaseContext.Sector
-					.Where(s => s.RID == resume.RID)
-					.Select(s => ControllerHelpers.SectorEntityToModel(s))
-					.ToList();
+			//TODO: adding sector lists takes forever
+            //foreach (var resume in resumes)
+            //{
+            //    resume.SectorList = await (from s in _databaseContext.Sector
+            //                         where s.RID == resume.RID
+            //                         select ControllerHelpers.SectorEntityToModel(s)).ToListAsync();
+            //}
 
-            }
-
-			return resumes;
+			return resumes.Distinct();
 
 		}
 
@@ -807,7 +805,7 @@ namespace ae_resume_api.Controllers
 						   select ControllerHelpers.SectorEntityToModel(s))
 						   .ToList();
 
-			return sectors;
+			return sectors.Distinct();
 
 
         }
