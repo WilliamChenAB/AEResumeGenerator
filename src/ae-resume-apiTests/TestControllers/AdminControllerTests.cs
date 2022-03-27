@@ -140,7 +140,7 @@ namespace ae_resume_api.Controllers.Tests
             var token = await _tokenService.GetSAAccessToken();
             _client.SetBearerToken(token);
 
-            List<int> ids = new List<int> { 1, 2 };
+            List<int> ids = new List<int> { 1 };
 
             var response = await _client.PostAsJsonAsync("/Admin/AssignSectorType?templateID=10", ids);
             response.EnsureSuccessStatusCode();

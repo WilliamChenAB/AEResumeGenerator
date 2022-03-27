@@ -2,6 +2,7 @@
 using ae_resume_api.DBContext;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.EntityFrameworkCore;
 
 namespace ae_resume_api.Controllers
 {
@@ -87,7 +88,15 @@ namespace ae_resume_api.Controllers
             }
 
             _databaseContext.Employee.Remove(employee);
-            await _databaseContext.SaveChangesAsync();
+            try
+            {
+                await _databaseContext.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+
+            }
             return Ok();
         }
 
@@ -301,7 +310,15 @@ namespace ae_resume_api.Controllers
             // SectorTypes.Remove(sectorType);
 
             _databaseContext.SectorType.Remove(sectorType);
-            await _databaseContext.SaveChangesAsync();
+            try
+            {
+                await _databaseContext.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+
+            }
             return Ok();
         }
 
@@ -433,9 +450,6 @@ namespace ae_resume_api.Controllers
         /// <summary>
         /// Assign a Sector Type to a Resume Template
         /// </summary>
-        /// <param name="templateID"></param>
-        /// <param name="sectorTypeID"></param>
-        /// <returns></returns>
         [HttpPost]
         [Route("AssignSectorType")]
         [Authorize(Policy = "SA")]
@@ -450,8 +464,13 @@ namespace ae_resume_api.Controllers
                 return NotFound("Template does not exist");
             }
 
-            //var sectorType = SectorTypes.Find(x => x.TypeID == sectorTypeID);
-            //Create new entry in associative table
+
+
+            //Re wite associative table with new values
+            var existingTypes = await _databaseContext.Template_Type.Where(x => x.TemplateID == templateID)
+                .ToListAsync();
+            existingTypes.ForEach(x => _databaseContext.Template_Type.Remove(x));
+
             foreach (var id in sectorTypeID)
             {
                 TemplateSectorsEntity entity = new TemplateSectorsEntity
@@ -459,13 +478,18 @@ namespace ae_resume_api.Controllers
                     TemplateID = templateID,
                     TypeID = id
                 };
-
-
                 _databaseContext.Template_Type.Add(entity);
             }
 
-            await _databaseContext.SaveChangesAsync();
+            try
+            {
+                await _databaseContext.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
 
+            }
 
             return Ok(template);
         }
@@ -486,7 +510,15 @@ namespace ae_resume_api.Controllers
             }            
 
             _databaseContext.Resume_Template.Remove(template);
-            await _databaseContext.SaveChangesAsync();
+            try
+            {
+                await _databaseContext.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+
+            }
             return Ok();
         }
 
