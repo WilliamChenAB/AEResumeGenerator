@@ -65,7 +65,7 @@ namespace ae_resume_api.Controllers
 
 			if (workspace == null)
 			{
-				return NotFound();
+				return NotFound("Workspace not found");
 			}
 
 			WorkspaceModel result = ControllerHelpers.WorkspaceEntityToModel(workspace);
@@ -169,7 +169,7 @@ namespace ae_resume_api.Controllers
 			}
 			catch (Exception ex)
 			{
-				return NotFound(ex.Message);
+				return BadRequest(ex.Message);
 			}
 
 			return Ok(resultResume.Entity);
@@ -189,7 +189,7 @@ namespace ae_resume_api.Controllers
 
 			if (workspace == null)
 			{
-				return NotFound();
+				return NotFound("Workspace not found");
 			}
 
 			//Workspaces.Remove(workspace);
@@ -216,7 +216,7 @@ namespace ae_resume_api.Controllers
 
 			if (workspace == null)
 			{
-				return NotFound();
+				return NotFound("Workspace not found");
 			}
 
 			//var resumes = workspace.Resumes;
@@ -265,14 +265,14 @@ namespace ae_resume_api.Controllers
 
 			if (employee == null)
 			{
-				return NotFound();
+				return NotFound("Employee not found");
 			}
 
 			var workspace = await _databaseContext.Workspace.FindAsync(WID); ;
 
 			if(workspace == null)
             {
-				return NotFound();
+				return NotFound("Workspace not found");
             }
 
 			//Check if the employee already has a resume in the workspace and remove it
@@ -290,7 +290,7 @@ namespace ae_resume_api.Controllers
 			var template = await _databaseContext.Resume_Template.FindAsync(TemplateID);
             if (template == null)
             {
-				return NotFound();
+				return NotFound("Template not found");
             }
 			var templateModel = ControllerHelpers.TemplateEntityToModel(template);
 
@@ -361,14 +361,14 @@ namespace ae_resume_api.Controllers
 
 			if(workspace == null)
             {
-				return NotFound();
+				return NotFound("Workspace not found");
             }
 
 			var employee = await _databaseContext.Employee.FindAsync(EID);
 
 			if(employee == null)
             {
-				return NotFound();
+				return NotFound("Employee not found");
             }
 
 			//Check if the employee already has a resume in the workspace and remove it
@@ -402,7 +402,7 @@ namespace ae_resume_api.Controllers
 			}
 			catch (Exception ex)
 			{
-				return NotFound(ex.Message);
+				return BadRequest(ex.Message);
 			}
 
 			return Ok(entity);
@@ -416,7 +416,7 @@ namespace ae_resume_api.Controllers
 
 			if(workspace == null)
             {
-				NotFound();
+				NotFound("workspace not found");
             }
 
 			var sectorTypes = await (from r in _databaseContext.Resume
@@ -429,6 +429,60 @@ namespace ae_resume_api.Controllers
 			return sectorTypes;
 
         }
+
+		[HttpPost]
+		[Route("SubmitResumeToWorkspace")]		
+		public async Task<IActionResult> SubmitResumeToWorkspace(int RID, int WID)
+        {
+			var resume = await _databaseContext.Resume.FindAsync(RID);
+
+			if(resume == null)
+            {
+				return NotFound("Resume not found");
+            }
+			var EID = User.FindFirst(configuration["TokenIDClaimType"])?.Value;
+
+			//Check if the employee already has a resume in the workspace and remove it
+			bool existsResume = await _databaseContext.Resume.AnyAsync(r => r.WID == WID &&
+													 r.EID == EID);
+			if (existsResume)
+			{
+				_databaseContext.Resume.Where(r => r.WID == WID &&
+												   r.EID == EID)
+					.ToList().ForEach(r => _databaseContext.Resume.Remove(r));
+				await _databaseContext.SaveChangesAsync();
+			}
+
+			// Assign status to regular and create copy to be stored in the workspace
+			resume.Status = Status.Regular.ToString();
+
+			var employee = await _databaseContext.Employee.FindAsync(EID);
+			var workspaceResume = new ResumeEntity();
+			workspaceResume.WID = WID;
+			workspaceResume.EID = EID;
+			workspaceResume.Last_Edited = ControllerHelpers.CurrentTimeAsString();
+			workspaceResume.Creation_Date = ControllerHelpers.CurrentTimeAsString();
+			workspaceResume.Status = Status.Regular.ToString();
+			workspaceResume.Name = resume.Name;
+			workspaceResume.EmployeeName = employee.Name;
+			workspaceResume.TemplateID = resume.TemplateID;
+			workspaceResume.TemplateName = resume.TemplateName;
+
+			await _databaseContext.Resume.AddAsync(workspaceResume);
+
+
+			try
+			{
+				await _databaseContext.SaveChangesAsync();
+			}
+			catch (Exception ex)
+			{
+				return NotFound(ex.Message);
+			}
+
+			return Ok(workspaceResume);
+
+		}
 	}
 }
 

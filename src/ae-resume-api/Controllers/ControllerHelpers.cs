@@ -92,9 +92,5 @@ namespace ae_resume_api.Controllers
         {
             return (Status)Enum.Parse(typeof(Status), status);
         }
-
-
-
-
     }
 }

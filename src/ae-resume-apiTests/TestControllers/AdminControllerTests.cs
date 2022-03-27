@@ -142,7 +142,7 @@ namespace ae_resume_api.Controllers.Tests
 
             List<int> ids = new List<int> { 1, 2 };
 
-            var response = await _client.PostAsJsonAsync("/Admin/AssignSectorType?templateID=2", ids);
+            var response = await _client.PostAsJsonAsync("/Admin/AssignSectorType?templateID=10", ids);
             response.EnsureSuccessStatusCode();
             var stringResponse = await response.Content.ReadAsStringAsync();
             Console.WriteLine(stringResponse);

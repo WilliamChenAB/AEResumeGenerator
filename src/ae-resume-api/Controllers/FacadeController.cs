@@ -53,14 +53,14 @@ namespace ae_resume_api.Controllers
 
 			if (template == null)
 			{
-				return NotFound();
+				return NotFound("Template not found");
 			}
 
 			var employee = await _databaseContext.Employee.FindAsync(EID);
 
 			if (employee == null)
 			{
-				return NotFound();
+				return NotFound("Employee not found");
 			}
 
 			// Find the Sector Types associated with that template
@@ -119,19 +119,15 @@ namespace ae_resume_api.Controllers
 		[HttpDelete]
 		[Route("DeleteResume")]
 		public async Task<IActionResult> DeleteResume(int RID)
-		{
-
-
-			//var resume = Resumes.Find(x => x.RID == RID);
+		{ 
 
 			var resume = await _databaseContext.Resume.FindAsync(RID);
 
 			if (resume == null)
 			{
-				return NotFound();
+				return NotFound("Resume not found");
 			}
 
-			//Resumes.Remove(resume);
 			_databaseContext.Resume.Remove(resume);
 			await _databaseContext.SaveChangesAsync();
 			return Ok();
@@ -150,7 +146,7 @@ namespace ae_resume_api.Controllers
 
 			if (resume == null)
 			{
-				return NotFound();
+				return NotFound("Resume not found");
 			}
 
 			// Get all sectors for this resume
@@ -175,7 +171,7 @@ namespace ae_resume_api.Controllers
 		[Authorize(Policy = "PA")]
 		public async Task<ActionResult<IEnumerable<ResumeModel>>> GetResumesForEmployee(string EID)
 		{
-			//var resumes = Resumes;
+			
 
 
 			var resumes = _databaseContext.Resume.Where(r => r.EID == EID);
@@ -216,7 +212,7 @@ namespace ae_resume_api.Controllers
 
 			if (resumes == null)
 			{
-				return NotFound();
+				return NotFound("Resume not found");
 			}
 
 			List<ResumeModel> result = new List<ResumeModel>();
@@ -270,14 +266,11 @@ namespace ae_resume_api.Controllers
 		public async Task<ActionResult<SectorModel>> GetSector(int SID)
 		{
 
-
-			//var sector = Sectors.Find(x => x.SID == SID);
-
 			var sector = await _databaseContext.Sector.FindAsync(SID);
 
 			if (sector == null)
 			{
-				return NotFound();
+				return NotFound("Sector not found");
 			}
 			return ControllerHelpers.SectorEntityToModel(sector);
 		}
@@ -319,7 +312,7 @@ namespace ae_resume_api.Controllers
 
 			if (employee == null)
 			{
-				return NotFound();
+				return NotFound("Employee not found");
 			}
 
 			List<SectorModel> sectorList = new List<SectorModel>();
@@ -349,7 +342,7 @@ namespace ae_resume_api.Controllers
 
 			if (employee == null)
 			{
-				return NotFound();
+				return NotFound("Employee not found");
 			}
 
 			List<SectorModel> sectorList = new List<SectorModel>();
@@ -379,7 +372,7 @@ namespace ae_resume_api.Controllers
 			var sector = await _databaseContext.Sector.FindAsync(SID);
 			if (sector == null)
 			{
-				return NotFound();
+				return NotFound("Sector not found");
 			}
 
 			//resume.SectorList.Remove(sector);
@@ -401,7 +394,7 @@ namespace ae_resume_api.Controllers
 
 			if (sector == null)
 			{
-				return NotFound();
+				return NotFound("Sector not found");
 			}
 
 			// Clean null content
@@ -421,7 +414,7 @@ namespace ae_resume_api.Controllers
 			}
 			catch (Exception ex)
 			{
-				return NotFound(ex.Message);
+				return BadRequest(ex.Message);
 			}
 
 			return Ok(sector);
@@ -441,13 +434,13 @@ namespace ae_resume_api.Controllers
 
 			if (resume == null)
 			{
-				return NotFound();
+				return NotFound("Resume not found");
 			}
 
 			var sectorType = await _databaseContext.SectorType.FindAsync(typeID);
 			if (sectorType == null)
 			{
-				return NotFound();
+				return NotFound("Sector Type not found");
 			}
 
 			// Clean null content
@@ -489,14 +482,14 @@ namespace ae_resume_api.Controllers
 
 			if (resume == null)
 			{
-				return NotFound();
+				return NotFound("Resume not found");
 			}
 
 			var sector = await _databaseContext.Sector.FindAsync(SID);
 
 			if (sector == null)
 			{
-				return NotFound();
+				return NotFound("Sector not found");
 			}
 
 			sector.SID = model.SID;
@@ -515,7 +508,7 @@ namespace ae_resume_api.Controllers
 			}
 			catch (Exception ex)
 			{
-				return NotFound(ex.Message);
+				return BadRequest(ex.Message);
 			}
 
 			return Ok(resume);
@@ -568,7 +561,7 @@ namespace ae_resume_api.Controllers
 
 			if(resume == null)
             {
-				return NotFound();
+				return NotFound("Resume not found");
             }
 
 
@@ -597,7 +590,7 @@ namespace ae_resume_api.Controllers
 
 			if(workspace == null)
             {
-				return NotFound();
+				return NotFound("Workspace not found");
             }
 
 			var resumes = await (from r in _databaseContext.Resume
@@ -636,7 +629,7 @@ namespace ae_resume_api.Controllers
 
 			if (workspace == null)
 			{
-				return NotFound();
+				return NotFound("Workspace not found");
 			}
 
 			var resumes = await (from r in _databaseContext.Resume
@@ -795,7 +788,7 @@ namespace ae_resume_api.Controllers
 		public IEnumerable<SectorModel> SearchEmployeeSectors(string? filter, string EID)
         {
 			// Clean input filter
-			filter = filter ?? string.Empty;
+			filter = filter ?? "";
 
 			// TODO: test search
 			var sectors = (from s in _databaseContext.Sector
