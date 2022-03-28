@@ -21,7 +21,7 @@ namespace ae_resume_api.Controllers
 			this.configuration = configuration;
 		}
 
-		private async void RemoveExistingResumes(WorkspaceEntity workspace, Guid employeeId)
+		private async Task RemoveExistingResumes(WorkspaceEntity workspace, Guid employeeId)
         {
 			var existing = workspace.Resumes.FindAll(r => r.EmployeeId == employeeId);
 			if (existing != null)
@@ -142,7 +142,7 @@ namespace ae_resume_api.Controllers
 			resume.Status = Status.Regular;
 
 			//Check if the employee already has a resume in the workspace and remove it
-			RemoveExistingResumes(workspace, resume.EmployeeId);
+			await RemoveExistingResumes(workspace, resume.EmployeeId);
 
 			// Create a new Resume with the same sectors but new SectorId and add to Workspace
 			ResumeEntity entity = new ResumeEntity
@@ -220,7 +220,7 @@ namespace ae_resume_api.Controllers
 		[HttpPost]
 		[Route("CreateTemplateRequest")]
 		[Authorize(Policy = "PA")]
-		public async Task<IActionResult> CreateTemplateRequest(int TemplateID, string EmployeeId, int WorkspaceId)
+		public async Task<IActionResult> CreateTemplateRequest(int TemplateId, string EmployeeId, int WorkspaceId)
 		{
 			var guid = Guid.Parse(EmployeeId);
 
@@ -232,10 +232,10 @@ namespace ae_resume_api.Controllers
 			if (workspace == null) return NotFound("Workspace not found");
 
 			// Check if the employee already has a resume in the workspace and remove it
-			RemoveExistingResumes(workspace, guid);
+			await RemoveExistingResumes(workspace, guid);
 
 			// Create a blank resume that has all the sectors in the template
-			var template = await _databaseContext.Template.FindAsync(TemplateID);
+			var template = await _databaseContext.Template.FindAsync(TemplateId);
 			if (template == null)
 			{
 				return NotFound("Template not found");
@@ -245,7 +245,7 @@ namespace ae_resume_api.Controllers
 
 
 			ResumeEntity templateResume = new ResumeEntity();
-			templateResume.TemplateId = TemplateID;
+			templateResume.TemplateId = TemplateId;
 			templateResume.Status = Status.Requested;
 			templateResume.EmployeeId = guid;
 			templateResume.WorkspaceId = WorkspaceId;
@@ -259,7 +259,7 @@ namespace ae_resume_api.Controllers
 				.Select(s => ControllerHelpers.SectorTypeEntityToModel(s.SectorType))
 				.ToList();
 
-			var resultResume = _databaseContext.Resume.AddAsync(templateResume).Result;
+			var resultResume = await _databaseContext.Resume.AddAsync(templateResume);
 			await _databaseContext.SaveChangesAsync();
 
 			// Add the sectors to the sector table and assign to created resume
@@ -293,7 +293,7 @@ namespace ae_resume_api.Controllers
 		[HttpPost]
 		[Route("AddEmptyResume")]
 		[Authorize(Policy = "PA")]
-		public async Task<IActionResult> AddEmptyResume(int WorkspaceId, int TemplateID, string resumeName)
+		public async Task<IActionResult> AddEmptyResume(int WorkspaceId, int TemplateId, string resumeName)
 		{
 			var workspace = await _databaseContext.Workspace.FindAsync(WorkspaceId);
 			if (workspace == null) return NotFound("Workspace not found");
@@ -304,7 +304,7 @@ namespace ae_resume_api.Controllers
 			if (employee == null) return NotFound("Employee not found");
 
 			//Check if the employee already has a resume in the workspace and remove it
-			RemoveExistingResumes(workspace, guid);
+			await RemoveExistingResumes(workspace, guid);
 
 			ResumeEntity entity = new ResumeEntity();
 			entity.EmployeeId = guid;
@@ -313,10 +313,10 @@ namespace ae_resume_api.Controllers
 			entity.Last_Edited = ControllerHelpers.CurrentTimeAsString();
 			entity.Creation_Date = ControllerHelpers.CurrentTimeAsString();
 			entity.Name = resumeName;
-			entity.TemplateId = TemplateID;
+			entity.TemplateId = TemplateId;
 
 			// Get the template
-			var template = await _databaseContext.Template.FindAsync(TemplateID);
+			var template = await _databaseContext.Template.FindAsync(TemplateId);
 			if (template == null)
 			{
 				return NotFound("Template not found");
@@ -372,7 +372,7 @@ namespace ae_resume_api.Controllers
 			//Check if the employee already has a resume in the workspace and remove it
 			var workspace = await _databaseContext.Workspace.FindAsync(WorkspaceId);
 			if (workspace == null) return NotFound();
-			RemoveExistingResumes(workspace, guid);
+			await RemoveExistingResumes(workspace, guid);
 
 			// Assign status to regular and create copy to be stored in the workspace
 			resume.Status = Status.Regular;
@@ -394,7 +394,7 @@ namespace ae_resume_api.Controllers
 			}
 			catch (Exception ex)
 			{
-				return NotFound(ex.Message);
+				return NotFound("CAUGHT EXCEPTION: " + ex.Message);
 			}
 
 			return Ok(workspaceResume);

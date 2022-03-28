@@ -28,7 +28,9 @@ namespace ae_resume_api.Controllers
                 LastEditedDate = parseDate(entity.Last_Edited),
                 Content = entity.Content,
                 TypeId = entity.TypeId,
+                TypeTitle = entity.Type.Title,
                 ResumeId = entity.ResumeId,
+                ResumeName = entity.Resume.Name,
                 Division = entity.Division,
                 Image = entity.Image
             };
@@ -50,7 +52,8 @@ namespace ae_resume_api.Controllers
                 TemplateId = entity.TemplateId,
                 Title = entity.Title,
                 Description = entity.Description,
-                LastEdited = parseDate(entity.Last_Edited)
+                LastEdited = parseDate(entity.Last_Edited),
+                SectorTypes = entity.TemplateSectors.Select(x => SectorTypeEntityToModel(x.SectorType)).ToList()
             };
 
         public static SectorTypeModel SectorTypeEntityToModel(SectorTypeEntity entity) =>
@@ -58,7 +61,7 @@ namespace ae_resume_api.Controllers
             {
                 TypeId = entity.TypeId,
                 Title = entity.Title,
-                Description = entity.Description
+                Description = entity.Description,
             };
 
         public static WorkspaceModel WorkspaceEntityToModel(WorkspaceEntity entity) =>
@@ -78,13 +81,14 @@ namespace ae_resume_api.Controllers
             {
                 WorkspaceId = entity.WorkspaceId,
                 EmployeeId = entity.EmployeeId.ToString(),
+                EmployeeName = entity.Employee.Name,
                 CreationDate = parseDate(entity.Creation_Date),
                 LastEditedDate = parseDate(entity.Last_Edited),
                 Name = entity.Name,
                 ResumeId = entity.ResumeId,
-                TemplateID = entity.TemplateId,
+                TemplateId = entity.TemplateId,
                 TemplateName = entity.Template?.Title,
-                Status = entity.Status.ToString(),
+                Status = entity.Status,
                 SectorList = entity.Sectors.Select(x => SectorEntityToModel(x)).ToList()
             };
 

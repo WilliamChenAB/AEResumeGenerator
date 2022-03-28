@@ -31,5 +31,12 @@ namespace ae_resume_api.Controllers
             // TODO: Implement
             return BadRequest("Not implemented");
         }
+
+        [HttpGet]
+        [Route("Identity")]
+        public IActionResult Identity()
+        {
+            return new JsonResult(from c in User.Claims select new { c.Type, c.Value });
+        }
     }
 }

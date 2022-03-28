@@ -114,10 +114,10 @@ namespace ae_resume_api.Controllers
 							  CreationDate = ControllerHelpers.parseDate(r.Creation_Date),
 							  LastEditedDate = ControllerHelpers.parseDate(r.Last_Edited),
 							  ResumeId = r.ResumeId,
-							  Status = r.Status.ToString(),
+							  Status = r.Status,
 							  WorkspaceId = r.WorkspaceId,
 							  Name = r.Name,
-							  TemplateID = r.TemplateId,
+							  TemplateId = r.TemplateId,
 							  TemplateName = r.Template.Title
 						  };
 

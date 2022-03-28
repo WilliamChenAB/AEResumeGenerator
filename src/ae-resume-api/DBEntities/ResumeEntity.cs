@@ -16,10 +16,8 @@ public class ResumeEntity
 	public int ResumeId { get; set; }
 	public string Creation_Date { get; set; }
 	public string Last_Edited { get; set; }
-	//public string? EmployeeName { get; set; }  //MAKE COMPUTED
 	public Status Status { get; set; }
 	public string Name { get; set; }
-	// public string TemplateName { get; set; }  //MAKE COMPUTED
 
 	public Guid EmployeeId { get; set; }
 	[JsonIgnore]

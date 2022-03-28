@@ -23,10 +23,12 @@ namespace ae_resume_api
             services.AddSwaggerGen();
 
             // For Entity Framework
-            services.AddDbContext<DatabaseContext>(options =>
-                options.UseLazyLoadingProxies()
-                       .UseSqlServer(Configuration.GetConnectionString("ConnStr"))
-            );
+            services.AddScoped(x => {
+                DbContextOptionsBuilder<DatabaseContext> dbBuilder = new DbContextOptionsBuilder<DatabaseContext>();
+                dbBuilder.UseLazyLoadingProxies()
+                         .UseSqlServer(Configuration.GetConnectionString("ConnStr4"));
+                return new DatabaseContext(dbBuilder.Options);
+            });
 
             services.AddScoped<IAuthorizationHandler, AccessHandler>();
 
