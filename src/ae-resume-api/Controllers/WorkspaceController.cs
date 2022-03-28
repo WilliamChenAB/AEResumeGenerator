@@ -293,7 +293,7 @@ namespace ae_resume_api.Controllers
 		[HttpPost]
 		[Route("AddEmptyResume")]
 		[Authorize(Policy = "PA")]
-		public async Task<IActionResult> AddEmptyResume(int WorkspaceId, int TID, string resumeName)
+		public async Task<IActionResult> AddEmptyResume(int WorkspaceId, int TemplateID, string resumeName)
 		{
 			var workspace = await _databaseContext.Workspace.FindAsync(WorkspaceId);
 			if (workspace == null) return NotFound("Workspace not found");
@@ -313,9 +313,38 @@ namespace ae_resume_api.Controllers
 			entity.Last_Edited = ControllerHelpers.CurrentTimeAsString();
 			entity.Creation_Date = ControllerHelpers.CurrentTimeAsString();
 			entity.Name = resumeName;
-			entity.TemplateId = TID;
+			entity.TemplateId = TemplateID;
 
-			_databaseContext.Resume.Add(entity);
+			// Get the template
+			var template = await _databaseContext.Template.FindAsync(TemplateID);
+			if (template == null)
+			{
+				return NotFound("Template not found");
+			}
+			var templateModel = ControllerHelpers.TemplateEntityToModel(template);
+			// Get all sector types for the template
+			templateModel.SectorTypes =
+				template.TemplateSectors
+				.Select(s => ControllerHelpers.SectorTypeEntityToModel(s.SectorType))
+				.ToList();
+
+			var resultResume = _databaseContext.Resume.AddAsync(entity).Result;
+			await _databaseContext.SaveChangesAsync();
+
+			// Add the sectors to the sector table and assign to created resume
+			foreach (var sectorType in templateModel.SectorTypes)
+			{
+				_databaseContext.Sector.Add(new SectorEntity
+				{
+					Creation_Date = ControllerHelpers.CurrentTimeAsString(),
+					Last_Edited = ControllerHelpers.CurrentTimeAsString(),
+					Content = "",
+					TypeId = sectorType.TypeId,
+					ResumeId = resultResume.Entity.ResumeId,
+					Division = workspace.Division,
+					Image = ""
+				});
+			}
 
 			try
 			{

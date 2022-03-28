@@ -48,7 +48,7 @@ namespace ae_resume_api.Controllers
         [HttpPut]
         [Route("Edit")]
         [Authorize(Policy = "SA")]
-        public async Task<IActionResult> Edit(int SectorTypeId, string title, string description)
+        public async Task<IActionResult> Edit(int SectorTypeId, string? title, string? description)
         {
             var sectorType = await _databaseContext.SectorType.FindAsync(SectorTypeId);
 
@@ -56,6 +56,10 @@ namespace ae_resume_api.Controllers
             {
                 return NotFound("Sector Type not found");
             }
+
+            // Clean input filter
+            title = title ?? "";
+            description = description ?? "";
 
             sectorType.Title = title;
             sectorType.Description = description;
