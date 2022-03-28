@@ -220,7 +220,7 @@ namespace ae_resume_api.Controllers
 		[HttpPost]
 		[Route("CreateTemplateRequest")]
 		[Authorize(Policy = "PA")]
-		public async Task<IActionResult> CreateTemplateRequest(int TemplateID, string EmployeeId, int WorkspaceId)
+		public async Task<IActionResult> CreateTemplateRequest(int TemplateId, string EmployeeId, int WorkspaceId)
 		{
 			var guid = Guid.Parse(EmployeeId);
 
@@ -235,7 +235,7 @@ namespace ae_resume_api.Controllers
 			RemoveExistingResumes(workspace, guid);
 
 			// Create a blank resume that has all the sectors in the template
-			var template = await _databaseContext.Template.FindAsync(TemplateID);
+			var template = await _databaseContext.Template.FindAsync(TemplateId);
 			if (template == null)
 			{
 				return NotFound("Template not found");
@@ -245,7 +245,7 @@ namespace ae_resume_api.Controllers
 
 
 			ResumeEntity templateResume = new ResumeEntity();
-			templateResume.TemplateId = TemplateID;
+			templateResume.TemplateId = TemplateId;
 			templateResume.Status = Status.Requested;
 			templateResume.EmployeeId = guid;
 			templateResume.WorkspaceId = WorkspaceId;
@@ -259,7 +259,7 @@ namespace ae_resume_api.Controllers
 				.Select(s => ControllerHelpers.SectorTypeEntityToModel(s.SectorType))
 				.ToList();
 
-			var resultResume = _databaseContext.Resume.AddAsync(templateResume).Result;
+			var resultResume = await _databaseContext.Resume.AddAsync(templateResume);
 			await _databaseContext.SaveChangesAsync();
 
 			// Add the sectors to the sector table and assign to created resume
@@ -293,7 +293,7 @@ namespace ae_resume_api.Controllers
 		[HttpPost]
 		[Route("AddEmptyResume")]
 		[Authorize(Policy = "PA")]
-		public async Task<IActionResult> AddEmptyResume(int WorkspaceId, int TemplateID, string resumeName)
+		public async Task<IActionResult> AddEmptyResume(int WorkspaceId, int TemplateId, string resumeName)
 		{
 			var workspace = await _databaseContext.Workspace.FindAsync(WorkspaceId);
 			if (workspace == null) return NotFound("Workspace not found");
@@ -313,10 +313,10 @@ namespace ae_resume_api.Controllers
 			entity.Last_Edited = ControllerHelpers.CurrentTimeAsString();
 			entity.Creation_Date = ControllerHelpers.CurrentTimeAsString();
 			entity.Name = resumeName;
-			entity.TemplateId = TemplateID;
+			entity.TemplateId = TemplateId;
 
 			// Get the template
-			var template = await _databaseContext.Template.FindAsync(TemplateID);
+			var template = await _databaseContext.Template.FindAsync(TemplateId);
 			if (template == null)
 			{
 				return NotFound("Template not found");
@@ -394,7 +394,7 @@ namespace ae_resume_api.Controllers
 			}
 			catch (Exception ex)
 			{
-				return NotFound(ex.Message);
+				return NotFound("CAUGHT EXCEPTION: " + ex.Message);
 			}
 
 			return Ok(workspaceResume);

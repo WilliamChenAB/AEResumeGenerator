@@ -56,7 +56,7 @@ namespace ae_resume_api.Controllers
 
             return CreatedAtAction(
                 nameof(Get),
-                new { TemplateID = model.TemplateId },
+                new { TemplateId = model.TemplateId },
                 result);
         }
 
@@ -65,16 +65,16 @@ namespace ae_resume_api.Controllers
         /// </summary>
         [HttpGet]
         [Route("Get")]
-        public async Task<ActionResult<TemplateModel>> Get(int templateID)
+        public async Task<ActionResult<TemplateModel>> Get(int TemplateId)
         {
-            var template = await _databaseContext.Template.FindAsync(templateID);
+            var template = await _databaseContext.Template.FindAsync(TemplateId);
             if (template == null) return NotFound("Template not found");
 
             // Convert template to Model and add sector types
             var result = ControllerHelpers.TemplateEntityToModel(template);
             //result.SectorTypes = (from s in _databaseContext.Template_Type
             //                     join t in _databaseContext.SectorType on s.TypeId equals t.TypeId
-            //                     where s.TemplateID == templateID
+            //                     where s.TemplateId == TemplateId
             //                     select ControllerHelpers.SectorTypeEntityToModel(t)).ToList();
 
             return result;
@@ -87,9 +87,9 @@ namespace ae_resume_api.Controllers
         [HttpPut]
         [Route("Edit")]
         [Authorize(Policy = "SA")]
-        public async Task<IActionResult> Edit(int templateID, string? title, string? description)
+        public async Task<IActionResult> Edit(int TemplateId, string? title, string? description)
         {
-            var template = await _databaseContext.Template.FindAsync(templateID);
+            var template = await _databaseContext.Template.FindAsync(TemplateId);
             if (template == null) return NotFound("Template not found");
 
             // Clean input filter
@@ -116,9 +116,9 @@ namespace ae_resume_api.Controllers
         [HttpDelete]
         [Route("Delete")]
         [Authorize(Policy = "SA")]
-        public async Task<IActionResult> Delete(int templateID)
+        public async Task<IActionResult> Delete(int TemplateId)
         {
-            var template = await _databaseContext.Template.FindAsync(templateID);
+            var template = await _databaseContext.Template.FindAsync(TemplateId);
             if (template == null) return NotFound("Template not found");
 
             _databaseContext.Template.Remove(template);
@@ -138,13 +138,13 @@ namespace ae_resume_api.Controllers
         /// <summary>
         /// Get all the SectorTypes in a Resume Template
         /// </summary>
-        /// <param name="templateID"></param>
+        /// <param name="TemplateId"></param>
         /// <returns></returns>
         [HttpGet]
         [Route("GetSectors")]
-        public async Task<ActionResult<IEnumerable<SectorTypeModel>>> GetSectors(int templateID)
+        public async Task<ActionResult<IEnumerable<SectorTypeModel>>> GetSectors(int TemplateId)
         {
-            var template = await _databaseContext.Template.FindAsync(templateID);
+            var template = await _databaseContext.Template.FindAsync(TemplateId);
 
             if (template == null) return new List<SectorTypeModel>();
 
@@ -159,19 +159,19 @@ namespace ae_resume_api.Controllers
         [HttpPost]
         [Route("AssignSectorType")]
         [Authorize(Policy = "SA")]
-        public async Task<IActionResult> AssignSectorType(int templateID, IEnumerable<int> SectorTypeId)
+        public async Task<IActionResult> AssignSectorType(int TemplateId, IEnumerable<int> sectorTypeId)
         {
-            var template = await _databaseContext.Template.FindAsync(templateID);
+            var template = await _databaseContext.Template.FindAsync(TemplateId);
             if (template == null) return NotFound("Template does not exist");
 
             //Re wite associative table with new values
             template.TemplateSectors.ForEach(x => _databaseContext.TemplateSector.Remove(x));
 
-            foreach (var id in SectorTypeId)
+            foreach (var id in sectorTypeId)
             {
                 TemplateSectorEntity entity = new TemplateSectorEntity
                 {
-                    TemplateId = templateID,
+                    TemplateId = TemplateId,
                     TypeId = id
                 };
                 _databaseContext.TemplateSector.Add(entity);

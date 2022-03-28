@@ -12,14 +12,14 @@ using ae_resume_api.DBContext;
 namespace ae_resume_api.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    [Migration("20220327131740_init")]
+    [Migration("20220327233340_init")]
     partial class init
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "6.0.2")
+                .HasAnnotation("ProductVersion", "6.0.3")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder, 1L, 1);

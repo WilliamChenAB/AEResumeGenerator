@@ -25,7 +25,7 @@ namespace ae_resume_api
             // For Entity Framework
             services.AddDbContext<DatabaseContext>(options =>
                 options.UseLazyLoadingProxies()
-                       .UseSqlServer(Configuration.GetConnectionString("ConnStr"))
+                       .UseSqlServer(Configuration.GetConnectionString("ConnStr4"))
             );
 
             services.AddScoped<IAuthorizationHandler, AccessHandler>();
