@@ -298,7 +298,9 @@ namespace ae_resume_api.Controllers
 			var workspace = await _databaseContext.Workspace.FindAsync(WorkspaceId);
 			if (workspace == null) return NotFound("Workspace not found");
 
-			var guid = workspace.EmployeeId;
+			var EmployeeId = User.FindFirst(configuration["TokenIDClaimType"])?.Value;
+			if (EmployeeId == null) return NotFound();
+			var guid = Guid.Parse(EmployeeId);
 
 			var employee = await _databaseContext.Employee.FindAsync(guid);
 			if (employee == null) return NotFound("Employee not found");
@@ -376,6 +378,7 @@ namespace ae_resume_api.Controllers
 
 			// Assign status to regular and create copy to be stored in the workspace
 			resume.Status = Status.Regular;
+			resume.WorkspaceId = null;
 
 			var workspaceResume = new ResumeEntity();
 			workspaceResume.WorkspaceId = WorkspaceId;

@@ -64,6 +64,9 @@ namespace ae_resume_api.Controllers
 			foreach (var resume in resumes)
 			{
 				resume.Status = Status.Exported;
+				resume.WorkspaceId = 0;
+				// TODO: Create copy of resume to assign to exported
+				// TODO: one text file for each resume
 				result.Add(ControllerHelpers.ResumeEntityToModel(resume));
 			}
 
