@@ -3,6 +3,8 @@ using ae_resume_api.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.IO.Compression;
+using System.Text.Json;
 
 namespace ae_resume_api.Controllers
 {
@@ -41,14 +43,14 @@ namespace ae_resume_api.Controllers
 		/// </summary>
 		[HttpGet]
 		[Route("ResumesInWorkspace")]
-		public async Task<IActionResult> ExportResumesInWorkspace(int WorkspaceId)
+		public async Task ExportResumesInWorkspace(int WorkspaceId)
 		{
 			var workspace = await _databaseContext.Workspace.FindAsync(WorkspaceId);
 
-			if (workspace == null)
-			{
-				return NotFound("Workspace not found");
-			}
+			//if (workspace == null)
+			//{
+			//	return null;
+			//}
 
 			var resumes = await (from r in _databaseContext.Resume
 								 where r.WorkspaceId == WorkspaceId
@@ -67,8 +69,29 @@ namespace ae_resume_api.Controllers
 			await _databaseContext.SaveChangesAsync();
 
 			// TODO: zip output
-			return new JsonResult(result);
+			
 
+			// Create a file to write to
+			string path = System.IO.Directory.GetCurrentDirectory() + @".\resumes.txt";
+			using (StreamWriter sw = System.IO.File.CreateText(path))
+			{
+				sw.WriteLine(JsonSerializer.Serialize(result));
+			}
+
+			Response.ContentType = "application/octet-stream";
+			Response.Headers.Add("Content-Disposition", "attachment; filename=\"resumes.zip\"");
+			using (ZipArchive archive = new ZipArchive(Response.BodyWriter.AsStream(), ZipArchiveMode.Create))
+			{
+					var botFileName = Path.GetFileName(path);
+					var entry = archive.CreateEntry(botFileName);
+					using (var entryStream = entry.Open())
+					using (var fileStream = System.IO.File.OpenRead(path))
+					{
+						await fileStream.CopyToAsync(entryStream);
+					}			
+			}			
+
+			//return new JsonResult(result);
 		}
 
 		/// <summary>
