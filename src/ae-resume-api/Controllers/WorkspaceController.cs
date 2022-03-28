@@ -21,7 +21,7 @@ namespace ae_resume_api.Controllers
 			this.configuration = configuration;
 		}
 
-		private async void RemoveExistingResumes(WorkspaceEntity workspace, Guid employeeId)
+		private async Task RemoveExistingResumes(WorkspaceEntity workspace, Guid employeeId)
         {
 			var existing = workspace.Resumes.FindAll(r => r.EmployeeId == employeeId);
 			if (existing != null)
@@ -142,7 +142,7 @@ namespace ae_resume_api.Controllers
 			resume.Status = Status.Regular;
 
 			//Check if the employee already has a resume in the workspace and remove it
-			RemoveExistingResumes(workspace, resume.EmployeeId);
+			await RemoveExistingResumes(workspace, resume.EmployeeId);
 
 			// Create a new Resume with the same sectors but new SectorId and add to Workspace
 			ResumeEntity entity = new ResumeEntity
@@ -232,7 +232,7 @@ namespace ae_resume_api.Controllers
 			if (workspace == null) return NotFound("Workspace not found");
 
 			// Check if the employee already has a resume in the workspace and remove it
-			RemoveExistingResumes(workspace, guid);
+			await RemoveExistingResumes(workspace, guid);
 
 			// Create a blank resume that has all the sectors in the template
 			var template = await _databaseContext.Template.FindAsync(TemplateId);
@@ -304,7 +304,7 @@ namespace ae_resume_api.Controllers
 			if (employee == null) return NotFound("Employee not found");
 
 			//Check if the employee already has a resume in the workspace and remove it
-			RemoveExistingResumes(workspace, guid);
+			await RemoveExistingResumes(workspace, guid);
 
 			ResumeEntity entity = new ResumeEntity();
 			entity.EmployeeId = guid;
@@ -372,7 +372,7 @@ namespace ae_resume_api.Controllers
 			//Check if the employee already has a resume in the workspace and remove it
 			var workspace = await _databaseContext.Workspace.FindAsync(WorkspaceId);
 			if (workspace == null) return NotFound();
-			RemoveExistingResumes(workspace, guid);
+			await RemoveExistingResumes(workspace, guid);
 
 			// Assign status to regular and create copy to be stored in the workspace
 			resume.Status = Status.Regular;
