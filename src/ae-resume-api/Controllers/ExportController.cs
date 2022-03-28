@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.IO.Compression;
+using System.Text;
 using System.Text.Json;
 
 namespace ae_resume_api.Controllers
@@ -43,16 +44,16 @@ namespace ae_resume_api.Controllers
 		/// </summary>
 		[HttpGet]
 		[Route("ResumesInWorkspace")]
-		public async Task ExportResumesInWorkspace(int WorkspaceId)
+		public async Task<IActionResult> ExportResumesInWorkspace(int WorkspaceId)
 		{
 			var workspace = await _databaseContext.Workspace.FindAsync(WorkspaceId);
 
-			//if (workspace == null)
-			//{
-			//	return null;
-			//}
+            if (workspace == null)
+            {
+                return NotFound("Workspace not found");
+            }
 
-			var resumes = await (from r in _databaseContext.Resume
+            var resumes = await (from r in _databaseContext.Resume
 								 where r.WorkspaceId == WorkspaceId
 								 select r).ToListAsync();
 
@@ -68,28 +69,40 @@ namespace ae_resume_api.Controllers
 
 			await _databaseContext.SaveChangesAsync();
 
-			// TODO: zip output
-			
-
+						
 			// Create a file to write to
-			string path = System.IO.Directory.GetCurrentDirectory() + @".\resumes.txt";
+			string path = Path.Combine(System.IO.Directory.GetCurrentDirectory(), "resumes.txt");
 			using (StreamWriter sw = System.IO.File.CreateText(path))
 			{
 				sw.WriteLine(JsonSerializer.Serialize(result));
 			}
-
-			Response.ContentType = "application/octet-stream";
-			Response.Headers.Add("Content-Disposition", "attachment; filename=\"resumes.zip\"");
-			using (ZipArchive archive = new ZipArchive(Response.BodyWriter.AsStream(), ZipArchiveMode.Create))
+			var text = JsonSerializer.Serialize(result);
+			var zipFileMemoryStream = new MemoryStream();			
+			using (ZipArchive archive = new ZipArchive(zipFileMemoryStream, ZipArchiveMode.Update, leaveOpen: true))
 			{
-					var botFileName = Path.GetFileName(path);
-					var entry = archive.CreateEntry(botFileName);
+					var entry = archive.CreateEntry("resumes.txt");
 					using (var entryStream = entry.Open())
-					using (var fileStream = System.IO.File.OpenRead(path))
+					using (MemoryStream stringInMemoryStream = new MemoryStream(ASCIIEncoding.Default.GetBytes(text)))
 					{
-						await fileStream.CopyToAsync(entryStream);
-					}			
-			}			
+						await stringInMemoryStream.CopyToAsync(entryStream);
+					}				
+			}
+
+			zipFileMemoryStream.Seek(0, SeekOrigin.Begin);
+			return File(zipFileMemoryStream, "application/octet-stream", "resumes.zip");
+
+			//Response.ContentType = "application/octet-stream";
+			//Response.Headers.Add("Content-Disposition", "attachment; filename=\"resumes.zip\"");
+			//using (ZipArchive archive = new ZipArchive(Response.BodyWriter.AsStream(), ZipArchiveMode.Create))
+			//{
+			//		var botFileName = Path.GetFileName(path);
+			//		var entry = archive.CreateEntry(botFileName);
+			//		using (var entryStream = entry.Open())
+			//		using (var fileStream = System.IO.File.OpenRead(path))
+			//		{
+			//			await fileStream.CopyToAsync(entryStream);
+			//		}			
+			//}			
 
 			//return new JsonResult(result);
 		}
