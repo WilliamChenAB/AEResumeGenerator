@@ -11,6 +11,7 @@ using Microsoft.Extensions.Configuration;
 using ae_resume_api.Tests;
 using System.IO;
 using IdentityModel.Client;
+using System.IO.Compression;
 
 namespace ae_resume_api.Controllers.Tests
 {
@@ -210,7 +211,15 @@ namespace ae_resume_api.Controllers.Tests
             _client.SetBearerToken(token);
 
             var response = await _client.GetAsync("/Export/ResumesInWorkspace?WorkspaceId=1");
-            response.EnsureSuccessStatusCode();
+            response.EnsureSuccessStatusCode();             
+            var receiveStream = await response.Content.ReadAsStreamAsync();
+            using (var zipArchive = new ZipArchive(receiveStream))
+            {
+                // Gets the full path to ensure that relative segments are removed.
+                zipArchive.Entries[0].ExtractToFile("myfile.txt");
+            }
+
+            //Load report straight from the zip stream                        
             var stringResponse = await response.Content.ReadAsStringAsync();
             Console.WriteLine(stringResponse);
         }

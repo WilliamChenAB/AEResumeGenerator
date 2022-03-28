@@ -74,11 +74,11 @@ namespace ae_resume_api.Controllers
             // https://swimburger.net/blog/dotnet/create-zip-files-on-http-request-without-intermediate-files-using-aspdotnet-mvc-razor-pages-and-endpoints
 
             string path = "resumes.txt";
-            using (StreamWriter sw = System.IO.File.CreateText(path))
-            {
-                sw.WriteLine(JsonSerializer.Serialize(result));
-            }
-            //         var text = JsonSerializer.Serialize(result);
+            //using (StreamWriter sw = System.IO.File.CreateText(path))
+            //{
+            //    sw.WriteLine(JsonSerializer.Serialize(result));
+            //}
+            var text = JsonSerializer.Serialize(result);
             //var zipFileMemoryStream = new MemoryStream();			
             //using (ZipArchive archive = new ZipArchive(zipFileMemoryStream, ZipArchiveMode.Update, leaveOpen: true))
             //{
@@ -100,9 +100,9 @@ namespace ae_resume_api.Controllers
                 var botFileName = Path.GetFileName(path);
                 var entry = archive.CreateEntry(botFileName);
                 using (var entryStream = entry.Open())
-                using (var fileStream = System.IO.File.OpenRead(path))
+                using (MemoryStream stringInMemoryStream = new MemoryStream(ASCIIEncoding.Default.GetBytes(text)))
                 {
-                    await fileStream.CopyToAsync(entryStream);
+                    await stringInMemoryStream.CopyToAsync(entryStream);
                 }
             }
 
