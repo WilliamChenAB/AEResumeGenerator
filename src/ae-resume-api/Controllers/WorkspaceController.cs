@@ -90,6 +90,11 @@ namespace ae_resume_api.Controllers
 
 			if (workspace == null) return NotFound("Workspace not found");
 
+			// Don't delete this - it loads the resumes into memory so that ClientCascade works correctly.
+			// We're not using regular Cascading because it causes deletion cycles, so this lets us control the scope of the cascade
+			// If you're curious, see https://docs.microsoft.com/en-us/ef/core/saving/cascade-delete?msclkid=cd55484aaf3e11ecbedf860b25799ab7#database-cascade-limitations
+			var resumes = workspace.Resumes;
+
 			_databaseContext.Workspace.Remove(workspace);
 			await _databaseContext.SaveChangesAsync();
 

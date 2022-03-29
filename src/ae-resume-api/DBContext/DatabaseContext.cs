@@ -19,6 +19,12 @@ namespace ae_resume_api.DBContext
             // Add unique name constraints
             builder.Entity<SectorTypeEntity>().
                 HasIndex(st => st.Title).IsUnique();
+
+            // Force cascade on workspaces
+            builder.Entity<WorkspaceEntity>()
+                .HasMany(e => e.Resumes)
+                .WithOne(e => e.Workspace)
+                .OnDelete(DeleteBehavior.ClientCascade);
         }
 
         // Entity tables
