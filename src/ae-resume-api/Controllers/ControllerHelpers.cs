@@ -20,6 +20,12 @@ namespace ae_resume_api.Controllers
             return DateTime.Now.ToString(DATE_TIME_FORMAT);
         }
 
+        public static bool ResumeIsPersonal(ResumeEntity r)
+        {
+            return (r.Status == Status.Regular && r.WorkspaceId == null)
+                || r.Status == Status.Requested;
+        }
+
         public static SectorModel SectorEntityToModel(SectorEntity entity) =>
             new SectorModel
             {

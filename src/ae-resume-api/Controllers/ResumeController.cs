@@ -63,6 +63,7 @@ namespace ae_resume_api.Controllers
 			};
 
 			var resume = _databaseContext.Resume.Add(entity);
+			await _databaseContext.SaveChangesAsync();
 
 			foreach (var sector in sectorTypes)
 			{
@@ -134,7 +135,7 @@ namespace ae_resume_api.Controllers
 			resume.Creation_Date = ControllerHelpers.CurrentTimeAsString();
 			resume.Last_Edited = ControllerHelpers.CurrentTimeAsString();
 			resume.Name = resumeName;
-			
+
 
 			try
 			{
@@ -185,11 +186,10 @@ namespace ae_resume_api.Controllers
 		public async Task<ActionResult<IEnumerable<ResumeModel>>> GetPersonalForEmployee(string EmployeeId)
 		{
 			// TODO: add only three statuses for resumes reqested, regular, exported
-			var resumes = _databaseContext.Resume.Where(r =>
-					r.EmployeeId == Guid.Parse(EmployeeId) &&
-					((r.Status == Status.Regular && r.WorkspaceId == null)
-					|| r.Status == Status.Requested)
-				).ToList();
+			var resumes = _databaseContext.Resume
+				.Where(r => r.EmployeeId == Guid.Parse(EmployeeId))
+				.ToList()
+				.Where(r => ControllerHelpers.ResumeIsPersonal(r));
 
 			if (resumes == null) return NotFound("Resume not found");
 

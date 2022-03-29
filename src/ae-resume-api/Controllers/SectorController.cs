@@ -129,24 +129,26 @@ namespace ae_resume_api.Controllers
 		/// Get all Sectors from an Employee
 		/// </summary>
 		[HttpGet]
-		[Route("GetAll")]
-		public async Task<ActionResult<IEnumerable<SectorModel>>> GetAll()
+		[Route("GetAllPersonal")]
+		public async Task<ActionResult<IEnumerable<SectorModel>>> GetAllPersonal()
 		{
 			var EmployeeId = User.FindFirst(configuration["TokenIDClaimType"])?.Value;
 			if (EmployeeId == null) return NotFound();
-			return await GetAllForEmployee(EmployeeId);
+
+			return await GetAllHelper(EmployeeId, null, true);
 		}
 
 		/// <summary>
 		/// Get all Sectors from an Employee
 		/// </summary>
 		[HttpGet]
-		[Route("GetAllByType")]
-		public async Task<ActionResult<IEnumerable<SectorModel>>> GetAllByType(int TypeId)
+		[Route("GetAllPersonalByType")]
+		public async Task<ActionResult<IEnumerable<SectorModel>>> GetAllPersonalByType(int TypeId)
 		{
 			var EmployeeId = User.FindFirst(configuration["TokenIDClaimType"])?.Value;
 			if (EmployeeId == null) return NotFound();
-			return await GetAllForEmployeeByType(EmployeeId, TypeId);
+
+			return await GetAllHelper(EmployeeId, TypeId, true);
 		}
 
 		/// <summary>
@@ -157,23 +159,7 @@ namespace ae_resume_api.Controllers
 		[Authorize(Policy = "PA")]
 		public async Task<ActionResult<IEnumerable<SectorModel>>> GetAllForEmployee(string EmployeeId)
 		{
-			var guid = Guid.Parse(EmployeeId);
-			var employee = await _databaseContext.Employee.FindAsync(guid);
-
-			if (employee == null)
-			{
-				return NotFound("Employee not found");
-			}
-
-			List<SectorModel> sectorList = new List<SectorModel>();
-			var sectors = _databaseContext.Sector.Where(s => s.Resume.EmployeeId == guid).OrderBy(s => s.TypeId);
-
-			foreach (var sector in sectors)
-			{
-				sectorList.Add(ControllerHelpers.SectorEntityToModel(sector));
-			}
-
-			return sectorList;
+			return await GetAllHelper(EmployeeId, null, false);
 		}
 
 		/// <summary>
@@ -184,16 +170,23 @@ namespace ae_resume_api.Controllers
 		[Authorize(Policy = "PA")]
 		public async Task<ActionResult<IEnumerable<SectorModel>>> GetAllForEmployeeByType(string EmployeeId, int TypeId)
 		{
+			return await GetAllHelper(EmployeeId, TypeId, false);
+		}
+
+		private async Task<ActionResult<IEnumerable<SectorModel>>> GetAllHelper(string EmployeeId, int? TypeId, bool personalOnly)
+		{
 			var guid = Guid.Parse(EmployeeId);
 			var employee = await _databaseContext.Employee.FindAsync(guid);
-
-			if (employee == null)
-			{
-				return NotFound("Employee not found");
-			}
+			if (employee == null) return NotFound("Employee not found");
 
 			List<SectorModel> sectorList = new List<SectorModel>();
-			var sectors = _databaseContext.Sector.Where(s => s.Resume.EmployeeId == guid && s.TypeId == TypeId);
+			var sectors =
+				_databaseContext.Sector.Where(s => s.Resume.EmployeeId == guid)
+				.ToList()
+				.Where(
+					s => (TypeId == null ? true : s.TypeId == TypeId) &&
+					(!personalOnly || ControllerHelpers.ResumeIsPersonal(s.Resume)))
+				.OrderBy(s => s.TypeId);
 
 			foreach (var sector in sectors)
 			{
