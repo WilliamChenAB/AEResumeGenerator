@@ -2,6 +2,7 @@
 using ae_resume_api.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace ae_resume_api.Controllers
 {
@@ -49,9 +50,6 @@ namespace ae_resume_api.Controllers
 			var employee = await _databaseContext.Employee.FindAsync(guid);
 			if (employee == null) return NotFound("Employee not found");
 
-			// Find the Sector Types associated with that template
-			var sectorTypes = template.TemplateSectors.Select(x => x.SectorType).ToList();
-
 			ResumeEntity entity = new ResumeEntity
 			{
 				Creation_Date = ControllerHelpers.CurrentTimeAsString(),
@@ -65,22 +63,7 @@ namespace ae_resume_api.Controllers
 			var resume = _databaseContext.Resume.Add(entity);
 			await _databaseContext.SaveChangesAsync();
 
-			foreach (var sector in sectorTypes)
-			{
-				_databaseContext.Sector.Add(new SectorEntity
-				{
-					Creation_Date = ControllerHelpers.CurrentTimeAsString(),
-					Last_Edited = ControllerHelpers.CurrentTimeAsString(),
-					Content = "",
-					TypeId = sector.TypeId,
-					ResumeId = resume.Entity.ResumeId,
-					Division = "",
-					Image = ""
-				});
-			}
-
-
-			await _databaseContext.SaveChangesAsync();
+			await ControllerHelpers.PopulateTemplateSectors(template, resume.Entity.ResumeId, _databaseContext);
 
 			return CreatedAtAction(
 				nameof(Get),
@@ -186,9 +169,10 @@ namespace ae_resume_api.Controllers
 		public async Task<ActionResult<IEnumerable<ResumeModel>>> GetPersonalForEmployee(string EmployeeId)
 		{
 			// TODO: add only three statuses for resumes reqested, regular, exported
-			var resumes = _databaseContext.Resume
+			var resumes =
+				(await _databaseContext.Resume
 				.Where(r => r.EmployeeId == Guid.Parse(EmployeeId))
-				.ToList()
+				.ToListAsync())
 				.Where(r => ControllerHelpers.ResumeIsPersonal(r));
 
 			if (resumes == null) return NotFound("Resume not found");

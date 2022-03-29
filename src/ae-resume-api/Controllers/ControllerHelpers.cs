@@ -1,4 +1,5 @@
-﻿using ae_resume_api.Models;
+﻿using ae_resume_api.DBContext;
+using ae_resume_api.Models;
 using ae_resume_api.Models;
 using ae_resume_api.Models;
 using System.Globalization;
@@ -24,6 +25,27 @@ namespace ae_resume_api.Controllers
         {
             return (r.Status == Status.Regular && r.WorkspaceId == null)
                 || r.Status == Status.Requested;
+        }
+
+        public static async Task PopulateTemplateSectors(TemplateEntity template, int resumeId, DatabaseContext databaseContext)
+        {
+            var sectorTypes = template.TemplateSectors.Select(x => x.SectorType).ToList();
+
+            foreach (var sector in sectorTypes)
+            {
+                databaseContext.Sector.Add(new SectorEntity
+                {
+                    Creation_Date = CurrentTimeAsString(),
+                    Last_Edited = CurrentTimeAsString(),
+                    Content = "",
+                    TypeId = sector.TypeId,
+                    ResumeId = resumeId,
+                    Division = "",
+                    Image = ""
+                });
+            }
+
+            await databaseContext.SaveChangesAsync();
         }
 
         public static SectorModel SectorEntityToModel(SectorEntity entity) =>

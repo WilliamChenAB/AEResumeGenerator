@@ -124,69 +124,6 @@ namespace ae_resume_api.Controllers
 		// RESUMES
 		// ===============================================================================
 
-
-		/// <summary>
-		/// Copy a Resume to a Workspace
-		/// </summary>
-		[HttpPost]
-		[Route("CopyResume")]
-		[Authorize(Policy = "PA")]
-		public async Task<IActionResult> CopyResume(int ResumeId, int WorkspaceId)
-		{
-			var workspace = await _databaseContext.Workspace.FindAsync(WorkspaceId);
-			if (workspace == null) return NotFound("Workspace not found");
-
-			// Update old copy to regular
-			var resume = await _databaseContext.Resume.FindAsync(ResumeId);
-			if (resume == null) return NotFound("Resume Not found");
-			resume.Status = Status.Regular;
-
-			//Check if the employee already has a resume in the workspace and remove it
-			await RemoveExistingResumes(workspace, resume.EmployeeId);
-
-			// Create a new Resume with the same sectors but new SectorId and add to Workspace
-			ResumeEntity entity = new ResumeEntity
-			{
-				Creation_Date = ControllerHelpers.CurrentTimeAsString(),
-				Last_Edited = ControllerHelpers.CurrentTimeAsString(),
-				EmployeeId = resume.EmployeeId,
-				Status = Status.Regular,
-				TemplateId = resume.TemplateId,
-				WorkspaceId = WorkspaceId,
-				Name = $"Copy of {resume.Name}"
-			};
-
-			// Add copy resume to db
-			var resultResume = _databaseContext.Resume.Add(entity);
-			await _databaseContext.SaveChangesAsync();
-
-			// Copy all of the sectors from the old resume to add to the Sector table
-			var sectors = _databaseContext.Sector.Where(sector => sector.ResumeId == resume.ResumeId);
-
-			sectors.ToList().ForEach(
-                s => _databaseContext.Sector.Add(new SectorEntity
-                {
-                    Content = s.Content,
-                    Creation_Date = ControllerHelpers.CurrentTimeAsString(),
-                    TypeId = s.TypeId,
-                    Last_Edited = s.Last_Edited,
-                    ResumeId = resultResume.Entity.ResumeId,
-                    Image = s.Image,
-                    Division = s.Division
-                }));
-
-			try
-			{
-				await _databaseContext.SaveChangesAsync();
-			}
-			catch (Exception ex)
-			{
-				return BadRequest(ex.Message);
-			}
-
-			return Ok(resultResume.Entity);
-		}
-
 		/// <summary>
 		/// Get all Resumes from a Workspace
 		/// </summary>
@@ -222,11 +159,29 @@ namespace ae_resume_api.Controllers
 		[Authorize(Policy = "PA")]
 		public async Task<IActionResult> CreateTemplateRequest(int TemplateId, string EmployeeId, int WorkspaceId)
 		{
+			return await AddResumeHelper(TemplateId, EmployeeId, WorkspaceId,
+				(wname, ename) => $"Resume Request for {wname}: Employee {ename}",
+				Status.Requested);
+		}
+
+		[HttpPost]
+		[Route("AddEmptyResume")]
+		[Authorize(Policy = "PA")]
+		public async Task<IActionResult> AddEmptyResume(int WorkspaceId, int TemplateId, string resumeName, string EmployeeId)
+		{
+			return await AddResumeHelper(TemplateId, EmployeeId, WorkspaceId, (_, _) => resumeName, Status.Regular);
+		}
+
+		private async Task<IActionResult> AddResumeHelper(int TemplateId, string EmployeeId, int WorkspaceId, Func<string,string,string> nameGen, Status status)
+		{
+			if (EmployeeId == null) return NotFound("Employee not found");
 			var guid = Guid.Parse(EmployeeId);
 
-			// Create a blank resume in the employee with the template type
 			var employee = await _databaseContext.Employee.FindAsync(guid);
 			if (employee == null) return NotFound("Employee not found");
+
+			var template = await _databaseContext.Template.FindAsync(TemplateId);
+			if (template == null) return NotFound("Template not found");
 
 			var workspace = await _databaseContext.Workspace.FindAsync(WorkspaceId); ;
 			if (workspace == null) return NotFound("Workspace not found");
@@ -235,47 +190,21 @@ namespace ae_resume_api.Controllers
 			await RemoveExistingResumes(workspace, guid);
 
 			// Create a blank resume that has all the sectors in the template
-			var template = await _databaseContext.Template.FindAsync(TemplateId);
-			if (template == null)
+			ResumeEntity entity = new ResumeEntity
 			{
-				return NotFound("Template not found");
-			}
-			var templateModel = ControllerHelpers.TemplateEntityToModel(template);
+				Last_Edited = ControllerHelpers.CurrentTimeAsString(),
+				Creation_Date = ControllerHelpers.CurrentTimeAsString(),
+				EmployeeId = guid,
+				TemplateId = TemplateId,
+				WorkspaceId = WorkspaceId,
+				Name = nameGen(workspace.Name, employee.Name),
+				Status = status
+			};
 
-
-
-			ResumeEntity templateResume = new ResumeEntity();
-			templateResume.TemplateId = TemplateId;
-			templateResume.Status = Status.Requested;
-			templateResume.EmployeeId = guid;
-			templateResume.WorkspaceId = WorkspaceId;
-			templateResume.Creation_Date = ControllerHelpers.CurrentTimeAsString();
-			templateResume.Last_Edited = ControllerHelpers.CurrentTimeAsString();
-			templateResume.Name = $"Resume Request for {workspace.Name}: Employee {employee.Name}";
-
-			// Get all sector types for the template
-			templateModel.SectorTypes =
-				template.TemplateSectors
-				.Select(s => ControllerHelpers.SectorTypeEntityToModel(s.SectorType))
-				.ToList();
-
-			var resultResume = await _databaseContext.Resume.AddAsync(templateResume);
+			var resume = _databaseContext.Resume.Add(entity);
 			await _databaseContext.SaveChangesAsync();
 
-			// Add the sectors to the sector table and assign to created resume
-			foreach (var sectorType in templateModel.SectorTypes)
-			{
-				_databaseContext.Sector.Add(new SectorEntity
-				{
-					Creation_Date = ControllerHelpers.CurrentTimeAsString(),
-					Last_Edited = ControllerHelpers.CurrentTimeAsString(),
-					Content = "",
-					TypeId = sectorType.TypeId,
-					ResumeId = resultResume.Entity.ResumeId,
-					Division = workspace.Division,
-					Image = ""
-				});
-			}
+			await ControllerHelpers.PopulateTemplateSectors(template, resume.Entity.ResumeId, _databaseContext);
 
 			try
 			{
@@ -290,119 +219,97 @@ namespace ae_resume_api.Controllers
 			return Ok(employee);
 		}
 
+		/// <summary>
+		/// Copy a Resume to a Workspace
+		/// </summary>
 		[HttpPost]
-		[Route("AddEmptyResume")]
+		[Route("CopyResume")]
 		[Authorize(Policy = "PA")]
-		public async Task<IActionResult> AddEmptyResume(int WorkspaceId, int TemplateId, string resumeName, string EmployeeId)
+		public async Task<IActionResult> CopyResume(int ResumeId, int WorkspaceId)
 		{
 			var workspace = await _databaseContext.Workspace.FindAsync(WorkspaceId);
 			if (workspace == null) return NotFound("Workspace not found");
-			
-			if (EmployeeId == null) return NotFound();
-			var guid = Guid.Parse(EmployeeId);
 
-			var employee = await _databaseContext.Employee.FindAsync(guid);
-			if (employee == null) return NotFound("Employee not found");
+			var resume = await _databaseContext.Resume.FindAsync(ResumeId);
+			if (resume == null) return NotFound("Resume Not found");
+			if (resume.WorkspaceId == WorkspaceId) return BadRequest("Cannot copy a resume to the workspace it resides in");
+
+			resume.Status = Status.Regular;
 
 			//Check if the employee already has a resume in the workspace and remove it
-			await RemoveExistingResumes(workspace, guid);
+			await RemoveExistingResumes(workspace, resume.EmployeeId);
 
-			ResumeEntity entity = new ResumeEntity();
-			entity.EmployeeId = guid;
-			entity.Status = Status.Regular;
-			entity.WorkspaceId = WorkspaceId;
-			entity.Last_Edited = ControllerHelpers.CurrentTimeAsString();
-			entity.Creation_Date = ControllerHelpers.CurrentTimeAsString();
-			entity.Name = resumeName;
-			entity.TemplateId = TemplateId;
-
-			// Get the template
-			var template = await _databaseContext.Template.FindAsync(TemplateId);
-			if (template == null)
+			// Create a new Resume with the same sectors but new SectorId and add to Workspace
+			ResumeEntity entity = new ResumeEntity
 			{
-				return NotFound("Template not found");
-			}
-			var templateModel = ControllerHelpers.TemplateEntityToModel(template);
-			// Get all sector types for the template
-			templateModel.SectorTypes =
-				template.TemplateSectors
-				.Select(s => ControllerHelpers.SectorTypeEntityToModel(s.SectorType))
-				.ToList();
+				Creation_Date = ControllerHelpers.CurrentTimeAsString(),
+				Last_Edited = ControllerHelpers.CurrentTimeAsString(),
+				EmployeeId = resume.EmployeeId,
+				Status = Status.Regular,
+				TemplateId = resume.TemplateId,
+				WorkspaceId = WorkspaceId,
+				Name = $"Copy of {resume.Name}"
+			};
 
-			var resultResume = _databaseContext.Resume.AddAsync(entity).Result;
+			// Add copy resume to db
+			var resultResume = _databaseContext.Resume.Add(entity);
 			await _databaseContext.SaveChangesAsync();
+			await CopySectorsHelper(resume, resultResume.Entity);
 
-			// Add the sectors to the sector table and assign to created resume
-			foreach (var sectorType in templateModel.SectorTypes)
-			{
-				_databaseContext.Sector.Add(new SectorEntity
-				{
-					Creation_Date = ControllerHelpers.CurrentTimeAsString(),
-					Last_Edited = ControllerHelpers.CurrentTimeAsString(),
-					Content = "",
-					TypeId = sectorType.TypeId,
-					ResumeId = resultResume.Entity.ResumeId,
-					Division = workspace.Division,
-					Image = ""
-				});
-			}
-
-			try
-			{
-				await _databaseContext.SaveChangesAsync();
-			}
-			catch (Exception ex)
-			{
-				return BadRequest(ex.Message);
-			}
-
-			return Ok(entity);
+			return Ok(resultResume.Entity);
 		}
+
 
 		[HttpPost]
 		[Route("SubmitResume")]
-		public async Task<IActionResult> SubmitResume(int ResumeId, int WorkspaceId)
+		public async Task<IActionResult> SubmitResume(int ResumeId)
 		{
-			var resume = await _databaseContext.Resume.FindAsync(ResumeId);
-			if (resume == null) return NotFound("Resume not found");
+			var workspaceResume = await _databaseContext.Resume.FindAsync(ResumeId);
+			if (workspaceResume == null) return NotFound("Resume not found");
+			if (workspaceResume.WorkspaceId == null) return NotFound("Workspace not found");
 
-			var EmployeeId = User.FindFirst(configuration["TokenIDClaimType"])?.Value;
-			if (EmployeeId == null) return NotFound("Employee not found");
-			var guid = Guid.Parse(EmployeeId);
-
-			//Check if the employee already has a resume in the workspace and remove it
-			var workspace = await _databaseContext.Workspace.FindAsync(WorkspaceId);
-			if (workspace == null) return NotFound("Workspace not found");
-			await RemoveExistingResumes(workspace, guid);
-
-			// Assign status to regular and create copy to be stored in the workspace
-			resume.Status = Status.Regular;
-			resume.WorkspaceId = null;
-
-			var workspaceResume = new ResumeEntity();
-			workspaceResume.WorkspaceId = WorkspaceId;
-			workspaceResume.EmployeeId = guid;
-			workspaceResume.Last_Edited = ControllerHelpers.CurrentTimeAsString();
-			workspaceResume.Creation_Date = ControllerHelpers.CurrentTimeAsString();
+			// Assign status to regular and create copy to be stored in the employee
 			workspaceResume.Status = Status.Regular;
-			workspaceResume.Name = resume.Name;
-			workspaceResume.TemplateId = resume.TemplateId;
 
-			await _databaseContext.Resume.AddAsync(workspaceResume);
+			var entity = new ResumeEntity()
+			{
+				EmployeeId = workspaceResume.EmployeeId,
+				TemplateId = workspaceResume.TemplateId,
+				WorkspaceId = null,
+				Last_Edited = workspaceResume.Last_Edited,
+				Creation_Date = workspaceResume.Creation_Date,
+				Status = Status.Regular,
+				Name = workspaceResume.Name
+			};
 
-			try
-			{
-				await _databaseContext.SaveChangesAsync();
-			}
-			catch (Exception ex)
-			{
-				return BadRequest("CAUGHT EXCEPTION: " + ex.Message);
-			}
+			var employeeResume = _databaseContext.Resume.Add(entity);
+			await _databaseContext.SaveChangesAsync();
+
+			await CopySectorsHelper(workspaceResume, employeeResume.Entity);
 
 			return Ok(workspaceResume);
 
 		}
 
+		private async Task CopySectorsHelper(ResumeEntity source, ResumeEntity dest)
+        {
+			var sectors = source.Sectors;
+
+			sectors.ForEach(
+				s => _databaseContext.Sector.Add(new SectorEntity
+				{
+					Content = s.Content,
+					Creation_Date = ControllerHelpers.CurrentTimeAsString(),
+					TypeId = s.TypeId,
+					Last_Edited = s.Last_Edited,
+					ResumeId = dest.ResumeId,
+					Image = s.Image,
+					Division = s.Division
+				}));
+
+			await _databaseContext.SaveChangesAsync();
+
+		}
 
 		// ===============================================================================
 		// MISC
