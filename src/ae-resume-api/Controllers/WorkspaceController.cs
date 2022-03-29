@@ -37,7 +37,7 @@ namespace ae_resume_api.Controllers
 		[HttpPost]
 		[Route("New")]
 		[Authorize(Policy = "PA")]
-		public async Task<IActionResult> New(string division, int proposalNumber, string name)
+		public async Task<IActionResult> New(string division, string proposalNumber, string name)
 		{
 			var EmployeeId = User.FindFirst(configuration["TokenIDClaimType"])?.Value;
 			if (EmployeeId == null) return NotFound();

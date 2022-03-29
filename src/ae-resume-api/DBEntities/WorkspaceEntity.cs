@@ -7,7 +7,7 @@ public class WorkspaceEntity
 	[Key]
 	public int WorkspaceId { get; set; }
 	public string Name { get; set; }
-	public int Proposal_Number { get; set; }
+	public string Proposal_Number { get; set; }
 	public string Division { get; set; }
 	public string Creation_Date { get; set; }
 

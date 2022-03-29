@@ -2,6 +2,7 @@
 using ae_resume_api.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace ae_resume_api.Controllers
 {
@@ -87,10 +88,7 @@ namespace ae_resume_api.Controllers
 		public async Task<IEnumerable<ResumeModel>> SearchEmployeeResumes(string? filter, string EmployeeId)
 		{
 			// Ensure that null value returns all Employees
-			if (filter == null)
-			{
-				filter = "";
-			}
+			if (filter == null) filter = "";
 
 			// Get all Resumes for that EmployeeId
 			var resumes = from r in _databaseContext.Resume
@@ -98,16 +96,11 @@ namespace ae_resume_api.Controllers
 						  where r.EmployeeId == Guid.Parse(EmployeeId) && (
 						  r.Name.Contains(filter) ||
 						  r.Creation_Date.Contains(filter) ||
-						  r.Status.ToString().Contains(filter) ||
 						  r.Last_Edited.Contains(filter) ||
-						  r.WorkspaceId.ToString().Contains(filter) ||
-						  r.TemplateId.ToString().Contains(filter) ||
+						  (r.Workspace == null ? false : r.Workspace.Proposal_Number.Contains(filter)) ||
 						  s.Content.Contains(filter) ||
 						  s.Type.Title.Contains(filter) ||
-						  s.TypeId.ToString().Contains(filter) ||
-						  s.Division.Contains(filter) ||
-						  s.Image.Contains(filter)
-						  )
+						  s.Division.Contains(filter))
 						  select new ResumeModel
 						  {
 							  EmployeeId = r.EmployeeId.ToString(),
@@ -121,27 +114,8 @@ namespace ae_resume_api.Controllers
 							  TemplateName = r.Template.Title
 						  };
 
-			//TODO: adding sector lists takes forever
-			//foreach (var resume in resumes)
-			//{
-			//    resume.SectorList = await (from s in _databaseContext.Sector
-			//                         where s.ResumeId == resume.ResumeId
-			//                         select ControllerHelpers.SectorEntityToModel(s)).ToListAsync();
-			//}
+			return await resumes.Distinct().ToListAsync();
 
-			return resumes.Distinct();
-
-		}
-
-		/// <summary>
-		/// Search all Workspaces
-		/// </summary>
-		[HttpGet]
-		[Route("Workspaces")]
-		[Authorize(Policy = "PA")]
-		public async Task<IActionResult> SearchWorkspaces(string filter)
-		{
-			return BadRequest("Not implemented");
 		}
 
 		[HttpGet]
@@ -153,20 +127,19 @@ namespace ae_resume_api.Controllers
 			filter = filter ?? "";
 
 			// TODO: test search
-			var sectors = (from s in _databaseContext.Sector
-						   where s.Resume.EmployeeId == Guid.Parse(EmployeeId) &&
-						   (s.Content.Contains(filter) ||
-							s.Type.Title.Contains(filter) ||
-							s.Last_Edited.Contains(filter) ||
-							s.Creation_Date.Contains(filter) ||
-							s.Resume.Name.Contains(filter) ||
-							s.Division.Contains(filter) ||
-							s.Image.Contains(filter))
-						   select ControllerHelpers.SectorEntityToModel(s))
-						   .ToList();
-
-			return sectors.Distinct();
-
+			return
+				(from s in _databaseContext.Sector
+				where s.Resume.EmployeeId == Guid.Parse(EmployeeId) &&
+				(s.Content.Contains(filter) ||
+				s.Type.Title.Contains(filter) ||
+				s.Last_Edited.Contains(filter) ||
+				s.Creation_Date.Contains(filter) ||
+				s.Resume.Name.Contains(filter) ||
+				s.Division.Contains(filter))
+				select s)
+				.Distinct()
+				.ToList()
+				.Select(s => ControllerHelpers.SectorEntityToModel(s));
 
 		}
 
