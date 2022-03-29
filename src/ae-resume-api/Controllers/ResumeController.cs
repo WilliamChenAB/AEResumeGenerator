@@ -117,6 +117,37 @@ namespace ae_resume_api.Controllers
 			return ControllerHelpers.ResumeEntityToModel(resume); ;
 		}
 
+		[HttpPut]
+		[Route("Edit")]
+		public async Task<IActionResult> Edit(int ResumeId, string? resumeName)
+        {
+			var resume = await _databaseContext.Resume.FindAsync(ResumeId);
+
+			if (resume == null)
+			{
+				return NotFound("Sector not found");
+			}
+
+			// Clean null content
+			resumeName = resumeName == null ? "" : resumeName;
+
+			resume.Creation_Date = ControllerHelpers.CurrentTimeAsString();
+			resume.Last_Edited = ControllerHelpers.CurrentTimeAsString();
+			resume.Name = resumeName;
+			
+
+			try
+			{
+				await _databaseContext.SaveChangesAsync();
+			}
+			catch (Exception ex)
+			{
+				return BadRequest(ex.Message);
+			}
+
+			return Ok(resume);
+		}
+
 		/// <summary>
 		/// Get all Resumes for an Employee
 		/// </summary>

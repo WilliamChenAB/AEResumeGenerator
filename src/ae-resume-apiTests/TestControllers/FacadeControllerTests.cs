@@ -210,13 +210,14 @@ namespace ae_resume_api.Controllers.Tests
             var token = await _tokenService.GetSAAccessToken();
             _client.SetBearerToken(token);
 
-            var response = await _client.GetAsync("/Export/ResumesInWorkspace?WorkspaceId=1");
+            var response = await _client.GetAsync("/Export/ResumesInWorkspace?WorkspaceId=2");
             response.EnsureSuccessStatusCode();             
             var receiveStream = await response.Content.ReadAsStreamAsync();
             using (var zipArchive = new ZipArchive(receiveStream))
             {
-                // Gets the full path to ensure that relative segments are removed.
-                zipArchive.Entries[0].ExtractToFile("myfile.txt");
+                // Gets the full path to ensure that relative segments are removed.               
+                zipArchive.ExtractToDirectory("here");
+
             }
 
             //Load report straight from the zip stream                        

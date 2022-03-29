@@ -368,12 +368,12 @@ namespace ae_resume_api.Controllers
 			if (resume == null) return NotFound("Resume not found");
 
 			var EmployeeId = User.FindFirst(configuration["TokenIDClaimType"])?.Value;
-			if (EmployeeId == null) return NotFound();
+			if (EmployeeId == null) return NotFound("Employee not found");
 			var guid = Guid.Parse(EmployeeId);
 
 			//Check if the employee already has a resume in the workspace and remove it
 			var workspace = await _databaseContext.Workspace.FindAsync(WorkspaceId);
-			if (workspace == null) return NotFound();
+			if (workspace == null) return NotFound("Workspace not found");
 			await RemoveExistingResumes(workspace, guid);
 
 			// Assign status to regular and create copy to be stored in the workspace
@@ -397,7 +397,7 @@ namespace ae_resume_api.Controllers
 			}
 			catch (Exception ex)
 			{
-				return NotFound("CAUGHT EXCEPTION: " + ex.Message);
+				return BadRequest("CAUGHT EXCEPTION: " + ex.Message);
 			}
 
 			return Ok(workspaceResume);

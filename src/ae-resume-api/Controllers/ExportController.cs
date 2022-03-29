@@ -64,9 +64,18 @@ namespace ae_resume_api.Controllers
 			foreach (var resume in resumes)
 			{
 				resume.Status = Status.Exported;
-				resume.WorkspaceId = 0;
-				// TODO: Create copy of resume to assign to exported
-				// TODO: one text file for each resume
+				// Create a persistant resume copy for exporting
+				var exportedResume = new ResumeEntity{ 
+					Creation_Date = resume.Creation_Date,
+					Last_Edited = resume.Last_Edited,
+					Name = resume.Name,
+					Status = Status.Exported,
+					Workspace = null,
+					TemplateId = resume.TemplateId,
+					EmployeeId = resume.EmployeeId
+				};									
+				
+				_databaseContext.Resume.Add(exportedResume);								
 				result.Add(ControllerHelpers.ResumeEntityToModel(resume));
 			}
 
@@ -76,12 +85,12 @@ namespace ae_resume_api.Controllers
             // Create a file to write to
             // https://swimburger.net/blog/dotnet/create-zip-files-on-http-request-without-intermediate-files-using-aspdotnet-mvc-razor-pages-and-endpoints
 
-            string path = "resumes.txt";
+            
             //using (StreamWriter sw = System.IO.File.CreateText(path))
             //{
             //    sw.WriteLine(JsonSerializer.Serialize(result));
             //}
-            var text = JsonSerializer.Serialize(result);
+            
             //var zipFileMemoryStream = new MemoryStream();			
             //using (ZipArchive archive = new ZipArchive(zipFileMemoryStream, ZipArchiveMode.Update, leaveOpen: true))
             //{
@@ -100,13 +109,20 @@ namespace ae_resume_api.Controllers
             Response.Headers.Add("Content-Disposition", "attachment; filename=\"resumes.zip\"");
             using (ZipArchive archive = new ZipArchive(Response.BodyWriter.AsStream(), ZipArchiveMode.Create))
             {
-                var botFileName = Path.GetFileName(path);
-                var entry = archive.CreateEntry(botFileName);
-                using (var entryStream = entry.Open())
-                using (MemoryStream stringInMemoryStream = new MemoryStream(ASCIIEncoding.Default.GetBytes(text)))
-                {
-                    await stringInMemoryStream.CopyToAsync(entryStream);
-                }
+				foreach (var resumeText in result)
+				{
+					var path = resumeText.Name + ".txt";
+					var text = JsonSerializer.Serialize(resumeText);
+
+					var botFileName = Path.GetFileName(path);
+					var entry = archive.CreateEntry(botFileName);
+					using (var entryStream = entry.Open())
+
+					using (MemoryStream stringInMemoryStream = new MemoryStream(ASCIIEncoding.Default.GetBytes(text)))
+					{
+						await stringInMemoryStream.CopyToAsync(entryStream);
+					}
+				}
             }
 
             //return new JsonResult(result);
