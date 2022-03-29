@@ -210,13 +210,13 @@ namespace ae_resume_api.Controllers.Tests
             var token = await _tokenService.GetSAAccessToken();
             _client.SetBearerToken(token);
 
-            var response = await _client.GetAsync("/Export/ResumesInWorkspace?WorkspaceId=2");
+            var response = await _client.GetAsync("/Export/ResumesInWorkspace?WorkspaceId=14");
             response.EnsureSuccessStatusCode();             
             var receiveStream = await response.Content.ReadAsStreamAsync();
             using (var zipArchive = new ZipArchive(receiveStream))
             {
                 // Gets the full path to ensure that relative segments are removed.               
-                zipArchive.ExtractToDirectory("here");
+                zipArchive.ExtractToDirectory(@"C:\Users\leahd\source\repos\Scope-Creep-AE-Backend\bin\Debug\net6.0");
 
             }
 

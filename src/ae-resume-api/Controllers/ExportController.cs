@@ -63,19 +63,24 @@ namespace ae_resume_api.Controllers
 			List<ResumeModel> result = new List<ResumeModel>();
 			foreach (var resume in resumes)
 			{
-				resume.Status = Status.Exported;
-				// Create a persistant resume copy for exporting
-				var exportedResume = new ResumeEntity{ 
-					Creation_Date = resume.Creation_Date,
-					Last_Edited = resume.Last_Edited,
-					Name = resume.Name,
-					Status = Status.Exported,
-					WorkspaceId = null,
-					TemplateId = resume.TemplateId,
-					EmployeeId = resume.EmployeeId
-				};									
-				
-				_databaseContext.Resume.Add(exportedResume);								
+				// If the resume has not already been exported create a copy
+				if(resume.Status != Status.Exported)
+                {
+					resume.Status = Status.Exported;
+					// Create a persistant resume copy for exporting
+					var exportedResume = new ResumeEntity
+					{
+						Creation_Date = resume.Creation_Date,
+						Last_Edited = resume.Last_Edited,
+						Name = $"Exported_{resume.Name}",
+						Status = Status.Exported,
+						WorkspaceId = null,
+						TemplateId = resume.TemplateId,
+						EmployeeId = resume.EmployeeId
+					};
+
+					_databaseContext.Resume.Add(exportedResume);
+				} 												
 				result.Add(ControllerHelpers.ResumeEntityToModel(resume));
 			}
 
@@ -111,7 +116,7 @@ namespace ae_resume_api.Controllers
             {
 				foreach (var resumeText in result)
 				{
-					var path = resumeText.Name + ".txt";
+					var path = resumeText.EmployeeName + ".txt";
 					var text = JsonSerializer.Serialize(resumeText);
 
 					var botFileName = Path.GetFileName(path);
