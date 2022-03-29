@@ -70,7 +70,7 @@ namespace ae_resume_api.Controllers
 					Last_Edited = resume.Last_Edited,
 					Name = resume.Name,
 					Status = Status.Exported,
-					Workspace = null,
+					WorkspaceId = null,
 					TemplateId = resume.TemplateId,
 					EmployeeId = resume.EmployeeId
 				};									
