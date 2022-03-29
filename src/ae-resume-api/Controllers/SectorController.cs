@@ -78,7 +78,7 @@ namespace ae_resume_api.Controllers
 		/// </summary>
 		[HttpPut]
 		[Route("Edit")]
-		public async Task<IActionResult> Edit(int SectorId, [FromBody] string? content, string? division, string? image)
+		public async Task<IActionResult> Edit(int SectorId, string? content, string? division, string? image)
 		{
 			var sector = await _databaseContext.Sector.FindAsync(SectorId);
 
@@ -202,7 +202,7 @@ namespace ae_resume_api.Controllers
 		/// </summary>
 		[HttpPost]
 		[Route("AddToResume")]
-		public async Task<IActionResult> AddSectorToResume(int ResumeId, [FromBody] string? content, int TypeId, string? division, string? image)
+		public async Task<IActionResult> AddSectorToResume(int ResumeId,  string? content, int TypeId, string? division, string? image)
 		{
 			var resume = await _databaseContext.Resume.FindAsync(ResumeId);
 
