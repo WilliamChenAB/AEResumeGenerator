@@ -68,7 +68,7 @@ namespace ae_resume_api.Controllers.Tests
 
             
             var stringContent = new StringContent("{\"TemplateID\":1, \"EmployeeId\":eebc735b-b277-43f0-a882-8391177dd93a, \"WorkspaceId\":2}");
-            var response = await _client.PostAsync("/Attributes/CreateTemplateRequest?TemplateID=1&EmployeeId=eebc735b-b277-43f0-a882-8391177dd93a&WorkspaceId=4", stringContent);
+            var response = await _client.PostAsync("/Attributes/CreateTemplateRequest?TemplateID=1&EmployeeId=eebc735b-b277-43f0-a882-8391177dd93a&WorkspaceId=5", stringContent);
             response.EnsureSuccessStatusCode();
             var stringResponse = await response.Content.ReadAsStringAsync();
             Console.WriteLine(stringResponse);
@@ -82,7 +82,7 @@ namespace ae_resume_api.Controllers.Tests
 
 
             var stringContent = new StringContent("");
-            var response = await _client.PostAsync("/Attributes/AddEmptyResumeToWorkspace?WorkspaceId=4&resumeName=blankTest&EmployeeId=eebc735b-b277-43f0-a882-8391177dd93a", stringContent);
+            var response = await _client.PostAsync("/Workspace/AddEmptyResume?WorkspaceId=5&TemplateId=1&resumeName=blanktest&EmployeeId=eebc735b-b277-43f0-a882-8391177dd93a", stringContent);
             response.EnsureSuccessStatusCode();
             var stringResponse = await response.Content.ReadAsStringAsync();
             Console.WriteLine(stringResponse);

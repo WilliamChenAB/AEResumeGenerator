@@ -293,12 +293,11 @@ namespace ae_resume_api.Controllers
 		[HttpPost]
 		[Route("AddEmptyResume")]
 		[Authorize(Policy = "PA")]
-		public async Task<IActionResult> AddEmptyResume(int WorkspaceId, int TemplateId, string resumeName)
+		public async Task<IActionResult> AddEmptyResume(int WorkspaceId, int TemplateId, string resumeName, string EmployeeId)
 		{
 			var workspace = await _databaseContext.Workspace.FindAsync(WorkspaceId);
 			if (workspace == null) return NotFound("Workspace not found");
-
-			var EmployeeId = User.FindFirst(configuration["TokenIDClaimType"])?.Value;
+			
 			if (EmployeeId == null) return NotFound();
 			var guid = Guid.Parse(EmployeeId);
 
