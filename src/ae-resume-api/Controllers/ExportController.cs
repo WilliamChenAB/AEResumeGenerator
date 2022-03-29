@@ -62,11 +62,9 @@ namespace ae_resume_api.Controllers
 
 			List<ResumeModel> result = new List<ResumeModel>();
 			foreach (var resume in resumes)
-			{
-				// If the resume has not already been exported create a copy
-				if(resume.Status != Status.Exported)
+			{				
+				if (!await ExportExists(resume))
                 {
-					resume.Status = Status.Exported;
 					// Create a persistant resume copy for exporting
 					var exportedResume = new ResumeEntity
 					{
@@ -78,9 +76,8 @@ namespace ae_resume_api.Controllers
 						TemplateId = resume.TemplateId,
 						EmployeeId = resume.EmployeeId
 					};
-
 					_databaseContext.Resume.Add(exportedResume);
-				} 												
+				}																			
 				result.Add(ControllerHelpers.ResumeEntityToModel(resume));
 			}
 
@@ -141,6 +138,12 @@ namespace ae_resume_api.Controllers
 		public async Task<ActionResult<IEnumerable<ResumeModel>>> ExportResumesInWorkspaceXML(int WorkspaceId)
 		{
 			throw new NotImplementedException();
+		}
+
+		private async Task<bool> ExportExists(ResumeEntity resume)
+        {
+			return await _databaseContext.Resume.AnyAsync(r => r.EmployeeId == resume.EmployeeId && 
+															   r.Name == $"Exported_{resume.Name}");
 		}
 
 	}
