@@ -107,7 +107,7 @@ namespace ae_resume_api.Controllers
 
             Response.ContentType = "application/octet-stream";
             Response.Headers.Add("Content-Disposition", "attachment; filename=\"resumes.zip\"");
-            using (ZipArchive archive = new ZipArchive(Response.BodyWriter.AsStream(), ZipArchiveMode.Create))
+            using (ZipArchive archive = new ZipArchive(Response.BodyWriter.AsStream(), ZipArchiveMode.Create, true))
             {
 				foreach (var resumeText in result)
 				{
