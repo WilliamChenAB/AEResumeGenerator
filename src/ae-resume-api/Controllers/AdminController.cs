@@ -28,7 +28,26 @@ namespace ae_resume_api.Controllers
         [Authorize (Policy = "SA")]
         public async Task<IActionResult> LoadTestData()
         {
-            // TODO: Implement
+            // Careful, don't need SaveChanges() call, this happens immediately
+
+            // Not truncating employees currently
+            //_databaseContext.Employee.Truncate();
+            _databaseContext.Resume.Truncate();
+            _databaseContext.Sector.Truncate();
+            _databaseContext.SectorType.Truncate();
+            _databaseContext.Template.Truncate();
+            _databaseContext.TemplateSector.Truncate();
+            _databaseContext.Workspace.Truncate();
+
+            EmployeeEntity employee1 = new EmployeeEntity
+            {
+                EmployeeId = Guid.NewGuid(),
+                Access = Access.SystemAdmin,
+                Name = "James",
+                Email = "Email",
+                JobTitle = "Utility Coordinator"
+            };
+
             return BadRequest("Not implemented");
         }
 
