@@ -210,7 +210,7 @@ namespace ae_resume_api.Controllers.Tests
             var token = await _tokenService.GetSAAccessToken();
             _client.SetBearerToken(token);
 
-            var response = await _client.GetAsync("/Export/ResumesInWorkspace?WorkspaceId=14");
+            var response = await _client.GetAsync("/Export/ResumesInWorkspace?WorkspaceId=17");
             response.EnsureSuccessStatusCode();             
             var receiveStream = await response.Content.ReadAsStreamAsync();
             using (var zipArchive = new ZipArchive(receiveStream))

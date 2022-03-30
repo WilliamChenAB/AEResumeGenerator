@@ -119,10 +119,11 @@ namespace ae_resume_api.Controllers
 					var botFileName = Path.GetFileName(path);
 					var entry = archive.CreateEntry(botFileName);
 					using (var entryStream = entry.Open())
-
-					using (MemoryStream stringInMemoryStream = new MemoryStream(ASCIIEncoding.Default.GetBytes(text)))
-					{
-						await stringInMemoryStream.CopyToAsync(entryStream);
+                    {
+						using (MemoryStream stringInMemoryStream = new MemoryStream(ASCIIEncoding.Default.GetBytes(text)))
+						{
+							await stringInMemoryStream.CopyToAsync(entryStream);
+						}
 					}
 				}
             }
