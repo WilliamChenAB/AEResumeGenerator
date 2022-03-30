@@ -20,6 +20,10 @@ namespace ae_resume_api.DBContext
             builder.Entity<SectorTypeEntity>().
                 HasIndex(st => st.Title).IsUnique();
 
+            // Add unique proposal number constraints
+            builder.Entity<WorkspaceEntity>().
+                HasIndex(w => w.Proposal_Number).IsUnique();
+
             // Force cascade on workspaces
             builder.Entity<WorkspaceEntity>()
                 .HasMany(e => e.Resumes)
