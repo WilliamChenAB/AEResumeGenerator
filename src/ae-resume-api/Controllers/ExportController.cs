@@ -48,11 +48,6 @@ namespace ae_resume_api.Controllers
 		{
 			var workspace = await _databaseContext.Workspace.FindAsync(WorkspaceId);
 
-            //if (workspace == null)
-            //{
-            //    return NotFound("Workspace not found");
-            //}
-
             var resumes = await (from r in _databaseContext.Resume
 								 where r.WorkspaceId == WorkspaceId
 								 select r).ToListAsync();
@@ -85,27 +80,7 @@ namespace ae_resume_api.Controllers
 
 
             // Create a file to write to
-            // https://swimburger.net/blog/dotnet/create-zip-files-on-http-request-without-intermediate-files-using-aspdotnet-mvc-razor-pages-and-endpoints
-
-            
-            //using (StreamWriter sw = System.IO.File.CreateText(path))
-            //{
-            //    sw.WriteLine(JsonSerializer.Serialize(result));
-            //}
-            
-            //var zipFileMemoryStream = new MemoryStream();			
-            //using (ZipArchive archive = new ZipArchive(zipFileMemoryStream, ZipArchiveMode.Update, leaveOpen: true))
-            //{
-            //		var entry = archive.CreateEntry("resumes.txt");
-            //		using (var entryStream = entry.Open())
-            //		using (MemoryStream stringInMemoryStream = new MemoryStream(ASCIIEncoding.Default.GetBytes(text)))
-            //		{
-            //			await stringInMemoryStream.CopyToAsync(entryStream);
-            //		}				
-            //}
-
-            //zipFileMemoryStream.Seek(0, SeekOrigin.Begin);
-            //return File(zipFileMemoryStream, "application/octet-stream", "resumes.zip");
+            // https://swimburger.net/blog/dotnet/create-zip-files-on-http-request-without-intermediate-files-using-aspdotnet-mvc-razor-pages-and-endpoints                       
 
             Response.ContentType = "application/octet-stream";
             Response.Headers.Add("Content-Disposition", "attachment; filename=\"resumes.zip\"");
@@ -126,9 +101,7 @@ namespace ae_resume_api.Controllers
 						}
 					}
 				}
-            }
-
-            //return new JsonResult(result);
+            }            
         }
 
 		/// <summary>
