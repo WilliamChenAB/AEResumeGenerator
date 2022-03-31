@@ -177,5 +177,26 @@ namespace ae_resume_api.Controllers.Tests
             var stringResponse = await response.Content.ReadAsStringAsync();
             Console.WriteLine(stringResponse);
         }
+        [Fact]
+        public async void TestDateTime()
+        {
+            string test = CurrentTimeAsString();
+
+            string date = "";
+            DateTime dt = parseDate(test);
+        }
+
+        private static readonly string DATE_TIME_FORMAT = "yyyyMMdd HH:mm:ss";
+        public static DateTime parseDate(string dateTime)
+        {
+            return DateTime.ParseExact(dateTime, DATE_TIME_FORMAT, CultureInfo.InvariantCulture);
+        }
+
+        public static string CurrentTimeAsString()
+        {
+            TimeZoneInfo pstZone = TimeZoneInfo.FindSystemTimeZoneById("Pacific Standard Time");
+            DateTime pstTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, pstZone);
+            return pstTime.ToString(DATE_TIME_FORMAT);
+        }
     }
 }

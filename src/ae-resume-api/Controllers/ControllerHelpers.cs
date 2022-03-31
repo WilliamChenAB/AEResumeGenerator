@@ -18,7 +18,10 @@ namespace ae_resume_api.Controllers
 
         public static string CurrentTimeAsString()
         {
-            return DateTime.Now.ToString(DATE_TIME_FORMAT);
+
+            TimeZoneInfo pstZone = TimeZoneInfo.FindSystemTimeZoneById("Pacific Standard Time");
+            DateTime pstTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, pstZone);
+            return pstTime.ToString(DATE_TIME_FORMAT);
         }
 
         public static bool ResumeIsPersonal(ResumeEntity r)

@@ -126,7 +126,7 @@ namespace ae_resume_api.Controllers
 			// Clean input filter
 			filter = filter ?? "";
 
-			// TODO: test search
+			
 			return
 				(from s in _databaseContext.Sector
 				where s.Resume.EmployeeId == Guid.Parse(EmployeeId) &&
