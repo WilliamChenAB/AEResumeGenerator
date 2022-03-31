@@ -128,7 +128,14 @@ namespace ae_resume_api.Controllers
 
             _databaseContext.Template.Remove(template);
 
-            await _databaseContext.SaveChangesAsync();
+            try
+            {
+                await _databaseContext.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
 
             return Ok();
         }

@@ -26,7 +26,7 @@ namespace ae_resume_api.Controllers
         /// </summary>
         [HttpPut]
         [Route("EditOwnBio")]
-        public async Task<IActionResult> EditOwnBio(string name, string jobTitle)
+        public async Task<IActionResult> EditOwnBio(string name, string email, string jobTitle)
         {
             var EmployeeId = User.FindFirst(configuration["TokenIDClaimType"])?.Value;
             if (EmployeeId == null) return NotFound();
@@ -34,6 +34,7 @@ namespace ae_resume_api.Controllers
             if (employee == null) return NotFound("Employee not found");
 
             employee.Name = name;
+            employee.Email = email;
             employee.JobTitle = jobTitle;
 
             try

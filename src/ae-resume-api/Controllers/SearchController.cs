@@ -100,7 +100,8 @@ namespace ae_resume_api.Controllers
 						  (r.Workspace == null ? false : r.Workspace.Proposal_Number.Contains(filter)) ||
 						  s.Content.Contains(filter) ||
 						  s.Type.Title.Contains(filter) ||
-						  s.Division.Contains(filter))
+						  s.Division.Contains(filter) ||
+						  s.Image.Contains(filter))
 						  select new ResumeModel
 						  {
 							  EmployeeId = r.EmployeeId.ToString(),
@@ -126,7 +127,7 @@ namespace ae_resume_api.Controllers
 			// Clean input filter
 			filter = filter ?? "";
 
-			
+
 			return
 				(from s in _databaseContext.Sector
 				where s.Resume.EmployeeId == Guid.Parse(EmployeeId) &&
@@ -135,7 +136,8 @@ namespace ae_resume_api.Controllers
 				s.Last_Edited.Contains(filter) ||
 				s.Creation_Date.Contains(filter) ||
 				s.Resume.Name.Contains(filter) ||
-				s.Division.Contains(filter))
+				s.Division.Contains(filter) ||
+				s.Image.Contains(filter))
 				select s)
 				.Distinct()
 				.ToList()
