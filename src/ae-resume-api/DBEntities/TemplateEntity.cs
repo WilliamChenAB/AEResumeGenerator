@@ -10,5 +10,6 @@ public class TemplateEntity
 	public string Last_Edited { get; set; }
 
 	public virtual List<TemplateSectorEntity> TemplateSectors { get; set; }
+	public virtual List<ResumeEntity> Resumes { get; set; }
 
 }
