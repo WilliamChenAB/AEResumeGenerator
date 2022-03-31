@@ -71,7 +71,11 @@ namespace ae_resume_api.Controllers
 						TemplateId = resume.TemplateId,
 						EmployeeId = resume.EmployeeId
 					};
-					_databaseContext.Resume.Add(exportedResume);
+										
+					var exported =  _databaseContext.Resume.Add(exportedResume);
+					await _databaseContext.SaveChangesAsync();
+					await CopySectorsHelper(resume, exported.Entity);
+
 				}																			
 				result.Add(ControllerHelpers.ResumeEntityToModel(resume));
 			}
@@ -118,6 +122,25 @@ namespace ae_resume_api.Controllers
         {
 			return await _databaseContext.Resume.AnyAsync(r => r.EmployeeId == resume.EmployeeId && 
 															   r.Name == $"Exported_{resume.Name}");
+		}
+		private async Task CopySectorsHelper(ResumeEntity source, ResumeEntity dest)
+		{
+			var sectors = source.Sectors;
+
+			sectors.ForEach(
+				s => _databaseContext.Sector.Add(new SectorEntity
+				{
+					Content = s.Content,
+					Creation_Date = ControllerHelpers.CurrentTimeAsString(),
+					TypeId = s.TypeId,
+					Last_Edited = s.Last_Edited,
+					ResumeId = dest.ResumeId,
+					Image = s.Image,
+					Division = s.Division
+				}));
+
+			await _databaseContext.SaveChangesAsync();
+
 		}
 
 	}
