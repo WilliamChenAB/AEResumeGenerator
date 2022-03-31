@@ -27,7 +27,7 @@ public class ResumeEntity
 	[JsonIgnore]
 	public virtual WorkspaceEntity? Workspace { get; set; }
 
-	public int TemplateId { get; set; }
+	public int? TemplateId { get; set; }
 	[JsonIgnore]
 	public virtual TemplateEntity Template { get; set; }
 
