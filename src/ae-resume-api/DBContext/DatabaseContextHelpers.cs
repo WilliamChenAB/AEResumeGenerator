@@ -32,4 +32,19 @@ public static class DatabaseContextHelpers
         context.Database.ExecuteSqlRaw(cmd);
         return cmd;
     }
+    public static string ReseedAll<T>(this DbSet<T> dbSet) where T : class
+    {
+        string cmd = $"DBCC CHECKIDENT (\'{TableName(dbSet)}\', RESEED, 0)";
+        var context = dbSet.GetService<ICurrentDbContext>().Context;
+        context.Database.ExecuteSqlRaw(cmd);
+        return cmd;
+    }
+
+    public static string TruncateAll<T>(this DbSet<T> dbSet) where T : class
+    {
+        string cmd = $"TRUNCATE TABLE {TableName(dbSet)}";
+        var context = dbSet.GetService<ICurrentDbContext>().Context;
+        context.Database.ExecuteSqlRaw(cmd);
+        return cmd;
+    }
 }

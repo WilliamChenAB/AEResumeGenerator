@@ -14,10 +14,10 @@ using System;
 
 namespace ae_resume_api.Controllers.Tests
 {    
-    public class SearchControllerExportTests: APITest
+    public class SearchControllerTests: APITest
     {
 
-        public SearchControllerExportTests(WebApplicationFactory<Startup> application) : base(application)
+        public SearchControllerTests(WebApplicationFactory<Startup> application) : base(application)
         {
         }
 
@@ -46,9 +46,15 @@ namespace ae_resume_api.Controllers.Tests
         }
 
         [Fact]
-        public void SearchEmployeesTest()
+        public async void SearchEmployeesTest()
         {
-            Assert.True(false);
+            var token = await _tokenService.GetSAAccessToken();
+            _client.SetBearerToken(token);
+
+            var response = await _client.GetAsync("/Search/Employees?filter=james");
+            response.EnsureSuccessStatusCode();
+            var stringResponse = await response.Content.ReadAsStringAsync();
+            Console.WriteLine(stringResponse);
         }
 
         [Fact]
@@ -64,15 +70,27 @@ namespace ae_resume_api.Controllers.Tests
         }
 
         [Fact]
-        public void SearchEmployeeSectorsTest()
+        public async void SearchEmployeeSectorsTest()
         {
-            Assert.True(false);
+            var token = await _tokenService.GetSAAccessToken();
+            _client.SetBearerToken(token);
+
+            var response = await _client.GetAsync("/Search/EmployeeSectors?&EmployeeId=695bb64c-3c87-416c-8862-3bf4f5141f16");
+            response.EnsureSuccessStatusCode();
+            var stringResponse = await response.Content.ReadAsStringAsync();
+            Console.WriteLine(stringResponse);
         }
 
         [Fact]
-        public void SearchEmployeeSectorsTest1()
+        public async void SearchEmployeeSectorsTest1()
         {
-            Assert.True(false);
+            var token = await _tokenService.GetSAAccessToken();
+            _client.SetBearerToken(token);
+
+            var response = await _client.GetAsync("/Search/OwnSectors?filter=test");
+            response.EnsureSuccessStatusCode();
+            var stringResponse = await response.Content.ReadAsStringAsync();
+            Console.WriteLine(stringResponse);
         }
     }
 }

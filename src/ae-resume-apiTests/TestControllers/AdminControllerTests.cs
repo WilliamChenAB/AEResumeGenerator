@@ -28,6 +28,23 @@ namespace ae_resume_api.Controllers.Tests
         }
 
         [Fact]
+        public async void TestLoadTestData()
+        {
+
+            //await _client.PostAsync("/Admin/LoadDefaultAdmin", new StringContent(""));
+
+            var token = await _tokenService.GetTestDataToken();
+            _client.SetBearerToken(token);
+
+            var identity = await _client.GetAsync("/Admin/Identity");
+
+            var response = await _client.PostAsync("/Admin/LoadTestData", new StringContent(""));
+            response.EnsureSuccessStatusCode();
+            var stringResponse = await response.Content.ReadAsStringAsync();
+            Console.WriteLine(stringResponse);
+        }
+
+        [Fact]
         public void NewEmployeeTest()
         {
             Assert.True(false);

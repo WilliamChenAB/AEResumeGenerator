@@ -53,6 +53,17 @@ namespace ae_resume_api.Tests
 
             return await GetAccessToken(p);
         }
+        public async Task<string> GetTestDataToken()
+        {
+            Parameters p = new Parameters()
+                {
+                    { "username", "admin"},
+                    { "password", "pbVxh!6sE1rgdTfQ"},
+                    { "scope", _configuration["Tests:Scope"] }
+                };
+
+            return await GetAccessToken(p);
+        }
 
         private async Task<string> GetAccessToken(Parameters parameters)
         {
