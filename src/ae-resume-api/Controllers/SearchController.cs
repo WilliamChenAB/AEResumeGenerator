@@ -90,18 +90,21 @@ namespace ae_resume_api.Controllers
 			// Ensure that null value returns all Employees
 			if (filter == null) filter = "";
 
+			//var test = await _databaseContext.Resume.Where(r => r.Name.Contains(filter) && r.EmployeeId == Guid.Parse(EmployeeId)).ToListAsync();
+
 			// Get all Resumes for that EmployeeId
 			var resumes = from r in _databaseContext.Resume
-						  join s in _databaseContext.Sector on r.ResumeId equals s.ResumeId
-						  where r.EmployeeId == Guid.Parse(EmployeeId) && (
-						  r.Name.Contains(filter) ||
+						  join s in _databaseContext.Sector on r.ResumeId equals s.ResumeId into sectorGroup
+						  from rs in sectorGroup.DefaultIfEmpty()
+						  where r.EmployeeId == Guid.Parse(EmployeeId)
+						  where r.Name.Contains(filter) ||
 						  r.Creation_Date.Contains(filter) ||
 						  r.Last_Edited.Contains(filter) ||
 						  (r.Workspace == null ? false : r.Workspace.Proposal_Number.Contains(filter)) ||
-						  s.Content.Contains(filter) ||
-						  s.Type.Title.Contains(filter) ||
-						  s.Division.Contains(filter) ||
-						  s.Image.Contains(filter))
+						  rs.Content.Contains(filter) ||
+						  rs.Type.Title.Contains(filter) ||
+						  rs.Division.Contains(filter) ||
+						  rs.Image.Contains(filter)
 						  select new ResumeModel
 						  {
 							  EmployeeId = r.EmployeeId.ToString(),
