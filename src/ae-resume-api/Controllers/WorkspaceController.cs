@@ -52,6 +52,13 @@ namespace ae_resume_api.Controllers
 				EmployeeId = guid
 			};
 
+			var proposalExists = await _databaseContext.Workspace.
+				AnyAsync(w => w.Proposal_Number == proposalNumber);
+            if (proposalExists)
+            {
+				return BadRequest("Cannot create workspace with the same proposal number");
+            }
+
 			var wkspc = _databaseContext.Workspace.Add(entity);
 			await _databaseContext.SaveChangesAsync();
 			var WorkspaceId = wkspc.Entity.WorkspaceId;

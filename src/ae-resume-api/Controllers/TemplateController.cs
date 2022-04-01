@@ -22,9 +22,6 @@ namespace ae_resume_api.Controllers
 
 
         /// <summary>
-        /// Create a new Sector Type
-        /// </summary>
-        /// <summary>
         /// Create a new Resume Template
         /// </summary>
         [HttpPost]
@@ -52,7 +49,16 @@ namespace ae_resume_api.Controllers
                     TypeId = sectorType.TypeId
                 });
             }
-            await _databaseContext.SaveChangesAsync();
+            try
+            {
+                await _databaseContext.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                return BadRequest(ex.Message);
+            }
+            
 
             return CreatedAtAction(
                 nameof(Get),
