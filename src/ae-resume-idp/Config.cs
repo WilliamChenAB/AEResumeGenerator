@@ -23,12 +23,6 @@ namespace aeresumeidp
                 new ApiScope("ae-resume-api")
             };
 
-        //public static IEnumerable<ApiResource> ApiResources =>
-        //    new ApiResource[]
-        //    {
-        //        new ApiResource("ae-resume-api")
-        //    };
-
         public static IEnumerable<Client> Clients(IConfiguration config)
         {
 

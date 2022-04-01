@@ -26,7 +26,7 @@ namespace ae_resume_api
             services.AddScoped(x => {
                 DbContextOptionsBuilder<DatabaseContext> dbBuilder = new DbContextOptionsBuilder<DatabaseContext>();
                 dbBuilder.UseLazyLoadingProxies()
-                         .UseSqlServer(Configuration.GetConnectionString("ConnStr4"));
+                         .UseSqlServer(Configuration.GetConnectionString("ConnStr5"));
                 return new DatabaseContext(dbBuilder.Options);
             });
 
@@ -43,7 +43,6 @@ namespace ae_resume_api
                     // it's recommended to check the type header to avoid "JWT confusion" attacks
                 });
 
-            // adds an authorization policy to make sure the token is for scope 'api1'
             services.AddAuthorization(options =>
             {
                 options.AddPolicy("ApiScope", policy =>

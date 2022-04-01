@@ -8,10 +8,8 @@ public static class DatabaseContextHelpers
 {
     private static string GetName(IEntityType entityType, string defaultSchemaName = "ae-resume-db")
     {
-        var schema = entityType.FindAnnotation("Relational:Schema").Value;
         string tableName = entityType.GetAnnotation("Relational:TableName").Value.ToString();
-        string schemaName = schema == null ? defaultSchemaName : schema.ToString();
-        string name = string.Format("[{0}].[{1}]", schemaName, tableName);
+        string name = string.Format("dbo.{0}", tableName);
         return name;
     }
 
@@ -27,9 +25,9 @@ public static class DatabaseContextHelpers
         return GetName(entityType);
     }
 
-    public static string Truncate<T>(this DbSet<T> dbSet) where T : class
+    public static string DeleteAll<T>(this DbSet<T> dbSet) where T : class
     {
-        string cmd = $"TRUNCATE TABLE {TableName(dbSet)}";
+        string cmd = $"DELETE FROM {TableName(dbSet)}";
         var context = dbSet.GetService<ICurrentDbContext>().Context;
         context.Database.ExecuteSqlRaw(cmd);
         return cmd;
