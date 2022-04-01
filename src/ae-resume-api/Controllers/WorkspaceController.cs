@@ -52,11 +52,12 @@ namespace ae_resume_api.Controllers
 				EmployeeId = guid
 			};
 
+			// Ensure that proposal number is unique
 			var proposalExists = await _databaseContext.Workspace.
 				AnyAsync(w => w.Proposal_Number == proposalNumber);
             if (proposalExists)
             {
-				return BadRequest("Cannot create workspace with the same proposal number");
+				return BadRequest("Cannot create Workspace with the same Proposal Number");
             }
 
 			var wkspc = _databaseContext.Workspace.Add(entity);

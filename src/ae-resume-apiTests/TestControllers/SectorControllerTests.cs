@@ -120,7 +120,7 @@ namespace ae_resume_api.Controllers.Tests
             var token = await _tokenService.GetSAAccessToken();
             _client.SetBearerToken(token);
 
-            var response = await _client.GetAsync("/Sector/GetAllForEmployee?EmployeeId=1");
+            var response = await _client.GetAsync("/Sector/GetAllForEmployee?EmployeeId=695bb64c-3c87-416c-8862-3bf4f5141f16");
             response.EnsureSuccessStatusCode();
             var stringResponse = await response.Content.ReadAsStringAsync();
             Console.WriteLine(stringResponse);
@@ -129,19 +129,31 @@ namespace ae_resume_api.Controllers.Tests
         [Fact]
         public async void GetAllForEmployeeByTypeTest()
         {
+            var token = await _tokenService.GetSAAccessToken();
+            _client.SetBearerToken(token);
 
+            var response = await _client.GetAsync("/Sector/GetAllForEmployeeByType?EmployeeId=695bb64c-3c87-416c-8862-3bf4f5141f16&TypeId=1");
+            response.EnsureSuccessStatusCode();
+            var stringResponse = await response.Content.ReadAsStringAsync();
+            Console.WriteLine(stringResponse);
         }
 
         [Fact]
         public async void AddSectorToResumeTest()
         {
+            var token = await _tokenService.GetSAAccessToken();
+            _client.SetBearerToken(token);
 
+            var response = await _client.PostAsync("/Sector/AddToResume?ResumeId=1&content=test&TypeId=1", new StringContent(""));
+            response.EnsureSuccessStatusCode();
+            var stringResponse = await response.Content.ReadAsStringAsync();
+            Console.WriteLine(stringResponse);
         }
 
         [Fact]
         public async void EditResumeSectorTest()
         {
-
+            Assert.True(false);
         }
     }
 }

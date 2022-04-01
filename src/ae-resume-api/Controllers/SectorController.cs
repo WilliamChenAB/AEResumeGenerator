@@ -247,8 +247,7 @@ namespace ae_resume_api.Controllers
 			{
 				return NotFound("Sector not found");
 			}
-
-			sector.SectorId = model.SectorId;
+			
 			sector.Creation_Date = ControllerHelpers.CurrentTimeAsString();
 			sector.Last_Edited = ControllerHelpers.CurrentTimeAsString();
 			sector.Content = model.Content;
