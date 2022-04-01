@@ -36,7 +36,7 @@ namespace ae_resume_api.Controllers
             {
                 Title = model.Title,
                 Description = model.Description,
-                Last_Edited = DateTime.Now.ToString("yyyyMMdd HH:mm:ss")
+                Last_Edited = ControllerHelpers.CurrentTimeAsString()
             };
 
             // Add the new Template and get its ID to add types to associative table
