@@ -21,7 +21,7 @@ namespace aeresumeidp
         {
             services.AddControllersWithViews();
 
-            string connStr = config.GetConnectionString("ConnStr5");
+            string connStr = config.GetConnectionString("ConnStr11");
 
             services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(connStr));
             services.AddDefaultIdentity<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = true)

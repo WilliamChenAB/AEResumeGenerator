@@ -37,14 +37,14 @@ namespace ae_resume_api.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> LoadTestData()
         {
-            
+
             _databaseContext.Sector.DeleteAll();
             _databaseContext.Sector.ReseedAll();
 
             _databaseContext.Resume.DeleteAll();
             _databaseContext.Resume.ReseedAll();
 
-            _databaseContext.TemplateSector.DeleteAll();            
+            _databaseContext.TemplateSector.DeleteAll();
 
             _databaseContext.Template.DeleteAll();
             _databaseContext.Template.ReseedAll();
@@ -52,25 +52,25 @@ namespace ae_resume_api.Controllers
             _databaseContext.Workspace.DeleteAll();
             _databaseContext.Workspace.ReseedAll();
 
-            _databaseContext.SectorType.DeleteAll();            
-            _databaseContext.SectorType.ReseedAll();            
+            _databaseContext.SectorType.DeleteAll();
+            _databaseContext.SectorType.ReseedAll();
 
-            _databaseContext.Employee.DeleteAll();            
+            _databaseContext.Employee.DeleteAll();
 
 
             //Create logins on the IDP and populate user accounts
             var httpClient = new HttpClient();
 
-            
+
             await LoadTestEmployees(httpClient);
             await LoadTestTemplates(_databaseContext);
             await LoadTestWorkspaces(_databaseContext);
             await LoadTestResumes(_databaseContext);
-                      
+
             return Ok();
         }
 
-       
+
 
         [HttpPost]
         [Route("LoadDefaultAdmin")]
@@ -123,7 +123,7 @@ namespace ae_resume_api.Controllers
         {
             for (int i = 0; i < 9; i++)
             {
-                var username = "user" + i;
+                var username = "user" + (i + 1);
 
                 var url = configuration["Authority"] + "/Identity/Account/RegisterNoVerify";
                 var creds = new RegisterModel()
@@ -155,7 +155,7 @@ namespace ae_resume_api.Controllers
         }
 
         private static async Task LoadTestResumes(DatabaseContext databaseContext)
-        {           
+        {
             // Foreach employee create a resume with the test sector types
             var employees = await databaseContext.Employee.ToListAsync();
             foreach (var employee in employees)
@@ -186,7 +186,7 @@ namespace ae_resume_api.Controllers
                         TypeId = i
                     });
                 }
-            }                                
+            }
             await databaseContext.SaveChangesAsync();
 
         }

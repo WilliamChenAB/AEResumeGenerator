@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using ae_resume_api.Authorization;
 using Microsoft.AspNetCore.Authorization;
+using ae_resume_api.Controllers;
 
 namespace ae_resume_api
 {
@@ -26,7 +27,7 @@ namespace ae_resume_api
             services.AddScoped(x => {
                 DbContextOptionsBuilder<DatabaseContext> dbBuilder = new DbContextOptionsBuilder<DatabaseContext>();
                 dbBuilder.UseLazyLoadingProxies()
-                         .UseSqlServer(Configuration.GetConnectionString("ConnStr5"));
+                         .UseSqlServer(Configuration.GetConnectionString("ConnStr11"));
                 return new DatabaseContext(dbBuilder.Options);
             });
 
@@ -74,7 +75,7 @@ namespace ae_resume_api
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public void Configure(IApplicationBuilder app, IConfiguration config, DatabaseContext context)
         {
             app.UseSwagger();
             app.UseSwaggerUI();
@@ -92,6 +93,16 @@ namespace ae_resume_api
                 endpoints.MapControllers()
                     .RequireAuthorization("ApiScope");
             });
+
+            if (!context.Employee.Any())
+            {
+                var admin = new AdminController(context, config);
+                //var task = admin.LoadDefaultAdmin();
+                //task.Wait();
+                var task2 = admin.LoadTestData();
+                task2.Wait();
+            }
+
         }
     }
 }
