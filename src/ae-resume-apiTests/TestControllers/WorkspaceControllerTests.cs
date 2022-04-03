@@ -28,63 +28,130 @@ namespace ae_resume_api.Controllers.Tests
         }
 
         [Fact]
-        public void NewTest()
+        public async void NewTest()
         {
-            Assert.True(false);
+            var token = await _tokenService.GetTestDataToken();
+            _client.SetBearerToken(token);
+
+            var response = await _client.GetAsync("/Workspace/New?division=water&proposalNumber=1&name=WorkspaceName");
+            response.EnsureSuccessStatusCode();
+            var stringResponse = await response.Content.ReadAsStringAsync();
+            Console.WriteLine(stringResponse);
         }
 
         [Fact]
-        public void GetTest()
+        public async void GetTest()
         {
-            Assert.True(false);
+            var token = await _tokenService.GetTestDataToken();
+            _client.SetBearerToken(token);
+
+            var response = await _client.GetAsync("/Workspace/Get?WorkspaceId=1");
+            response.EnsureSuccessStatusCode();
+            var stringResponse = await response.Content.ReadAsStringAsync();
+            Console.WriteLine(stringResponse);
         }
 
         [Fact]
-        public void DeleteTest()
+        public async void DeleteTest()
         {
-            Assert.True(false);
+            var token = await _tokenService.GetTestDataToken();
+            _client.SetBearerToken(token);
+
+
+            var response = await _client.DeleteAsync("/Workspace/Delete?WorkspaceId=1");
+            response.EnsureSuccessStatusCode();
+            var stringResponse = await response.Content.ReadAsStringAsync();
+            Console.WriteLine(stringResponse);
         }
 
         [Fact]
-        public void GetPersonalTest()
+        public async void GetPersonalTest()
         {
-            Assert.True(false);
+            var token = await _tokenService.GetTestDataToken();
+            _client.SetBearerToken(token);
+
+            var response = await _client.GetAsync("/Workspace/GetPersonal");
+            response.EnsureSuccessStatusCode();
+            var stringResponse = await response.Content.ReadAsStringAsync();
+            Console.WriteLine(stringResponse);
         }
 
         [Fact]
-        public void GetResumesTest()
+        public async void GetResumesTest()
         {
-            Assert.True(false);
+            var token = await _tokenService.GetTestDataToken();
+            _client.SetBearerToken(token);
+
+
+            var response = await _client.GetAsync("/Workspace/GetResumes?WorkspaceId=1");
+            response.EnsureSuccessStatusCode();
+            var stringResponse = await response.Content.ReadAsStringAsync();
+            Console.WriteLine(stringResponse);
         }
 
         [Fact]
-        public void CreateTemplateRequestTest()
+        public async void CreateTemplateRequestTest()
         {
-            Assert.True(false);
+            var token = await _tokenService.GetTestDataToken();
+            _client.SetBearerToken(token);
+
+
+            var response = await _client.GetAsync("/Workspace/CreateTemplateRequest?TemplateId=1&EmployeeId=695bb64c-3c87-416c-8862-3bf4f5141f16&WorkspaceId=1");
+            response.EnsureSuccessStatusCode();
+            var stringResponse = await response.Content.ReadAsStringAsync();
+            Console.WriteLine(stringResponse);
         }
 
         [Fact]
-        public void AddEmptyResumeTest()
+        public async void AddEmptyResumeTest()
         {
-            Assert.True(false);
+            var token = await _tokenService.GetTestDataToken();
+            _client.SetBearerToken(token);
+
+
+            var response = await _client.GetAsync("/Workspace/AddEmptyResume?WorkspaceId=1&TemplateId=1&EmployeeId=695bb64c-3c87-416c-8862-3bf4f5141f16");
+            response.EnsureSuccessStatusCode();
+            var stringResponse = await response.Content.ReadAsStringAsync();
+            Console.WriteLine(stringResponse);
         }
 
         [Fact]
-        public void CopyResumeTest()
+        public async void CopyResumeTest()
         {
-            Assert.True(false);
+            var token = await _tokenService.GetTestDataToken();
+            _client.SetBearerToken(token);
+
+
+            var response = await _client.GetAsync("/Workspace/CopyResume?ResumeId=1&WorkspaceId=1");
+            response.EnsureSuccessStatusCode();
+            var stringResponse = await response.Content.ReadAsStringAsync();
+            Console.WriteLine(stringResponse);
         }
 
         [Fact]
-        public void SubmitResumeTest()
+        public async void SubmitResumeTest()
         {
-            Assert.True(false);
+            var token = await _tokenService.GetTestDataToken();
+            _client.SetBearerToken(token);
+
+
+            var response = await _client.GetAsync("/Workspace/SubmitResume?ResumeId=1");
+            response.EnsureSuccessStatusCode();
+            var stringResponse = await response.Content.ReadAsStringAsync();
+            Console.WriteLine(stringResponse);
         }
 
         [Fact]
-        public void GetAllSectorTypesTest()
+        public async void GetAllSectorTypesTest()
         {
-            Assert.True(false);
+            var token = await _tokenService.GetTestDataToken();
+            _client.SetBearerToken(token);
+
+
+            var response = await _client.GetAsync("/Workspace/GetAllSectorTypes?WorkspaceId=1");
+            response.EnsureSuccessStatusCode();
+            var stringResponse = await response.Content.ReadAsStringAsync();
+            Console.WriteLine(stringResponse);
         }
     }
 }
