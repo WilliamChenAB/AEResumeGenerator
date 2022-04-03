@@ -72,7 +72,7 @@ namespace ae_resume_api.Controllers.Tests
         public async Task GetAllEmployeesTest()
         {
 
-            var token = await _tokenService.GetSAAccessToken();
+            var token = await _tokenService.GetTestDataToken();
             _client.SetBearerToken(token);
 
             var response = await _client.GetAsync("/Admin/GetAllEmployees");
@@ -114,7 +114,7 @@ namespace ae_resume_api.Controllers.Tests
         [Fact]
         public async void CreateTemplateTest()
         {
-            var token = await _tokenService.GetSAAccessToken();
+            var token = await _tokenService.GetTestDataToken();
             _client.SetBearerToken(token);
 
             TemplateModel template = new TemplateModel
@@ -154,7 +154,7 @@ namespace ae_resume_api.Controllers.Tests
         [Fact]
         public async void AssignSectorTypeTest()
         {
-            var token = await _tokenService.GetSAAccessToken();
+            var token = await _tokenService.GetTestDataToken();
             _client.SetBearerToken(token);
 
             List<int> ids = new List<int> { 1 };
@@ -186,7 +186,7 @@ namespace ae_resume_api.Controllers.Tests
         [Fact]
         public async void EditSectorTypeTitleTest()
         {
-            var token = await _tokenService.GetSAAccessToken();
+            var token = await _tokenService.GetTestDataToken();
             _client.SetBearerToken(token);
 
             var response = await _client.PutAsync("/Admin/EditSectorTypeTitle?SectorTypeId=11&title=new", new StringContent(""));

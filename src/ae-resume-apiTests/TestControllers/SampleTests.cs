@@ -26,7 +26,7 @@ namespace ae_resume_api.Controllers.Tests
             _config = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
                 .AddJsonFile("appsettings.json")
-                .AddJsonFile("appsettings.Development.json", optional: true)                
+                .AddJsonFile("appsettings.Development.json", optional: true)
                 .Build();
 
             _client = application.CreateClient(new WebApplicationFactoryClientOptions()
@@ -35,23 +35,6 @@ namespace ae_resume_api.Controllers.Tests
                 });
 
             _tokenService = new ApiTokenInMemoryClient(_config);
-        }
-
-        [Fact]
-        public async Task IdentityTest()
-        {
-            var token = await _tokenService.GetSAAccessToken();
-            _client.SetBearerToken(token);
-
-            // Act
-            var response = await _client.GetAsync("identity");
-            response.EnsureSuccessStatusCode();
-
-            var responseString = Encoding.UTF8.GetString(
-                await response.Content.ReadAsByteArrayAsync()
-            );
-
-            Console.WriteLine(responseString);
         }
 
     }

@@ -32,7 +32,7 @@ namespace ae_resume_api.Controllers.Tests
         [Fact]
         public async void NewTest()
         {
-            var token = await _tokenService.GetSAAccessToken();
+            var token = await _tokenService.GetTestDataToken();
             _client.SetBearerToken(token);
 
             var response = await _client.GetAsync("/SectorType/New?title=test&description=test");
@@ -44,7 +44,7 @@ namespace ae_resume_api.Controllers.Tests
         [Fact]
         public async void EditTest()
         {
-            var token = await _tokenService.GetSAAccessToken();
+            var token = await _tokenService.GetTestDataToken();
             _client.SetBearerToken(token);
 
             var response = await _client.PutAsync("/SectorType/Edit?SectorTypeId=1&title=test", new StringContent(""));
@@ -56,7 +56,7 @@ namespace ae_resume_api.Controllers.Tests
         [Fact]
         public async void EditTitleTest()
         {
-            var token = await _tokenService.GetSAAccessToken();
+            var token = await _tokenService.GetTestDataToken();
             _client.SetBearerToken(token);
 
             var response = await _client.PutAsync("/SectorType/EditTitle?SectorTypeId=1&title=test", new StringContent(""));
@@ -68,7 +68,7 @@ namespace ae_resume_api.Controllers.Tests
         [Fact]
         public async void GetTest()
         {
-            var token = await _tokenService.GetSAAccessToken();
+            var token = await _tokenService.GetTestDataToken();
             _client.SetBearerToken(token);
 
             var response = await _client.GetAsync("/SectorType/Get?SectorTypeId=1");
@@ -80,7 +80,7 @@ namespace ae_resume_api.Controllers.Tests
         [Fact]
         public async void DeleteTest()
         {
-            var token = await _tokenService.GetSAAccessToken();
+            var token = await _tokenService.GetTestDataToken();
             _client.SetBearerToken(token);
 
             var response = await _client.DeleteAsync("/SectorType/Delete?SectorTypeId=1");
@@ -92,7 +92,7 @@ namespace ae_resume_api.Controllers.Tests
         [Fact]
         public async void GetAllTest()
         {
-            var token = await _tokenService.GetSAAccessToken();
+            var token = await _tokenService.GetTestDataToken();
             _client.SetBearerToken(token);
 
             var response = await _client.GetAsync("/SectorType/GetAll");

@@ -97,10 +97,10 @@ namespace ae_resume_api
             if (!context.Employee.Any())
             {
                 var admin = new AdminController(context, config);
-                var task2 = admin.LoadTestData();
-                task2.Wait();
                 var task = admin.LoadDefaultAdmin();
                 task.Wait();
+                var task2 = admin.LoadTestData();
+                task2.Wait();
             }
 
         }

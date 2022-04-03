@@ -32,7 +32,7 @@ namespace ae_resume_api.Controllers.Tests
         [Fact]
         public async void CreateTest()
         {
-            var token = await _tokenService.GetSAAccessToken();
+            var token = await _tokenService.GetTestDataToken();
             _client.SetBearerToken(token);
 
             TemplateModel entity = new TemplateModel
@@ -55,7 +55,7 @@ namespace ae_resume_api.Controllers.Tests
         [Fact]
         public async void GetTest()
         {
-            var token = await _tokenService.GetSAAccessToken();
+            var token = await _tokenService.GetTestDataToken();
             _client.SetBearerToken(token);
 
             
@@ -68,7 +68,7 @@ namespace ae_resume_api.Controllers.Tests
         [Fact]
         public async void EditTest()
         {
-            var token = await _tokenService.GetSAAccessToken();
+            var token = await _tokenService.GetTestDataToken();
             _client.SetBearerToken(token);
 
 
@@ -81,7 +81,7 @@ namespace ae_resume_api.Controllers.Tests
         [Fact]
         public async void DeleteTest()
         {
-            var token = await _tokenService.GetSAAccessToken();
+            var token = await _tokenService.GetTestDataToken();
             _client.SetBearerToken(token);
 
 
@@ -94,7 +94,7 @@ namespace ae_resume_api.Controllers.Tests
         [Fact]
         public async void GetSectorsTest()
         {
-            var token = await _tokenService.GetSAAccessToken();
+            var token = await _tokenService.GetTestDataToken();
             _client.SetBearerToken(token);
 
 
@@ -113,7 +113,7 @@ namespace ae_resume_api.Controllers.Tests
         [Fact]
         public async void GetAllTest()
         {
-            var token = await _tokenService.GetSAAccessToken();
+            var token = await _tokenService.GetTestDataToken();
             _client.SetBearerToken(token);
 
 
