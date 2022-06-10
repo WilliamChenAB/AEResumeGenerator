@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using ae_resume_api.DBContext;
 using Microsoft.AspNetCore.Mvc.Testing;
-using ae_resume_api.Admin;
+using ae_resume_api.Models;
 using Xunit;
 using System.Net.Http;
 using System.Net;
@@ -25,6 +25,23 @@ namespace ae_resume_api.Controllers.Tests
 
         public AdminControllerTests(WebApplicationFactory<ae_resume_api.Startup> application) : base(application)
         {
+        }
+
+        [Fact]
+        public async void TestLoadTestData()
+        {
+
+            //await _client.PostAsync("/Admin/LoadDefaultAdmin", new StringContent(""));
+
+            var token = await _tokenService.GetTestDataToken();
+            _client.SetBearerToken(token);
+
+            var identity = await _client.GetAsync("/Admin/Identity");
+
+            var response = await _client.PostAsync("/Admin/LoadTestData", new StringContent(""));
+            response.EnsureSuccessStatusCode();
+            var stringResponse = await response.Content.ReadAsStringAsync();
+            Console.WriteLine(stringResponse);
         }
 
         [Fact]
@@ -55,7 +72,7 @@ namespace ae_resume_api.Controllers.Tests
         public async Task GetAllEmployeesTest()
         {
 
-            var token = await _tokenService.GetSAAccessToken();
+            var token = await _tokenService.GetTestDataToken();
             _client.SetBearerToken(token);
 
             var response = await _client.GetAsync("/Admin/GetAllEmployees");
@@ -97,7 +114,7 @@ namespace ae_resume_api.Controllers.Tests
         [Fact]
         public async void CreateTemplateTest()
         {
-            var token = await _tokenService.GetSAAccessToken();
+            var token = await _tokenService.GetTestDataToken();
             _client.SetBearerToken(token);
 
             TemplateModel template = new TemplateModel
@@ -105,9 +122,9 @@ namespace ae_resume_api.Controllers.Tests
                 Title = "Create template test",
                 Description = "test template for api tests",
                 SectorTypes = new List<SectorTypeModel> {
-                    new SectorTypeModel { TypeID = 1 },
-                    new SectorTypeModel { TypeID = 2 },
-                    new SectorTypeModel { TypeID = 3 }
+                    new SectorTypeModel { TypeId = 1 },
+                    new SectorTypeModel { TypeId = 2 },
+                    new SectorTypeModel { TypeId = 3 }
                 }
             };
             var response = await _client.PostAsJsonAsync("/Admin/CreateTemplate", template);
@@ -137,12 +154,12 @@ namespace ae_resume_api.Controllers.Tests
         [Fact]
         public async void AssignSectorTypeTest()
         {
-            var token = await _tokenService.GetSAAccessToken();
+            var token = await _tokenService.GetTestDataToken();
             _client.SetBearerToken(token);
 
-            List<int> ids = new List<int> { 1, 2 };
+            List<int> ids = new List<int> { 1 };
 
-            var response = await _client.PostAsJsonAsync("/Admin/AssignSectorType?templateID=2", ids);
+            var response = await _client.PostAsJsonAsync("/Admin/AssignSectorType?templateID=10", ids);
             response.EnsureSuccessStatusCode();
             var stringResponse = await response.Content.ReadAsStringAsync();
             Console.WriteLine(stringResponse);
@@ -169,13 +186,32 @@ namespace ae_resume_api.Controllers.Tests
         [Fact]
         public async void EditSectorTypeTitleTest()
         {
-            var token = await _tokenService.GetSAAccessToken();
+            var token = await _tokenService.GetTestDataToken();
             _client.SetBearerToken(token);
 
-            var response = await _client.PutAsync("/Admin/EditSectorTypeTitle?sectorTypeID=11&title=new", new StringContent(""));
+            var response = await _client.PutAsync("/Admin/EditSectorTypeTitle?SectorTypeId=11&title=new", new StringContent(""));
             response.EnsureSuccessStatusCode();
             var stringResponse = await response.Content.ReadAsStringAsync();
             Console.WriteLine(stringResponse);
+        }
+        [Fact]
+        public async void TestDateTime()
+        {
+            string test = CurrentTimeAsString();
+
+            string date = "";
+            DateTime dt = parseDate(test);
+        }
+
+        private static readonly string DATE_TIME_FORMAT = "yyyyMMdd HH:mm:ss zzz";
+        public static DateTime parseDate(string dateTime)
+        {
+            return DateTime.ParseExact(dateTime, DATE_TIME_FORMAT, CultureInfo.InvariantCulture);
+        }
+
+        public static string CurrentTimeAsString()
+        {           
+            return DateTime.UtcNow.ToString(DATE_TIME_FORMAT);
         }
     }
 }

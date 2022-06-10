@@ -1,11 +1,11 @@
 ﻿using System;
 
 
-namespace ae_resume_api.Admin
+namespace ae_resume_api.Models
 {
 	public class TemplateModel
 	{
-		public int? TemplateID{ get; set; }
+		public int? TemplateId { get; set; }
 		public string? Title { get; set; }
 		public string? Description { get; set; }
 		public DateTime? LastEdited { get; set; }

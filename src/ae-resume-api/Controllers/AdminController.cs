@@ -1,7 +1,8 @@
-﻿using ae_resume_api.Admin;
+﻿using ae_resume_api.Models;
 using ae_resume_api.DBContext;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.EntityFrameworkCore;
 
 namespace ae_resume_api.Controllers
 {
@@ -19,511 +20,234 @@ namespace ae_resume_api.Controllers
             this.configuration = configuration;
         }
 
+        private class RegisterModel
+        {
+            public string UserName { get; set; }
+            public string Password { get; set; }
+        }
+
+        private static readonly string EMPLOYEE_PASSWORD = "Abcd1234";
+        private static readonly string EMPLOYEE_EMAIL = "email@email.com";
+
         /// <summary>
         /// Clean the tables and load in the test data
         /// </summary>
         [HttpPost]
         [Route("LoadTestData")]
-        [Authorize (Policy = "SA")]
+        [AllowAnonymous]
         public async Task<IActionResult> LoadTestData()
         {
-            // TODO: Implement
-            return BadRequest("Not implemented");
-        }
 
-        // ===============================================================================
-        // EMPLOYEES
-        // ===============================================================================
+            _databaseContext.Sector.DeleteAll();
+            _databaseContext.Sector.ReseedAll();
 
-        /// <summary>
-        /// Edit an Employee
-        /// </summary>
-        [HttpPut]
-        [Route("EditEmployee")]
-        [Authorize(Policy = "SA")]
-        public async Task<IActionResult> EditEmployee(EmployeeModel employeeModel)
-        {
+            _databaseContext.Resume.DeleteAll();
+            _databaseContext.Resume.ReseedAll();
 
-            var employee = await _databaseContext.Employee.FindAsync(employeeModel.EID);
+            _databaseContext.TemplateSector.DeleteAll();
 
-            // Check if the employee already exists
-            if (employee == null)
-            {
-                return NotFound();
-            }
+            _databaseContext.Template.DeleteAll();
+            _databaseContext.Template.ReseedAll();
 
-            employee.Name = employeeModel.Name;
-            employee.Email = employeeModel.Email;
-            employee.JobTitle = employeeModel.JobTitle;
+            _databaseContext.Workspace.DeleteAll();
+            _databaseContext.Workspace.ReseedAll();
 
-            try
-            {
-                await _databaseContext.SaveChangesAsync();
-            }
-            catch (Exception ex)
-            {
-                return NotFound(ex.Message);
+            _databaseContext.SectorType.DeleteAll();
+            _databaseContext.SectorType.ReseedAll();
 
-            }
+            _databaseContext.Employee.DeleteAll();
 
-            return Ok(employee);
-        }
 
-        /// <summary>
-        /// Delete an Employee
-        /// </summary>
-        [HttpDelete]
-        [Route("DeleteEmployee")]
-        [Authorize(Policy = "SA")]
-        public async Task<IActionResult> DeleteEmployee(string EID)
-        {
+            //Create logins on the IDP and populate user accounts
+            var httpClient = new HttpClient();
 
-            // var employee = Employees.Find(x => x.EID == EID);
 
-            var employee = await _databaseContext.Employee.FindAsync(EID);
+            await LoadTestEmployees(httpClient);
+            await LoadTestTemplates(_databaseContext);
+            await LoadTestWorkspaces(_databaseContext);
+            await LoadTestResumes(_databaseContext);
 
-            if (employee == null)
-            {
-                return NotFound();
-            }
-
-            // Employees.Remove(employee);
-
-            _databaseContext.Employee.Remove(employee);
-            await _databaseContext.SaveChangesAsync();
             return Ok();
         }
 
-        /// <summary>
-        /// Get self
-        /// </summary>
-        [HttpGet]
-        [Route("GetOwnEmployee")]
-        public async Task<ActionResult<EmployeeModel>> GetOwnEmployee()
-        {
-            var EID = User.FindFirst(configuration["TokenIDClaimType"])?.Value;
-            if (EID == null) return NotFound();
-            return await GetEmployee(EID);
-        }
 
-        /// <summary>
-        /// Get an Employee from their EID
-        /// </summary>
-        [HttpGet]
-        [Route("GetEmployee")]
-        [Authorize(Policy = "SA")]
-        public async Task<ActionResult<EmployeeModel>> GetEmployee(string EID)
-        {
-            // var employee = Employees.Find(x => x.EID == EID);
 
-            var employee = await _databaseContext.Employee.FindAsync(EID);
-
-            if (employee == null)
-            {
-                return NotFound();
-            }
-            return ControllerHelpers.EmployeeEntityToModel(employee);
-        }
-
-        /// <summary>
-        /// Get all Employees
-        /// </summary>
-        [HttpGet]
-        [Route("GetAllEmployees")]
-        public IEnumerable<EmployeeModel> GetAllEmployees()
-        {
-            var employees = _databaseContext.Employee.ToList();
-            List<EmployeeModel> result = new List<EmployeeModel>();
-            foreach (var employee in employees)
-            {
-                result.Add(ControllerHelpers.EmployeeEntityToModel(employee));
-            }
-
-            return result;
-        }
-
-        /// <summary>
-        /// Assign of change an Employees acccess
-        /// </summary>
         [HttpPost]
-        [Route("AssignAccess")]
-        [Authorize(Policy = "SA")]
-        public async Task<IActionResult> AssignAccess(string EID, Access access)
+        [Route("LoadDefaultAdmin")]
+        [AllowAnonymous]
+        public async Task<IActionResult> LoadDefaultAdmin()
         {
-            // var employee = Employees.Find(x => x.EID == EID);
-
-
-            var employee = await _databaseContext.Employee.FindAsync(EID);
-
-            // Check if the employee already exists
-            if (employee == null)
+            var url = configuration["Authority"] + "/Identity/Account/RegisterNoVerify";
+            var creds = new RegisterModel()
             {
-                return NotFound();
-            }
-
-            employee.Access = access;
-
-
-            try
-            {
-                await _databaseContext.SaveChangesAsync();
-            }
-            catch (Exception ex)
-            {
-                return NotFound(ex.Message);
-
-            }
-
-            return Ok(employee);
-
-        }
-
-        // ===============================================================================
-        // TEMPLATING
-        // ===============================================================================
-        
-        /// <summary>
-        /// Create a new Sector Type
-        /// </summary>
-        [HttpPost]
-        [Route("NewSectorType")]
-        [Authorize(Policy = "SA")]
-        public async Task<ActionResult<SectorTypeModel>> NewSectorType(string title, string description)
-        {
-            var EID = User.FindFirst(configuration["TokenIDClaimType"])?.Value;
-            if (EID == null) return NotFound();
-
-            SectorTypeEntity entity = new SectorTypeEntity
-            {
-                Title = title,
-                Description = description,
-                EID = EID
+                UserName = "admin",
+                Password = "pbVxh!6sE1rgdTfQ"
             };
-            // SectorTypes.Add(model);
 
-             var result = _databaseContext.SectorType.Add(entity);
-             await _databaseContext.SaveChangesAsync();
+            var httpClient = new HttpClient();
+            var response = await httpClient.PostAsJsonAsync(url, creds);
+            if (!response.IsSuccessStatusCode) return BadRequest(response.Content);
 
-            return CreatedAtAction(
-                nameof(GetSectorType),
-                new { TypeID = result.Entity.TypeID },
-                result.Entity);
-        }
-        /// <summary>
-        /// Edit a Sector Type from its sectorTypeID
-        /// </summary>
-        [HttpPut]
-        [Route("EditSectorType")]
-        [Authorize(Policy = "SA")]
-        public async Task<IActionResult> EditSectorType(int sectorTypeID, SectorTypeModel model)
-        {
-            if (sectorTypeID != model.TypeID)
+            var content = await response.Content.ReadFromJsonAsync<Guid>();
+
+            EmployeeEntity employee = new EmployeeEntity
             {
-                return BadRequest();
-            }
-            // var sectorType = SectorTypes.Find(x => x.TypeID == sectorTypeID);
-
-            var sectorType = await _databaseContext.SectorType.FindAsync(sectorTypeID);
-
-            if (sectorType == null)
-            {
-                return NotFound();
-            }
-
-            sectorType.Title = model.Title;
-            sectorType.Description = model.Description;
+                EmployeeId = content,
+                Email = EMPLOYEE_EMAIL,
+                Access = Access.SystemAdmin,
+                Name = "Administrator",
+                JobTitle = "Default System Administrator"
+            };
 
             try
             {
+                _databaseContext.Employee.Add(employee);
                 await _databaseContext.SaveChangesAsync();
             }
             catch (Exception ex)
             {
-                return NotFound(ex.Message);
-
+                return BadRequest(ex.Message);
             }
 
-            return Ok(sectorType);
-
-        }
-
-        [HttpPut]
-        [Route("EditSectorTypeTitle")]
-        [Authorize(Policy = "SA")]
-        public async Task<IActionResult> EditSectorTypeTitle(int sectorTypeID, string title)
-        {
-            var sectorType = await _databaseContext.SectorType.FindAsync(sectorTypeID);
-
-            if(sectorType == null)
-            {
-                return NotFound();
-            }
-
-            sectorType.Title = title;
-
-            try
-            {
-                await _databaseContext.SaveChangesAsync();
-            }
-            catch (Exception ex)
-            {
-                return NotFound(ex.Message);
-
-            }
-
-            return Ok(sectorType);
-
-        }
-
-        /// <summary>
-        /// Get Sector Type from its sectorTypeID
-        /// </summary>
-        [HttpGet]
-        [Route("GetSectorType")]
-        public async Task<ActionResult<SectorTypeModel>> GetSectorType(int sectorTypeID)
-        {
-            //var sectorType = SectorTypes.Find(x => x.TypeID == sectorTypeID);
-
-            var sectorType = await _databaseContext.SectorType.FindAsync(sectorTypeID);
-
-            if (sectorType == null)
-            {
-                return NotFound();
-            }
-            return ControllerHelpers.SectorTypeEntityToModel(sectorType);
-        }
-
-
-        /// <summary>
-        /// Delete a Sector Type
-        /// </summary>
-        [HttpDelete]
-        [Route("DeleteSectorType")]
-        [Authorize(Policy = "SA")]
-        public async Task<IActionResult> DeleteSectorType(int sectorTypeID)
-        {
-            // var sectorType = SectorTypes.Find(x => x.TypeID == sectorTypeID);
-
-            var sectorType = await _databaseContext.SectorType.FindAsync(sectorTypeID);
-
-            if (sectorType == null)
-            {
-                return NotFound();
-            }
-
-            // SectorTypes.Remove(sectorType);
-
-            _databaseContext.SectorType.Remove(sectorType);
-            await _databaseContext.SaveChangesAsync();
             return Ok();
         }
 
-        /// <summary>
-        /// Create a new Resume Template
-        /// </summary>
-        [HttpPost]
-        [Route("CreateTemplate")]
-        [Authorize(Policy = "SA")]
-        public async Task<ActionResult<TemplateModel>> CreateTemplate([FromBody] TemplateModel model)
-        {
-            TemplateEntity entity = new TemplateEntity
-            {
-                Title = model.Title,
-                Description = model.Description,
-                Last_Edited = DateTime.Now.ToString("yyyyMMdd HH:mm:ss")
-            };
-
-            // Add the new Template and get its ID to add types to associative table
-            var result = _databaseContext.Resume_Template.Add(entity).Entity;
-            await _databaseContext.SaveChangesAsync();            
-
-            // Add Sector Types to DB
-            foreach (var sectorType in model.SectorTypes)
-            {
-                _databaseContext.Template_Type.Add(new TemplateSectorsEntity
-                {
-                    TemplateID = result.TemplateID,
-                    TypeID = sectorType.TypeID
-                });
-            }
-            await _databaseContext.SaveChangesAsync();
-
-            return CreatedAtAction(
-                nameof(GetTemplate),
-                new { TemplateID = model.TemplateID },
-                result);
-        }
-
-        /// <summary>
-        /// Get Resume Template
-        /// </summary>
         [HttpGet]
-        [Route("GetTemplate")]
-        public async Task<ActionResult<TemplateModel>> GetTemplate(int templateID)
+        [Route("Identity")]
+        public IActionResult Identity()
         {
-            //var template = templateModels.Find(x => x.TemplateID == templateID);
-
-            var template = await _databaseContext.Resume_Template.FindAsync(templateID);
-
-            if (template == null)
-            {
-                return NotFound();
-            }
-
-            // Convert template to Model and add sector types
-            var result = ControllerHelpers.TemplateEntityToModel(template);
-            //result.SectorTypes = (from s in _databaseContext.Template_Type
-            //                     join t in _databaseContext.SectorType on s.TypeID equals t.TypeID
-            //                     where s.TemplateID == templateID
-            //                     select ControllerHelpers.SectorTypeEntityToModel(t)).ToList();
-
-            return result;
+            return new JsonResult(from c in User.Claims select new { c.Type, c.Value });
         }
 
-        /// <summary>
-        /// Get all the SectorTypes in a Resume Template
-        /// </summary>
-        /// <param name="templateID"></param>
-        /// <returns></returns>
-        [HttpGet]
-        [Route("GetSectorsInTemplate")]
-        public async Task<ActionResult<IEnumerable<SectorTypeModel>>> GetSectorsInTemplate(int templateID)
+        private async Task<IActionResult> LoadTestEmployees(HttpClient httpClient)
         {
-
-            //var template = templateModels.Find(x => x.TemplateID == templateID);
-
-            var template = await _databaseContext.Resume_Template.FindAsync(templateID);
-
-            if (template == null)
+            for (int i = 0; i < 9; i++)
             {
-                return NotFound();
-            }
+                var username = "user" + (i + 1);
 
-
-            // Get the Sector Type IDs from associative table
-            // Get all Sectors that are in the associative table with matching IDs
-            var sectorTypesModel = (from t in _databaseContext.Template_Type
-                                    join s in _databaseContext.SectorType on t.TypeID equals s.TypeID
-                                    where t.TemplateID == template.TemplateID
-                                    select ControllerHelpers.SectorTypeEntityToModel(s))
-                                   .ToList();
-
-
-            return sectorTypesModel;
-        }
-
-        /// <summary>
-        /// Edit a Resume Template
-        /// </summary>
-        [HttpPut]
-        [Route("EditTemplate")]
-        [Authorize(Policy = "SA")]
-        public async Task<IActionResult> EditTemplate(int templateID, TemplateModel model)
-        {
-
-            if (templateID != model.TemplateID)
-            {
-                return BadRequest();
-            }
-            // var template = templateModels.Find(x => x.TemplateID == templateID);
-
-            var template = await _databaseContext.Resume_Template.FindAsync(templateID);
-
-            if (template == null)
-            {
-                return NotFound();
-            }
-
-            template.Title = model.Title;
-            template.Description = model.Description;
-
-            try
-            {
-                await _databaseContext.SaveChangesAsync();
-            }
-            catch (Exception ex)
-            {
-                return NotFound(ex.Message);
-
-            }
-
-            return Ok(template);
-        }
-
-        /// <summary>
-        /// Assign a Sector Type to a Resume Template
-        /// </summary>
-        /// <param name="templateID"></param>
-        /// <param name="sectorTypeID"></param>
-        /// <returns></returns>
-        [HttpPost]
-        [Route("AssignSectorType")]
-        [Authorize(Policy = "SA")]
-        public async Task<IActionResult> AssignSectorType(int templateID, IEnumerable<int> sectorTypeID)
-        {
-            // var template = templateModels.Find(x => x.TemplateID == templateID);
-            var template = await _databaseContext.Resume_Template.FindAsync(templateID);
-
-
-            if (template == null)
-            {
-                return NotFound();
-            }
-
-            //var sectorType = SectorTypes.Find(x => x.TypeID == sectorTypeID);
-            //Create new entry in associative table
-            foreach (var id in sectorTypeID)
-            {
-                TemplateSectorsEntity entity = new TemplateSectorsEntity
+                var url = configuration["Authority"] + "/Identity/Account/RegisterNoVerify";
+                var creds = new RegisterModel()
                 {
-                    TemplateID = templateID,
-                    TypeID = id
+                    UserName = username,
+                    Password = EMPLOYEE_PASSWORD
                 };
 
+                var response = await httpClient.PostAsJsonAsync(url, creds);
+                if (!response.IsSuccessStatusCode) return BadRequest(response.Content);
 
-                _databaseContext.Template_Type.Add(entity);
+                var content = await response.Content.ReadFromJsonAsync<Guid>();
+                Access access = (Access)(i / 3);
+
+                EmployeeEntity employee = new EmployeeEntity
+                {
+                    EmployeeId = content,
+                    Email = EMPLOYEE_EMAIL,
+                    Access = access,
+                    Name = "User " + (i + 1),
+                    JobTitle = access.ToString() + " User"
+                };
+
+                _databaseContext.Employee.Add(employee);
             }
 
             await _databaseContext.SaveChangesAsync();
-
-
-            return Ok(template);
-        }
-
-        /// <summary>
-        /// Delete a Resume Template
-        [HttpDelete]
-        [Route("DeleteTemplate")]
-        [Authorize(Policy = "SA")]
-        public async Task<IActionResult> DeleteTemplate(int templateID)
-        {
-
-
-            //var template = templateModels.Find(x => x.TemplateID == templateID);
-
-            var template = await _databaseContext.Resume_Template.FindAsync(templateID);
-
-            if (template == null)
-            {
-                return NotFound();
-            }
-
-            //templateModels.Remove(template);
-
-            _databaseContext.Resume_Template.Remove(template);
-             await _databaseContext.SaveChangesAsync();
             return Ok();
         }
 
-        /// <summary>
-        /// Check to see if an Employee Exists in the db
-        /// </summary>
-        private bool EmployeeExists(string EID)
+        private static async Task LoadTestResumes(DatabaseContext databaseContext)
         {
-            return _databaseContext.Employee.Any(e => e.EID == EID);
+            // Foreach employee create a resume with the test sector types
+            var employees = await databaseContext.Employee.ToListAsync();
+            foreach (var employee in employees)
+            {
+                var resume = await databaseContext.Resume.AddAsync(new ResumeEntity
+                {
+                    Creation_Date = ControllerHelpers.CurrentTimeAsString(),
+                    Last_Edited = ControllerHelpers.CurrentTimeAsString(),
+                    Status = Status.Regular,
+                    Name = employee.Name + " Resume",
+                    EmployeeId = employee.EmployeeId,
+                    WorkspaceId = 1,
+                    TemplateId = 1
+                });
+                await databaseContext.SaveChangesAsync();
+
+                // Add a sector of each type
+                for (int i = 1; i < 3; i++)
+                {
+                    await databaseContext.Sector.AddAsync(new SectorEntity
+                    {
+                        Creation_Date = ControllerHelpers.CurrentTimeAsString(),
+                        Last_Edited = ControllerHelpers.CurrentTimeAsString(),
+                        Content = "test sector",
+                        Division = "test division",
+                        Image = "test image",
+                        ResumeId = resume.Entity.ResumeId,
+                        TypeId = i
+                    });
+                }
+            }
+            await databaseContext.SaveChangesAsync();
+
         }
 
+        private static async Task LoadTestTemplates(DatabaseContext databaseContext)
+        {
+            // Create template
+            await databaseContext.Template.AddAsync(new TemplateEntity
+            {
+                Title = "test template",
+                Description = "Template for testing",
+                Last_Edited = ControllerHelpers.CurrentTimeAsString()
+            });
 
+            await databaseContext.SaveChangesAsync();
 
+            // Load sector types
+            // Populate sector types
+            await databaseContext.SectorType.AddAsync(new SectorTypeEntity
+            {
+                Title = "Education",
+                Description = "Education sector"
+            });
+
+            await databaseContext.SectorType.AddAsync(new SectorTypeEntity
+            {
+                Title = "Work Experience",
+                Description = "Work Experience sector"
+            });
+
+            await databaseContext.SectorType.AddAsync(new SectorTypeEntity
+            {
+                Title = "Summary",
+                Description = "Summary sector"
+            });
+            await databaseContext.SaveChangesAsync();
+
+            // Assign sector types to Template
+            await databaseContext.TemplateSector.AddRangeAsync(new List<TemplateSectorEntity>
+            {
+                new TemplateSectorEntity{TemplateId = 1, TypeId = 1 },
+                new TemplateSectorEntity{TemplateId = 1, TypeId = 2 },
+                new TemplateSectorEntity{TemplateId = 1, TypeId = 3 }
+            });
+            await databaseContext.SaveChangesAsync();
+        }
+
+        private static async Task LoadTestWorkspaces(DatabaseContext databaseContext)
+        {
+            var employeeId = databaseContext.Employee.FirstAsync().Result.EmployeeId;
+
+            // Create Workspace
+            await databaseContext.Workspace.AddAsync(new WorkspaceEntity
+            {
+                Name = "test workspace",
+                Proposal_Number = "test1",
+                Division = "test division",
+                Creation_Date = ControllerHelpers.CurrentTimeAsString(),
+                EmployeeId = employeeId
+            });
+            await databaseContext.SaveChangesAsync();
+        }
     }
 }

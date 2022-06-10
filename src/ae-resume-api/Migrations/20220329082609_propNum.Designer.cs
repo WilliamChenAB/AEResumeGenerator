@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using ae_resume_api.DBContext;
 
@@ -11,9 +12,10 @@ using ae_resume_api.DBContext;
 namespace ae_resume_api.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    partial class DatabaseContextModelSnapshot : ModelSnapshot
+    [Migration("20220329082609_propNum")]
+    partial class propNum
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -71,7 +73,7 @@ namespace ae_resume_api.Migrations
                     b.Property<int>("Status")
                         .HasColumnType("int");
 
-                    b.Property<int?>("TemplateId")
+                    b.Property<int>("TemplateId")
                         .HasColumnType("int");
 
                     b.Property<int?>("WorkspaceId")
@@ -219,14 +221,11 @@ namespace ae_resume_api.Migrations
 
                     b.Property<string>("Proposal_Number")
                         .IsRequired()
-                        .HasColumnType("nvarchar(450)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("WorkspaceId");
 
                     b.HasIndex("EmployeeId");
-
-                    b.HasIndex("Proposal_Number")
-                        .IsUnique();
 
                     b.ToTable("Workspace");
                 });
@@ -241,12 +240,13 @@ namespace ae_resume_api.Migrations
 
                     b.HasOne("TemplateEntity", "Template")
                         .WithMany()
-                        .HasForeignKey("TemplateId");
+                        .HasForeignKey("TemplateId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.HasOne("WorkspaceEntity", "Workspace")
                         .WithMany("Resumes")
-                        .HasForeignKey("WorkspaceId")
-                        .OnDelete(DeleteBehavior.ClientCascade);
+                        .HasForeignKey("WorkspaceId");
 
                     b.Navigation("Employee");
 

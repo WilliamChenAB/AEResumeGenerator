@@ -137,5 +137,29 @@ namespace aeresumeidp.Core.Controllers
 
             return View("RegistrationSuccess");
         }
+
+        [HttpPost]
+        [Route("RegisterNoVerify")]
+        public async Task<IActionResult> RegisterNoVerify([FromBody] RegisterModel model)
+        {
+            var user = new ApplicationUser
+            {
+                UserName = model.UserName
+            };
+
+            ApplicationUser extantUser;
+
+            extantUser = await _userManager.FindByNameAsync(model.UserName);
+
+            if(extantUser == null) {
+                var result = await _userManager.CreateAsync(user, model.Password);
+
+                if (!result.Succeeded) return StatusCode(StatusCodes.Status500InternalServerError);
+                else extantUser = await _userManager.FindByNameAsync(model.UserName);
+            }
+
+            return Json(extantUser.Id);
+        }
+
     }
 }

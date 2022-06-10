@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using ae_resume_api.Authorization;
 using Microsoft.AspNetCore.Authorization;
+using ae_resume_api.Controllers;
 
 namespace ae_resume_api
 {
@@ -23,7 +24,12 @@ namespace ae_resume_api
             services.AddSwaggerGen();
 
             // For Entity Framework
-            services.AddDbContext<DatabaseContext>(options => options.UseSqlServer(Configuration.GetConnectionString("ConnStr")));
+            services.AddScoped(x => {
+                DbContextOptionsBuilder<DatabaseContext> dbBuilder = new DbContextOptionsBuilder<DatabaseContext>();
+                dbBuilder.UseLazyLoadingProxies()
+                         .UseSqlServer(Configuration.GetConnectionString("ConnStr11"));
+                return new DatabaseContext(dbBuilder.Options);
+            });
 
             services.AddScoped<IAuthorizationHandler, AccessHandler>();
 
@@ -38,7 +44,6 @@ namespace ae_resume_api
                     // it's recommended to check the type header to avoid "JWT confusion" attacks
                 });
 
-            // adds an authorization policy to make sure the token is for scope 'api1'
             services.AddAuthorization(options =>
             {
                 options.AddPolicy("ApiScope", policy =>
@@ -64,10 +69,13 @@ namespace ae_resume_api
                         .AllowAnyMethod();
                 });
             });
+
+            services.AddMvc()
+                    .AddXmlSerializerFormatters();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public void Configure(IApplicationBuilder app, IConfiguration config, DatabaseContext context)
         {
             app.UseSwagger();
             app.UseSwaggerUI();
@@ -85,6 +93,16 @@ namespace ae_resume_api
                 endpoints.MapControllers()
                     .RequireAuthorization("ApiScope");
             });
+
+            if (!context.Employee.Any())
+            {
+                var admin = new AdminController(context, config);
+                var task = admin.LoadDefaultAdmin();
+                task.Wait();
+                var task2 = admin.LoadTestData();
+                task2.Wait();
+            }
+
         }
     }
 }

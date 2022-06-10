@@ -22,7 +22,7 @@ namespace ae_resume_api.Tests
         {
             Parameters p = new Parameters()
                 {
-                    { "username", "user"},
+                    { "username", "user1"},
                     { "password", "Abcd1234"},
                     { "scope", _configuration["Tests:Scope"] }
                 };
@@ -30,24 +30,35 @@ namespace ae_resume_api.Tests
             return await GetAccessToken(p);
         }
 
-        //public static async Task<string> GetPAAccessToken()
-        //{
-        //    Parameters p = new Parameters()
-        //        {
-        //            { "username", "admin"},
-        //            { "password", "Abcd1234"},
-        //            { "scope", _configuration["Tests:Scope"] }
-        //        };
+        public async Task<string> GetPAAccessToken()
+        {
+            Parameters p = new Parameters()
+                {
+                    { "username", "user4"},
+                    { "password", "Abcd1234"},
+                    { "scope", _configuration["Tests:Scope"] }
+                };
 
-        //    return await GetAccessToken(p);
-        //}
+            return await GetAccessToken(p);
+        }
 
         public async Task<string> GetSAAccessToken()
         {
             Parameters p = new Parameters()
                 {
-                    { "username", "admin"},
+                    { "username", "user7"},
                     { "password", "Abcd1234"},
+                    { "scope", _configuration["Tests:Scope"] }
+                };
+
+            return await GetAccessToken(p);
+        }
+        public async Task<string> GetTestDataToken()
+        {
+            Parameters p = new Parameters()
+                {
+                    { "username", "admin"},
+                    { "password", "pbVxh!6sE1rgdTfQ"},
                     { "scope", _configuration["Tests:Scope"] }
                 };
 

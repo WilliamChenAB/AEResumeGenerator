@@ -21,7 +21,7 @@ namespace aeresumeidp
         {
             services.AddControllersWithViews();
 
-            string connStr = config.GetConnectionString("ConnStr");
+            string connStr = config.GetConnectionString("ConnStr11");
 
             services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(connStr));
             services.AddDefaultIdentity<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = true)
@@ -41,9 +41,7 @@ namespace aeresumeidp
             services.AddIdentityServer()
                 .AddInMemoryIdentityResources(Config.IdentityResources)
                 .AddInMemoryApiScopes(Config.ApiScopes)
-                //.AddInMemoryApiResources(Config.ApiResources)
                 .AddInMemoryClients(Config.Clients(config))
-                //.AddTestUsers(TestUsers.Users)
                 .AddAspNetIdentity<ApplicationUser>();
 
             //services.AddAuthentication()

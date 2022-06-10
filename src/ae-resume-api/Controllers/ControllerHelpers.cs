@@ -1,6 +1,7 @@
-﻿using ae_resume_api.Admin;
-using ae_resume_api.Attributes;
-using ae_resume_api.Facade;
+﻿using ae_resume_api.DBContext;
+using ae_resume_api.Models;
+using ae_resume_api.Models;
+using ae_resume_api.Models;
 using System.Globalization;
 
 namespace ae_resume_api.Controllers
@@ -8,7 +9,7 @@ namespace ae_resume_api.Controllers
     internal static class ControllerHelpers
     {
 
-        private static readonly string DATE_TIME_FORMAT = "yyyyMMdd HH:mm:ss";
+        private static readonly string DATE_TIME_FORMAT = "yyyyMMdd HH:mm:ss zzz";
 
         public static DateTime parseDate(string dateTime)
         {
@@ -17,20 +18,48 @@ namespace ae_resume_api.Controllers
 
         public static string CurrentTimeAsString()
         {
-            return DateTime.Now.ToString(DATE_TIME_FORMAT);
+
+            return DateTime.UtcNow.ToString(DATE_TIME_FORMAT);
+        }
+
+        public static bool ResumeIsPersonal(ResumeEntity r)
+        {
+            return (r.Status == Status.Regular && r.WorkspaceId == null)
+                || r.Status == Status.Requested;
+        }
+
+        public static async Task PopulateTemplateSectors(TemplateEntity template, int resumeId, DatabaseContext databaseContext)
+        {
+            var sectorTypes = template.TemplateSectors.Select(x => x.SectorType).ToList();
+
+            foreach (var sector in sectorTypes)
+            {
+                databaseContext.Sector.Add(new SectorEntity
+                {
+                    Creation_Date = CurrentTimeAsString(),
+                    Last_Edited = CurrentTimeAsString(),
+                    Content = "",
+                    TypeId = sector.TypeId,
+                    ResumeId = resumeId,
+                    Division = "",
+                    Image = ""
+                });
+            }
+
+            await databaseContext.SaveChangesAsync();
         }
 
         public static SectorModel SectorEntityToModel(SectorEntity entity) =>
             new SectorModel
             {
-                SID = entity.SID,
+                SectorId = entity.SectorId,
                 CreationDate = parseDate(entity.Creation_Date),
                 LastEditedDate = parseDate(entity.Last_Edited),
                 Content = entity.Content,
-                TypeID = entity.TypeID,
-                TypeTitle = entity.TypeTitle,
-                RID = entity.RID,
-                ResumeName = entity.ResumeName,
+                TypeId = entity.TypeId,
+                TypeTitle = entity.Type.Title,
+                ResumeId = entity.ResumeId,
+                ResumeName = entity.Resume.Name,
                 Division = entity.Division,
                 Image = entity.Image
             };
@@ -38,7 +67,7 @@ namespace ae_resume_api.Controllers
         public static EmployeeModel EmployeeEntityToModel(EmployeeEntity entity) =>
             new EmployeeModel
             {
-                EID = entity.EID,
+                EmployeeId = entity.EmployeeId.ToString(),
                 Email = entity.Email,
                 Name = entity.Name,
                 JobTitle = entity.JobTitle,
@@ -49,52 +78,52 @@ namespace ae_resume_api.Controllers
         public static TemplateModel TemplateEntityToModel(TemplateEntity entity) =>
             new TemplateModel
             {
-                TemplateID = entity.TemplateID,
+                TemplateId = entity.TemplateId,
                 Title = entity.Title,
                 Description = entity.Description,
-                LastEdited = parseDate(entity.Last_Edited)
+                LastEdited = parseDate(entity.Last_Edited),
+                SectorTypes = entity.TemplateSectors.Select(x => SectorTypeEntityToModel(x.SectorType)).ToList()
             };
 
         public static SectorTypeModel SectorTypeEntityToModel(SectorTypeEntity entity) =>
             new SectorTypeModel
             {
-                TypeID = entity.TypeID,
+                TypeId = entity.TypeId,
                 Title = entity.Title,
                 Description = entity.Description,
-                EID = entity.EID
             };
 
         public static WorkspaceModel WorkspaceEntityToModel(WorkspaceEntity entity) =>
             new WorkspaceModel
             {
-                WID = entity.WID,
+                WorkspaceId = entity.WorkspaceId,
                 CreationDate = parseDate(entity.Creation_Date),
                 Division = entity.Division,
                 ProposalNumber = entity.Proposal_Number,
                 Name = entity.Name,
-                EID = entity.EID
+                EmployeeId = entity.EmployeeId.ToString(),
+                Resumes = entity.Resumes?.Select(x => ResumeEntityToModel(x)).ToList()
             };
+
         public static ResumeModel ResumeEntityToModel(ResumeEntity entity) =>
             new ResumeModel
             {
-                WID = entity.WID,
-                EID = entity.EID,
+                WorkspaceId = entity.WorkspaceId,
+                EmployeeId = entity.EmployeeId.ToString(),
+                EmployeeName = entity.Employee.Name,
                 CreationDate = parseDate(entity.Creation_Date),
                 LastEditedDate = parseDate(entity.Last_Edited),
                 Name = entity.Name,
-                RID = entity.RID,
-                TemplateID = entity.TemplateID,
-                TemplateName = entity.TemplateName,
-                Status = (Status)Enum.Parse(typeof(Status), entity.Status)
+                ResumeId = entity.ResumeId,
+                TemplateId = entity.TemplateId,
+                TemplateName = entity.Template?.Title,
+                Status = entity.Status,
+                SectorList = entity.Sectors.Select(x => SectorEntityToModel(x)).ToList()
             };
 
         public static Status ParseStatus(string status)
         {
             return (Status)Enum.Parse(typeof(Status), status);
         }
-
-
-
-
     }
 }
